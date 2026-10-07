@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from typing import Literal
 
 import pyarrow as pa
 import pyarrow.ipc as ipc
@@ -17,7 +18,7 @@ def test_nonmaximal_catchment_batch_is_rejected(tmp_path: Path) -> None:
     source = tmp_path / "source.parquet"
     output = tmp_path / "catchments.arrow"
     pq.write_table(table, source)
-    with ipc.new_file(str(output), table.schema) as writer:
+    with ipc.new_file(str(output), table.schema, options=ipc.IpcWriteOptions(compression="zstd")) as writer:
         for batch in table.to_batches(max_chunksize=1):
             writer.write_batch(batch)
     with pytest.raises(ValueError, match="maximal"):
@@ -39,7 +40,7 @@ def test_catchment_source_corruption(tmp_path: Path, change: str) -> None:
         changed = table.slice(0, 4098)
     elif change == "extra":
         changed = pa.concat_tables([table, table.slice(0, 1)])
-    with ipc.new_file(str(output), changed.schema) as writer:
+    with ipc.new_file(str(output), changed.schema, options=ipc.IpcWriteOptions(compression="zstd")) as writer:
         for batch in changed.to_batches(max_chunksize=4099 if change == "boundary" else 4096):
             writer.write_batch(batch)
     with pytest.raises(ValueError):
@@ -66,7 +67,7 @@ def test_exact_boundaries_nulls_schema_and_oversized_row(tmp_path: Path) -> None
     source = tmp_path / "source.parquet"
     output = tmp_path / "catchments.arrow"
     pq.write_table(table, source)
-    with ipc.new_file(str(output), schema) as writer:
+    with ipc.new_file(str(output), schema, options=ipc.IpcWriteOptions(compression="zstd")) as writer:
         # One oversize row, rest of the 4096-row source batch, final source batch.
         for offset, size in [(0, 1), (1, 4095), (4096, 1)]:
             writer.write_batch(table.slice(offset, size).to_batches()[0])
@@ -102,7 +103,9 @@ def bundle(tmp_path: Path) -> tuple[Path, Path]:
         target.parent.mkdir(exist_ok=True)
         target.write_bytes((source / name).read_bytes())
     (output / "README.md").write_text("generated delivery notes")
-    with ipc.new_file(str(output / "catchments.arrow"), table.schema) as writer:
+    with ipc.new_file(
+        str(output / "catchments.arrow"), table.schema, options=ipc.IpcWriteOptions(compression="zstd")
+    ) as writer:
         writer.write_batch(table.to_batches()[0])
     schema = pa.schema(
         [
@@ -206,7 +209,9 @@ def test_invalid_source_identity(bundle: tuple[Path, Path], tmp_path: Path, ids:
     source, output = bundle
     table = pa.table({"id": pa.array(ids, type=pa.int64()), "geometry": [b"a", None, b"ccc"]})
     pq.write_table(table, source / "catchments.parquet")
-    with ipc.new_file(str(output / "catchments.arrow"), table.schema) as writer:
+    with ipc.new_file(
+        str(output / "catchments.arrow"), table.schema, options=ipc.IpcWriteOptions(compression="zstd")
+    ) as writer:
         writer.write_table(table)
     with ipc.open_file(str(output / "lookup.arrow")) as reader:
         index = reader.read_all()
@@ -232,3 +237,48 @@ def test_source_unit_count_is_checked(bundle: tuple[Path, Path], tmp_path: Path)
     rehash(output)
     with pytest.raises(ValueError, match="unit count"):
         verify_vector.verify(source, output, tmp_path / "receipt.json")
+
+
+@pytest.mark.parametrize(
+    "artifact,codec",
+    [("catchments.arrow", None), ("catchments.arrow", "lz4"), ("lookup.arrow", "zstd"), ("lookup.arrow", "lz4")],
+)
+def test_physical_compression_is_required(
+    bundle: tuple[Path, Path], tmp_path: Path, artifact: str, codec: Literal["lz4", "zstd"] | None
+) -> None:
+    source, output = bundle
+    with ipc.open_file(str(output / artifact)) as reader:
+        table = reader.read_all()
+    with ipc.new_file(str(output / artifact), table.schema, options=ipc.IpcWriteOptions(compression=codec)) as writer:
+        writer.write_table(table)
+    # Keep hashes and lookup binding coherent so only physical compression fails.
+    with ipc.open_file(str(output / "lookup.arrow")) as reader:
+        index = reader.read_all()
+    index = index.replace_schema_metadata(
+        {
+            b"hfx:format_version": b"0.4.0",
+            b"hfx:catchments_sha256": _fingerprint(output / "catchments.arrow")["sha256"].encode(),
+        }
+    )
+    with ipc.new_file(
+        str(output / "lookup.arrow"),
+        index.schema,
+        options=ipc.IpcWriteOptions(compression=codec if artifact == "lookup.arrow" else None),
+    ) as writer:
+        writer.write_table(index)
+    rehash(output)
+    with pytest.raises(ValueError, match="compression"):
+        verify_vector.verify(source, output, tmp_path / "receipt.json")
+
+
+@pytest.mark.parametrize("codec", [None, "zstd"])
+def test_compression_inspection_includes_dictionary_batches(
+    tmp_path: Path, codec: Literal["lz4", "zstd"] | None
+) -> None:
+    path = tmp_path / "dictionary.arrow"
+    table = pa.table({"label": pa.array(["one", "two", None, "one"]).dictionary_encode()})
+    with ipc.new_file(str(path), table.schema, options=ipc.IpcWriteOptions(compression=codec)) as writer:
+        writer.write_table(table, max_chunksize=2)
+    verify_vector._ipc_compression(path, compressed=codec == "zstd")
+    with pytest.raises(ValueError, match="compression"):
+        verify_vector._ipc_compression(path, compressed=codec != "zstd")

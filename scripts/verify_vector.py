@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import struct
 from array import array
 from pathlib import Path
 from typing import cast
@@ -19,8 +20,81 @@ import pyarrow.parquet as pq
 from hfx.verify_candidates import _fingerprint, _require
 
 
+def _field(data: bytes, table: int, slot: int) -> int:
+    """Locate an optional FlatBuffer table field; zero means its default value."""
+    vtable = table - struct.unpack_from("<i", data, table)[0]
+    size = struct.unpack_from("<H", data, vtable)[0]
+    position = 4 + slot * 2
+    offset = struct.unpack_from("<H", data, vtable + position)[0] if position < size else 0
+    return table + offset if offset else 0
+
+
+def _indirect(data: bytes, position: int) -> int:
+    return position + struct.unpack_from("<I", data, position)[0]
+
+
+def _ipc_compression(path: Path, *, compressed: bool) -> None:
+    """Inspect IPC metadata at footer block offsets without reading batch bodies.
+
+    Field slots follow Arrow format/File.fbs and Message.fbs: Footer dictionary
+    and record-batch Block vectors, Message.header, RecordBatch.compression, and
+    BodyCompression's codec (LZ4_FRAME=0, ZSTD=1) and method (BUFFER=0).
+    PyArrow exposes decoded batches, but not their physical compression metadata.
+    """
+    with path.open("rb") as stream:
+        stream.seek(-10, 2)
+        trailer = stream.read(10)
+        _require(trailer[4:] == b"ARROW1", "invalid IPC file trailer")
+        footer_size = struct.unpack_from("<I", trailer)[0]
+        footer_start = stream.tell() - 10 - footer_size
+        _require(footer_start >= 8, "invalid IPC footer size")
+        stream.seek(footer_start)
+        footer = stream.read(footer_size)
+        root = _indirect(footer, 0)
+        for slot in (2, 3):  # dictionary batches and record batches
+            field = _field(footer, root, slot)
+            if not field:
+                continue
+            vector = _indirect(footer, field)
+            count = struct.unpack_from("<I", footer, vector)[0]
+            for number in range(count):
+                # Block is a 24-byte struct: offset:int64, metadataLength:int32,
+                # four padding bytes, bodyLength:int64.
+                offset, metadata_size = struct.unpack_from("<qi", footer, vector + 4 + number * 24)
+                _require(
+                    8 <= offset < footer_start and 0 < metadata_size <= footer_start - offset,
+                    "invalid IPC block metadata bounds",
+                )
+                stream.seek(offset)
+                prefix = stream.read(4)
+                if prefix == b"\xff\xff\xff\xff":
+                    prefix = stream.read(4)
+                size = struct.unpack("<I", prefix)[0]
+                _require(0 < size <= metadata_size - (stream.tell() - offset), "invalid IPC message metadata size")
+                metadata = stream.read(size)
+                message = _indirect(metadata, 0)
+                header = _field(metadata, message, 2)
+                _require(header != 0, "missing IPC batch header")
+                batch = _indirect(metadata, header)
+                if slot == 2:
+                    batch = _indirect(metadata, _field(metadata, batch, 1))
+                compression = _field(metadata, batch, 3)
+                if not compressed:
+                    _require(compression == 0, "lookup compression must be absent")
+                    continue
+                _require(compression != 0, "catchment compression must be Zstandard")
+                settings = _indirect(metadata, compression)
+                codec = _field(metadata, settings, 0)
+                method = _field(metadata, settings, 1)
+                _require(
+                    codec != 0 and metadata[codec] == 1 and (not method or metadata[method] == 0),
+                    "catchment compression must be Zstandard BUFFER",
+                )
+
+
 def _catchments(source: pq.ParquetFile, output: Path) -> tuple[array[int], list[int]]:
     _require(source.schema_arrow.field("id").type == pa.int64(), "source IDs must have int64 type")
+    _ipc_compression(output, compressed=True)
     ids: array[int] = array("q")
     offsets = [0]
     incoming = iter(source.iter_batches(batch_size=4096))
@@ -68,6 +142,7 @@ def _index(output: Path, data_hash: str, ids: array[int], offsets: list[int]) ->
         ],
         metadata={b"hfx:format_version": b"0.4.0", b"hfx:catchments_sha256": data_hash.encode()},
     )
+    _ipc_compression(output / "lookup.arrow", compressed=False)
     directory: list[dict[str, int]] = []
     count, previous = 0, 0
     with pa.memory_map(str(output / "lookup.arrow"), "r") as mapped:
@@ -196,6 +271,7 @@ def verify(source: Path, output: Path, report: Path) -> dict[str, object]:
             "all source schema, rows, nulls and exact WKB",
             "maximal byte-budget batches and source boundaries",
             "all lookup IDs, addresses and directory ranges",
+            "Zstandard catchment and uncompressed lookup IPC metadata",
             "source unchanged during verification",
         ],
     }

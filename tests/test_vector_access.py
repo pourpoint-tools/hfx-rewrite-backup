@@ -212,3 +212,63 @@ def test_optional_source_comparison(server: tuple[str, dict[str, str], list[str]
     else:
         assert result.returncode == 0, result.stderr
         assert json.loads(report.read_text())["source_verification"]["matched_ids"] == [13]
+
+
+@pytest.mark.parametrize("target", ["source_file", "source_child", "existing_report"])
+def test_report_is_safe_before_network(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, target: str) -> None:
+    from scripts import check_vector_access
+
+    source = tmp_path / "source"
+    source.mkdir()
+    source_file = source / "catchments.parquet"
+    source_file.write_bytes(b"preserve source")
+    report = tmp_path / "report.json"
+    source_arg = source
+    if target == "source_file":
+        report = source_file
+        source_arg = source_file
+    elif target == "source_child":
+        report = source / "new-report.json"
+    else:
+        report.write_bytes(b"preserve receipt")
+    before = {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "check_vector_access",
+            "http://unused.invalid",
+            "--ids",
+            "13",
+            "--source",
+            str(source_arg),
+            "--report",
+            str(report),
+        ],
+    )
+
+    def forbidden_probe(*args: object) -> dict[str, object]:
+        pytest.fail("unsafe report must be rejected before network access")
+
+    monkeypatch.setattr(check_vector_access, "check", forbidden_probe)
+    with pytest.raises((ValueError, FileExistsError)):
+        check_vector_access.main()
+    assert before == {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+
+
+def test_report_created_during_probe_is_preserved(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from scripts import check_vector_access
+
+    report = tmp_path / "report.json"
+    monkeypatch.setattr(
+        sys, "argv", ["check_vector_access", "http://unused.invalid", "--ids", "13", "--report", str(report)]
+    )
+
+    def competing_writer(*args: object) -> dict[str, object]:
+        report.write_bytes(b"other writer")
+        return {"status": "passed"}
+
+    monkeypatch.setattr(check_vector_access, "check", competing_writer)
+    with pytest.raises(FileExistsError):
+        check_vector_access.main()
+    assert report.read_bytes() == b"other writer"

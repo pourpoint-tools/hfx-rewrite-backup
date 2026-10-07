@@ -318,8 +318,16 @@ def main() -> None:
         help="Optional local source Parquet file or bundle directory for independent row comparison",
     )
     args = parser.parse_args()
+    report_path: Path = args.report.resolve()
+    if args.report.exists() or args.report.is_symlink():
+        raise FileExistsError(args.report)
+    if args.source is not None:
+        source_path: Path = args.source.resolve()
+        if report_path == source_path or (source_path.is_dir() and report_path.is_relative_to(source_path)):
+            raise ValueError("report must be outside the source")
     report = check(args.url, args.ids, args.source)
-    args.report.write_text(json.dumps(report, indent=2) + "\n")
+    with report_path.open("x") as stream:
+        stream.write(json.dumps(report, indent=2) + "\n")
 
 
 if __name__ == "__main__":
