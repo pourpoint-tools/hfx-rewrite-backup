@@ -9,9 +9,10 @@ with minimal documentation and very little supporting code. Both the format and
 the repository's purpose are open to redesign, including changes that better
 serve the Python rewrite of Pourpoint.
 
-This repository contains a small local producer for two
-[experimental selective-access candidates](docs/selective-access-candidates.md).
-It does not define an approved replacement standard or a general-purpose toolkit.
+The [HFX 0.4.0 Vector Data contract](docs/v0.4.0/vector-data.md) specifies
+Arrow catchment batches, an ID lookup, and unchanged graph and snap artifacts.
+Small production and verification scripts live in `scripts/`. The earlier
+[selective-access candidates](docs/selective-access-candidates.md) remain experimental evidence.
 The package version `0.0.0.dev0` is a setup placeholder, not an HFX format version or release
 plan. No package publishing or CI is configured.
 
@@ -38,11 +39,36 @@ uv sync
 uv run pytest
 uv run ruff format --check
 uv run ruff check
-uv run ty check src
+uv run ty check src scripts tests
 uv build
 ```
 
 See [AGENTS.md](AGENTS.md) for development conventions.
+
+## GRIT vector production
+
+The [GRIT publication record](docs/v0.4.0/grit-verification.md) contains the
+public URL, artifact identities, verification results and cleanup status.
+
+Use new, disjoint source/output directories on the same filesystem. Download the
+four vector inputs and source `manifest.json`, `NOTICE`, `CITATION.txt`, and
+`README.md`. Verify the source hashes before conversion. The converter hardlinks
+unchanged graph/snap files; keep both directories immutable during verification.
+It refuses an existing output directory. Failed outputs stay available for inspection.
+
+```bash
+uv run python scripts/convert_vector.py SOURCE OUTPUT
+uv run python scripts/verify_vector.py SOURCE OUTPUT --report verification.json
+uv run python scripts/check_vector_access.py PUBLIC_BUNDLE_URL --ids PRESENT_ID ABSENT_ID --source SOURCE --report public-access.json
+```
+
+The verifier receipt must be outside source and output. Conversion and verification
+read all source records; the HTTP probe reads only requested remote batches. Its
+optional `--source` check scans local source rows independently. Monitor free disk
+space during production. Publish only verified outputs at a confirmed unused
+prefix, preserve existing objects, and publish `manifest.json` last. Verify upload
+identities and public range access before removing this run's local bulk files.
+Credentials and bulk data stay outside Git.
 
 ## License
 
