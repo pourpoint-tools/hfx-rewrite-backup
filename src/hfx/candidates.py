@@ -25,7 +25,15 @@ class Directory(TypedDict):
     batches: list[IndexBatch]
 
 
-def write_index(path: Path, blocks: list[pa.Array], data_hash: str, candidate: str, batch_rows: int) -> Directory:
+def write_index(
+    path: Path,
+    blocks: list[pa.Array],
+    data_hash: str,
+    candidate: str,
+    batch_rows: int,
+    *,
+    format_version: str | None = None,
+) -> Directory:
     """Sort physical addresses once at publication, without assumptions about IDs."""
     if batch_rows <= 0:
         raise ValueError("index batch rows must be positive")
@@ -35,7 +43,14 @@ def write_index(path: Path, blocks: list[pa.Array], data_hash: str, candidate: s
             pa.field("block", pa.int32(), nullable=False),
             pa.field("row", pa.int32(), nullable=False),
         ],
-        metadata={b"hfx:catchments_sha256": data_hash.encode(), b"hfx:candidate": candidate.encode()},
+        metadata={
+            b"hfx:catchments_sha256": data_hash.encode(),
+            **(
+                {b"hfx:format_version": format_version.encode()}
+                if format_version
+                else {b"hfx:candidate": candidate.encode()}
+            ),
+        },
     )
     tables = [
         pa.Table.from_arrays(
