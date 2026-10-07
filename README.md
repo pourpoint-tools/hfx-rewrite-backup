@@ -9,9 +9,10 @@ with minimal documentation and very little supporting code. Both the format and
 the repository's purpose are open to redesign, including changes that better
 serve the Python rewrite of Pourpoint.
 
-For now, this repository contains only Python development scaffolding. It does
-not yet define a replacement standard or implement a toolkit. The package
-version `0.0.0.dev0` is a setup placeholder, not an HFX format version or release
+This repository contains a small local producer for two
+[experimental selective-access candidates](docs/selective-access-candidates.md).
+It does not define an approved replacement standard or a general-purpose toolkit.
+The package version `0.0.0.dev0` is a setup placeholder, not an HFX format version or release
 plan. No package publishing or CI is configured.
 
 ## Existing HFX reference
