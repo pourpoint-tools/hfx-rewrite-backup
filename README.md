@@ -47,6 +47,9 @@ See [AGENTS.md](AGENTS.md) for development conventions.
 
 ## GRIT vector production
 
+The [GRIT publication record](docs/v0.4.0/grit-verification.md) contains the
+public URL, artifact identities, verification results and cleanup status.
+
 Use new, disjoint source/output directories on the same filesystem. Download the
 four vector inputs and source `manifest.json`, `NOTICE`, `CITATION.txt`, and
 `README.md`. Verify the source hashes before conversion. The converter hardlinks
