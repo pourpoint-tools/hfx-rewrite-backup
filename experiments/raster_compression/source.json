@@ -1,0 +1,7 @@
+{
+"manifest_url":"https://basin-delineations-public.upstream.tech/grit/hfx-v0.3.0/manifest.json",
+"manifest_sha256":"02339ff92cbfd1d2ea57bb5332cb843b98115cd7a7395f64c14fac78d2ed643c",
+"source_readme_url":"https://basin-delineations-public.upstream.tech/grit/hfx-v0.3.0/README.md",
+"source_readme_sha256":"2b86e8278996aa7540359e6b397c0a042f90c827e9c61730c81fca9eb3e63e56",
+"source_global_sha256_reported_not_recomputed":{"acc":"30f16ba3238085289d87e72f3386fa152da7e9b56063f5d610422d20a79fc98b","dir":"eace32b63c4bc09e8172f03cce6dacfbf09a86c6b51c42b50c6cccd498d4d656"}
+}
