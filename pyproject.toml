@@ -32,6 +32,8 @@ raster-experiment = [
     "boto3-stubs[s3]>=1.43.109",
     "numpy>=2.5.3",
     "rasterio>=1.5.2",
+    "rio-cogeo>=7.0.3",
+    "tifffile>=2026.9.20",
 ]
 
 [tool.ruff]
