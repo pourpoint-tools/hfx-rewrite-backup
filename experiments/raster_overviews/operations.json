@@ -1,0 +1,294 @@
+{
+  "server": {
+    "id": 169381744,
+    "name": "hfx-overview-trial-20261008-1246",
+    "created": "2026-10-08T12:46:32Z",
+    "location": "hel1",
+    "type": "ccx23",
+    "ipv4": "89.167.2.16",
+    "primary_ipv4_id": 154299103,
+    "primary_ipv6_id": 154299104,
+    "volumes": [],
+    "access": "root SSH using existing nicolas-workstation key; no credentials copied",
+    "source_checkout": "/root/hfx",
+    "run_directory": "/root/grit-overview-run",
+    "tools_directory": "/root/overview-tools",
+    "code_revision": "5078ad54c237d5ccfc8c1bc8cd65578dd3262184"
+  },
+  "cost": {
+    "checked_at": "2026-10-08T12:46:12.269567+00:00",
+    "currency": "EUR",
+    "vat_percent": 8.1,
+    "server_hourly_gross": 0.1489618,
+    "ipv4_hourly_gross": 0.0008648,
+    "total_hourly_gross": 0.1498266,
+    "eur_usd": 1.1177,
+    "fx_date": "2026-10-07",
+    "fx_source": "https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD",
+    "usd_hourly_estimate": 0.16746119082,
+    "budget_usd": 5,
+    "budget_exhaustion_estimate_utc": "2026-10-09T18:37:59Z",
+    "conservative_one_hour_reserve_cutoff_utc": "2026-10-09T17:37:59Z",
+    "maintainer_checkin_utc": "2026-10-09T12:46:32Z",
+    "first_budget_warning_utc": "2026-10-09T08:46:32Z",
+    "billing_continues_idle": true,
+    "rounding_fx_fees_not_measured": true,
+    "spend_estimate_at_utc": "2026-10-08T12:54:31.172416+00:00",
+    "elapsed_usd_estimate": 0.022289662611386308
+  },
+  "tools": {
+    "cogger_version": "0.1.1",
+    "cogger_linux_amd64_zip_sha256": "79f6e9885cf11bcb7df00ec2246ea5bde633068bd4df164ed1f316723165a7a4",
+    "gdal_cli_version": "3.8.4",
+    "gdal_rasterio_version": "3.12.2",
+    "uv": "0.12.23"
+  },
+  "disk_inventory": {
+    "files": [
+      {
+        "path": "acquisition.json",
+        "bytes": 11587,
+        "allocated_bytes": 12288
+      },
+      {
+        "path": "bulk/CITATION.txt",
+        "bytes": 2495,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "bulk/NOTICE",
+        "bytes": 1454,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "bulk/README.md",
+        "bytes": 296,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "bulk/greenland-acc-input.tif",
+        "bytes": 22671,
+        "allocated_bytes": 24576
+      },
+      {
+        "path": "bulk/greenland-acc-output.tif",
+        "bytes": 14584,
+        "allocated_bytes": 16384
+      },
+      {
+        "path": "bulk/greenland-dir-input.tif",
+        "bytes": 7406,
+        "allocated_bytes": 8192
+      },
+      {
+        "path": "bulk/greenland-dir-output.tif",
+        "bytes": 4409,
+        "allocated_bytes": 8192
+      },
+      {
+        "path": "bulk/madagascar-acc-input.tif",
+        "bytes": 1198075,
+        "allocated_bytes": 1200128
+      },
+      {
+        "path": "bulk/madagascar-acc-output.tif",
+        "bytes": 891519,
+        "allocated_bytes": 892928
+      },
+      {
+        "path": "bulk/madagascar-dir-input.tif",
+        "bytes": 388777,
+        "allocated_bytes": 389120
+      },
+      {
+        "path": "bulk/madagascar-dir-output.tif",
+        "bytes": 278718,
+        "allocated_bytes": 282624
+      },
+      {
+        "path": "bulk/source.json",
+        "bytes": 569,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "cogger/bulk/greenland-acc-input.tif",
+        "bytes": 22671,
+        "allocated_bytes": 24576
+      },
+      {
+        "path": "cogger/bulk/greenland-acc-output.tif",
+        "bytes": 14406,
+        "allocated_bytes": 16384
+      },
+      {
+        "path": "cogger/bulk/greenland-dir-input.tif",
+        "bytes": 7406,
+        "allocated_bytes": 8192
+      },
+      {
+        "path": "cogger/bulk/greenland-dir-output.tif",
+        "bytes": 4231,
+        "allocated_bytes": 8192
+      },
+      {
+        "path": "cogger/bulk/madagascar-acc-input.tif",
+        "bytes": 1198075,
+        "allocated_bytes": 1200128
+      },
+      {
+        "path": "cogger/bulk/madagascar-acc-output.tif",
+        "bytes": 891341,
+        "allocated_bytes": 892928
+      },
+      {
+        "path": "cogger/bulk/madagascar-dir-input.tif",
+        "bytes": 388777,
+        "allocated_bytes": 389120
+      },
+      {
+        "path": "cogger/bulk/madagascar-dir-output.tif",
+        "bytes": 278540,
+        "allocated_bytes": 282624
+      },
+      {
+        "path": "cogger/greenland-acc-clean.time",
+        "bytes": 791,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "cogger/greenland-acc-copy.time",
+        "bytes": 871,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "cogger/greenland-acc-layout.txt",
+        "bytes": 224,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "cogger/greenland-acc-verify.json",
+        "bytes": 669,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "cogger/greenland-dir-clean.time",
+        "bytes": 791,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "cogger/greenland-dir-copy.time",
+        "bytes": 871,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "cogger/greenland-dir-layout.txt",
+        "bytes": 224,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "cogger/greenland-dir-verify.json",
+        "bytes": 669,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "cogger/madagascar-acc-clean.time",
+        "bytes": 791,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "cogger/madagascar-acc-copy.time",
+        "bytes": 874,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "cogger/madagascar-acc-layout.txt",
+        "bytes": 225,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "cogger/madagascar-acc-verify.json",
+        "bytes": 669,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "cogger/madagascar-dir-clean.time",
+        "bytes": 792,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "cogger/madagascar-dir-copy.time",
+        "bytes": 874,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "cogger/madagascar-dir-layout.txt",
+        "bytes": 225,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "cogger/madagascar-dir-verify.json",
+        "bytes": 669,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "fallback.log",
+        "bytes": 1357,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "greenland-acc-layout.txt",
+        "bytes": 217,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "greenland-dir-layout.txt",
+        "bytes": 217,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "madagascar-acc-layout.txt",
+        "bytes": 218,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "madagascar-dir-layout.txt",
+        "bytes": 218,
+        "allocated_bytes": 4096
+      },
+      {
+        "path": "rewrite.json",
+        "bytes": 2101,
+        "allocated_bytes": 4096
+      }
+    ],
+    "disk_usage": [
+      160921083904,
+      2885275648,
+      151465041920
+    ]
+  },
+  "disk_measurement_boundary": "Post-run logical and allocated file sizes; not a sampled peak. OS/environment install excluded from trial directory but df showed 2.7GiB used,142GiB available. No high-frequency transient-file measurement; source inspection informs temporary file needs. Four cogger pipelines overlapped each other and fallback; tiny timings are not a matched benchmark. cp time excluded; gdaladdo and cogger separately GNU time measured; cogger below0.01s resolution.",
+  "remote_summary": {
+    "fallback": {
+      "body_bytes": 2392305,
+      "http_requests": 26,
+      "checked_windows": 8
+    },
+    "cogger": {
+      "body_bytes": 2374497,
+      "http_requests": 26,
+      "checked_windows": 8
+    }
+  },
+  "cloud_upload": {
+    "objects": 11,
+    "payload_bytes": 2381993,
+    "transfer_boundary": "Exact PUT body sizes, not measured socket transfer; SCP/SSH/setup traffic not metered; raster acquisition/verification response-body counts exclude headers/TLS/TCP and count bridge path overhead."
+  },
+  "validation": {
+    "vm_tests": "66 passed in6.13s; no warnings reported",
+    "code_revision": "5078ad54c237d5ccfc8c1bc8cd65578dd3262184",
+    "working_tree_clean": true,
+    "no_conversion_jobs_running_at": "2026-10-08T12:55:12.515311+00:00"
+  }
+}
