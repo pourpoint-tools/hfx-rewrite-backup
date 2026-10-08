@@ -48,8 +48,11 @@ attribution/provenance artifact and bounded head/tail hashes.
   for each object or part, checked returned part and composite multipart ETags,
   and checked HEAD sizes, ETags and stored SHA-256 metadata. A second HEAD pass
   checked all artifacts before the manifest was uploaded last. ETags served as
-  transport identities, not SHA-256 digests. Objects have immutable cache policy;
-  corrections require a new prefix.
+  transport identities, not SHA-256 digests. Objects were published with immutable
+  cache policy. Data corrections require a new prefix. The later approved
+  [raster extension](raster-data.md) permits a manifest/documentation amendment,
+  with cache handling recorded by that delivery; it does not alter these vector
+  identities or this original publication receipt.
 - Public selective reads passed with real HTTP 206 ranges, exact Content-Range,
   identity encoding, strong ETags pinned by If-Match, bounded artifact checks,
   directory digest and lookup binding. Nine present IDs matched independent

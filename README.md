@@ -11,6 +11,8 @@ serve the Python rewrite of Pourpoint.
 
 The [HFX 0.4.0 Vector Data contract](docs/v0.4.0/vector-data.md) specifies
 Arrow catchment batches, an ID lookup, and unchanged graph and snap artifacts.
+The [raster contract](docs/v0.4.0/raster-data.md) adds optional native-grid D8 pairs
+and defines the approved GRIT raster extension; it is not a delivery receipt.
 Small production and verification scripts live in `scripts/`. The earlier
 [selective-access candidates](docs/selective-access-candidates.md) remain experimental evidence.
 The package version `0.0.0.dev0` is a setup placeholder, not an HFX format version or release
@@ -68,6 +70,9 @@ optional `--source` check scans local source rows independently. Monitor free di
 space during production. Publish only verified outputs at a confirmed unused
 prefix, preserve existing objects, and publish `manifest.json` last. Verify upload
 identities and public range access before removing this run's local bulk files.
+The approved additive GRIT raster extension follows the
+[manifest amendment rules](docs/v0.4.0/vector-data.md#artifact-identity-and-range-access)
+instead of requiring a new prefix; vector artifacts stay unchanged.
 Credentials and bulk data stay outside Git.
 
 ## License
