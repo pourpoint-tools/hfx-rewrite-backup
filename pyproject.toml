@@ -27,6 +27,12 @@ dev = [
     "ty>=0.0.35",
     "uv-build>=0.12.1,<0.13",
 ]
+raster-experiment = [
+    "boto3>=1.43.109",
+    "boto3-stubs[s3]>=1.43.109",
+    "numpy>=2.5.3",
+    "rasterio>=1.5.2",
+]
 
 [tool.ruff]
 line-length = 120
