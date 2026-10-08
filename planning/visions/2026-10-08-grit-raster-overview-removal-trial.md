@@ -78,10 +78,11 @@ cloud data, production replacements or live manifests. Do not expose credentials
 On success, retain the trial VM and needed storage for possible reuse after the
 maintainer reviews the results. Leave no conversion jobs running. Report the
 ongoing hourly cost and explicitly state that billing continues, including
-while idle. Notify the maintainer before retained-resource charges reach the
-budget cap; retention is not authorization for unlimited spending or global
-processing. Arrange cleanup with the maintainer if the trial fails or is
-abandoned. Delete only trial-owned resources when cleanup is authorized;
+while idle. Include cumulative spend, the estimated UTC time when the remaining
+budget will be exhausted, and an earlier check-in time in the handoff. Notify
+the maintainer before retained-resource charges reach the budget cap; retention
+is not authorization for unlimited spending or global processing. Arrange cleanup
+with the maintainer if the trial fails or is abandoned. Delete only trial-owned resources when cleanup is authorized;
 final cleanup must include the VM, volumes and IP, not merely power-off.
 
 ## Result and handoff
