@@ -41,9 +41,15 @@ uv sync
 uv run pytest
 uv run ruff format --check
 uv run ruff check
-uv run ty check src scripts tests
+uv run --group raster-experiment ty check src scripts tests
 uv build
 ```
+
+The raster producer checks use optional dependencies. Run
+`uv run --group raster-experiment pytest` to include their tests; the default
+`uv run pytest` skips them when those dependencies are absent. The full type
+check above includes the raster scripts. See [scripts/README.md](scripts/README.md)
+for producer verification commands.
 
 See [AGENTS.md](AGENTS.md) for development conventions.
 
