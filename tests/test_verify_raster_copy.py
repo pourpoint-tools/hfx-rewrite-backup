@@ -93,7 +93,9 @@ def test_no_tile_payload_can_overlap_metadata(tmp_path: Path) -> None:
     path = tmp_path / "overlap.tif"
     raster(path)
     with tifffile.TiffFile(path) as tif:
-        offset_position = tif.pages[0].tags[324].valueoffset
+        page = tif.pages[0]
+        assert isinstance(page, tifffile.TiffPage)
+        offset_position = page.tags[324].valueoffset
     with path.open("r+b") as stream:
         stream.seek(offset_position)
         stream.write((16).to_bytes(8, "little"))
