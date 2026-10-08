@@ -4,7 +4,8 @@
 
 A bundle contains one UTF-8 `manifest.json` and the artifacts it identifies.
 Artifact paths are relative POSIX paths within the bundle root. Each path names
-one immutable file. The manifest has these fields:
+one immutable data or provenance file, except for the explicitly permitted
+publication-document amendment described below. The manifest has these fields:
 
 | Field | Type and meaning |
 | --- | --- |
@@ -25,15 +26,16 @@ one immutable file. The manifest has these fields:
 | `directory` | `"lookup-directory.json"` |
 | `index_batch_rows` | Integer `65536` |
 | `catchment_batch_bytes` | Integer `8388608` |
-| `auxiliary` | Array of snap declarations described below; an empty array is permitted |
+| `auxiliary` | Array of snap declarations described below and optional [D8 raster declarations](raster-data.md); an empty array is permitted |
 | `source_manifest` | `"source-manifest.json"`, original source manifest bytes |
 | `artifacts` | Object mapping every delivered file except `manifest.json` to its fingerprint |
 
 Source identity, provenance, attribution, additional source fields and applicable
 metadata are preserved. `source-manifest.json` and `source-README.md` are source
 provenance. Artifact discovery uses the root manifest. Its auxiliary declarations
-cover the delivered vector files. `NOTICE`, `CITATION.txt` and `README.md` carry
-applicable licensing, attribution, transformation notes and dataset caveats.
+identify delivered snap files and any delivered raster pairs explicitly.
+`NOTICE`, `CITATION.txt` and `README.md` carry applicable licensing, attribution,
+transformation notes and dataset caveats.
 Readers accept additional manifest fields and validate fields they use.
 
 ## Catchments
@@ -151,7 +153,7 @@ check sizes and bounded hashes before using the lookup and catchments, verify
 the lookup's catchment digest binding, and verify the directory's full digest.
 Bounded hashes detect mismatches within their checked regions. Complete integrity
 uses full producer and upload verification, a trusted manifest and immutable
-publication. Consumers needing independent integrity assurance verify full digests.
+data artifacts. Consumers needing independent integrity assurance verify full digests.
 
 Locate IPC batches through the file trailer: a little-endian 32-bit footer length
 followed by the six bytes `ARROW1`. The footer supplies record-batch offsets and
@@ -167,6 +169,20 @@ identity. Reject changed identities, malformed ranges, out-of-bounds addresses
 and mismatched fingerprints. Reading one bundle requires a consistent manifest
 and artifact object set for the duration of access.
 
-Publish verified artifacts at an unused versioned prefix, verify uploaded
-identities, then publish the manifest. Keep published objects immutable.
-Corrections use a new prefix and manifest with fresh artifact bindings.
+For a new bundle, publish verified artifacts at an unused versioned prefix,
+verify uploaded identities, then publish the manifest. Keep data artifacts
+immutable. Corrections to data artifacts use a new prefix and manifest with
+fresh bindings.
+
+The approved [GRIT raster extension](raster-data.md) may add new raster artifacts
+and amend the existing in-development 0.4.0 root manifest and publication
+documentation. It must not replace vector data or alter existing vector bindings,
+declaration meanings or source provenance. Verify new artifacts before publishing
+the amended manifest last. Preserve previous small-object bytes and identities
+in receipts, and record replacement identities and cache handling. Prefer new,
+separately bound publication notes over replacing a document bound by an old
+manifest. Any document amendment must preserve valid reads of retained manifest
+snapshots. Cached old manifests remain valid vector-only snapshots; new manifests declare a verified
+complete bundle. Readers retain one consistent manifest snapshot and pin artifact
+transport versions for each selected read. This exception does not authorize
+changes to any 0.3.0 cloud object.
