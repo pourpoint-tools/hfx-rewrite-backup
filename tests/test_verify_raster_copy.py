@@ -3,11 +3,16 @@
 import hashlib
 from pathlib import Path
 
-import numpy as np
 import pytest
-import tifffile
 
-from scripts.verify_raster_copy import capture_source, verify_output
+# The default developer environment does not install the optional raster group.
+for dependency in ("numpy", "tifffile", "rasterio", "rio_cogeo"):
+    pytest.importorskip(dependency)
+
+import numpy as np  # noqa: E402
+import tifffile  # noqa: E402
+
+from scripts.verify_raster_copy import capture_source, verify_output  # noqa: E402
 
 
 def raster(path: Path, *, value: int = 7, description: str = "source history") -> None:
