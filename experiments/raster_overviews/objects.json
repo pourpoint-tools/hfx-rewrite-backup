@@ -1,0 +1,98 @@
+{
+  "bucket": "basin-delineations-public",
+  "prefix": "experiments/grit-raster-overviews/77c9f7b19a014b768d918da95acaac22/",
+  "public_base": "https://basin-delineations-public.upstream.tech/experiments/grit-raster-overviews/77c9f7b19a014b768d918da95acaac22/",
+  "objects": [
+    {
+      "key": "experiments/grit-raster-overviews/77c9f7b19a014b768d918da95acaac22/fallback/greenland-acc-output.tif",
+      "bytes": 14584,
+      "sha256": "b921b6099eb026383d45e0e2976165ac3459d5a326fbce1f8fda2bcf0d134d05",
+      "state": "deleted_verified_404",
+      "etag": "\"73ea2441cc4b3a459d67c642221d6d73\"",
+      "head_verified": true
+    },
+    {
+      "key": "experiments/grit-raster-overviews/77c9f7b19a014b768d918da95acaac22/fallback/greenland-dir-output.tif",
+      "bytes": 4409,
+      "sha256": "26b32d6382d24eb61463edfd9b67ada951a6f1d128f48b362f6d298c3440aa5f",
+      "state": "deleted_verified_404",
+      "etag": "\"c775edb63033f87c3915e21f7853f279\"",
+      "head_verified": true
+    },
+    {
+      "key": "experiments/grit-raster-overviews/77c9f7b19a014b768d918da95acaac22/fallback/madagascar-acc-output.tif",
+      "bytes": 891519,
+      "sha256": "03ad48ef7cc80c28d097fbae7ee3911225eac7d6b585ca6d40587b6bcc0098a3",
+      "state": "deleted_verified_404",
+      "etag": "\"a40b69db96e254065c71ce74b040bc23\"",
+      "head_verified": true
+    },
+    {
+      "key": "experiments/grit-raster-overviews/77c9f7b19a014b768d918da95acaac22/fallback/madagascar-dir-output.tif",
+      "bytes": 278718,
+      "sha256": "536035728c3788dbed7b1289ac9100600e04363fb287e9455061e9aa916a16e9",
+      "state": "deleted_verified_404",
+      "etag": "\"d0b47b2a27d2d77b1387b261632f65b2\"",
+      "head_verified": true
+    },
+    {
+      "key": "experiments/grit-raster-overviews/77c9f7b19a014b768d918da95acaac22/cogger/greenland-acc-output.tif",
+      "bytes": 14406,
+      "sha256": "7be9d1820c9687bacbb4f17a48d1390e0a65280a89103a86431ee9004a26bfa4",
+      "state": "deleted_verified_404",
+      "etag": "\"41556d59e784a46b726412bf257dd369\"",
+      "head_verified": true
+    },
+    {
+      "key": "experiments/grit-raster-overviews/77c9f7b19a014b768d918da95acaac22/cogger/greenland-dir-output.tif",
+      "bytes": 4231,
+      "sha256": "b2388066983ad40c5c39e75af461d994c7dda161a14a98c74c608149d5444132",
+      "state": "deleted_verified_404",
+      "etag": "\"bea5b3b0e7a04e3e1b34b1be9cee3fe4\"",
+      "head_verified": true
+    },
+    {
+      "key": "experiments/grit-raster-overviews/77c9f7b19a014b768d918da95acaac22/cogger/madagascar-acc-output.tif",
+      "bytes": 891341,
+      "sha256": "08c73b051552c9c5d1e7b41b86ac1c593b246786d188c1546b9d383e5132caa3",
+      "state": "deleted_verified_404",
+      "etag": "\"bf50edae944ffca3c512c477a619f101\"",
+      "head_verified": true
+    },
+    {
+      "key": "experiments/grit-raster-overviews/77c9f7b19a014b768d918da95acaac22/cogger/madagascar-dir-output.tif",
+      "bytes": 278540,
+      "sha256": "58cd65596a6e76de131ec4d72ab3b39582d71d0f4fd57449a18ca07750db0410",
+      "state": "deleted_verified_404",
+      "etag": "\"8444601861ad2c575661c3077021b634\"",
+      "head_verified": true
+    },
+    {
+      "key": "experiments/grit-raster-overviews/77c9f7b19a014b768d918da95acaac22/NOTICE",
+      "bytes": 1454,
+      "sha256": "eac224bf0b70b1494e5abd89f80079d665150ea744a2f730593f7216ca223db3",
+      "state": "deleted_verified_404",
+      "etag": "\"28091eecd2b924581a45f5b71bc3b982\"",
+      "head_verified": true
+    },
+    {
+      "key": "experiments/grit-raster-overviews/77c9f7b19a014b768d918da95acaac22/CITATION.txt",
+      "bytes": 2495,
+      "sha256": "8c7bf86a5962bf42282bbfd401226773601c2551f79685bad9be68d3b41363ac",
+      "state": "deleted_verified_404",
+      "etag": "\"4a1ff46d54bb49d3948f6407623f6968\"",
+      "head_verified": true
+    },
+    {
+      "key": "experiments/grit-raster-overviews/77c9f7b19a014b768d918da95acaac22/README.md",
+      "bytes": 296,
+      "sha256": "b5050cdf25edfab079355c9dcba61ed1a317555ca91cbefd3c025c773e97293e",
+      "state": "deleted_verified_404",
+      "etag": "\"23cab89661cb605a2f4a27843dad7efe\"",
+      "head_verified": true
+    }
+  ],
+  "created_at": "2026-10-08T12:52:07.562693+00:00",
+  "prefix_empty_verified": true,
+  "cleanup_verified_at": "2026-10-08T12:54:58.426650+00:00"
+}
