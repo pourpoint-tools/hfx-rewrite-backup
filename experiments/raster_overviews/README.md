@@ -126,11 +126,11 @@ uv run --group raster-experiment python -m experiments.raster_overviews.trial ac
 # Fallback: COG OVERVIEWS=NONE BIGTIFF=YES BLOCKSIZE=512 COMPRESS=DEFLATE PREDICTOR=NO LEVEL=6
 uv run --group raster-experiment python -m experiments.raster_overviews.trial rewrite "$RUN"
 # Raw-copy example; repeat for each of the four small inputs:
-cp "$RUN/bulk/greenland-acc-input.tif" work.tif
-gdaladdo -clean work.tif
-cogger -output output.tif work.tif
-uv run --group raster-experiment python -m experiments.raster_overviews.trial verify-raw "$RUN/bulk/greenland-acc-input.tif" output.tif
-/usr/bin/python3 -m osgeo_utils.samples.validate_cloud_optimized_geotiff --full-check=yes output.tif
+cp "$RUN/bulk/greenland-acc-input.tif" "$RUN/work.tif"
+gdaladdo -clean "$RUN/work.tif"
+cogger -output "$RUN/raw-output.tif" "$RUN/work.tif"
+uv run --group raster-experiment python -m experiments.raster_overviews.trial verify-raw "$RUN/bulk/greenland-acc-input.tif" "$RUN/raw-output.tif"
+/usr/bin/python3 -m osgeo_utils.samples.validate_cloud_optimized_geotiff --full-check=yes "$RUN/raw-output.tif"
 # After conditional publication to a new trial-owned prefix:
 uv run --group raster-experiment python -m experiments.raster_overviews.trial verify-remote "$RUN" "$PUBLIC_BASE"
 ```
