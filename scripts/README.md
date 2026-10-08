@@ -10,8 +10,8 @@ Before any `gdaladdo -clean` mutation of the disposable local input:
 uv run --group raster-experiment python scripts/verify_raster_copy.py capture-source INPUT.tif TRUSTED_SHA256 source.json
 ```
 
-Obtain `TRUSTED_SHA256` from the retained production source manifest, not from
-an unverified download. Preserve `source.json` outside bulk scratch storage.
+Obtain `TRUSTED_SHA256` from trusted published source provenance (for GRIT,
+the source README), not from an unverified download. Preserve `source.json` outside bulk scratch storage.
 The command only writes a receipt after the complete file matches that hash.
 Do not modify inputs while verification runs. After raw copying:
 

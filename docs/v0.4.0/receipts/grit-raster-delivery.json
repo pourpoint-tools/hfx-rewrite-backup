@@ -1,0 +1,249 @@
+{
+  "format_version": "0.4.0",
+  "bundle_url": "https://basin-delineations-public.upstream.tech/grit/hfx-v0.4.0/",
+  "source_pair_bytes": 255756386559,
+  "output_pair_bytes": 186456055709,
+  "removed_bytes": 69300330850,
+  "artifacts": {
+    "aux/d8/flow_dir.tif": {
+      "size_bytes": 35460747402,
+      "sha256": "6d03ccdc092b914be0ae41975fbafebb2b02334ff481a1589897539228ab7c65",
+      "head_sha256": "6fdfd1be11525d05e25d90a16558f342497566fac4433f18048f6e771baaf7f0",
+      "tail_sha256": "fb8952bac4fa1785df636c7e553cd1dfe5d7327a128cc39060659a9c38605f70",
+      "source_identity": {
+        "size_bytes": 50686516478,
+        "sha256": "eace32b63c4bc09e8172f03cce6dacfbf09a86c6b51c42b50c6cccd498d4d656",
+        "head_sha256": "bbe1f25686518586801fe1832753f92b7d4536f8e3d2fb5accd586655232cc34",
+        "tail_sha256": "fb8952bac4fa1785df636c7e553cd1dfe5d7327a128cc39060659a9c38605f70"
+      },
+      "native_payload_sha256": "0727880d74c88bc765256d03ed815f2891c95aa9611d0244db5e3083c3bc18d3",
+      "native_tiles": 2041930,
+      "upload_etag": "b3fc5783c3be4bb1cd31d90c6b4cc796-529",
+      "metadata_equal": true,
+      "native_bits_equal": true,
+      "masks_equal": true,
+      "overviews": [],
+      "validator_warnings": [
+        "The file is greater than 512xH or 512xW, it is recommended to include internal overviews"
+      ]
+    },
+    "aux/d8/flow_acc.tif": {
+      "size_bytes": 150995308307,
+      "sha256": "01e8b76570a8d98026fdad77107ed5fe719490433d0351c43b62aca32ff0c15d",
+      "head_sha256": "8883dd98fa4b3e1aa0650c73564f31bbcbec96c1305075df5c712fed28aafd7a",
+      "tail_sha256": "bb4b0c3203ecf773c9cd2cb780c0eb8b272cfeb76f005bf5917ec03a6fcc5d12",
+      "source_identity": {
+        "size_bytes": 205069870081,
+        "sha256": "30f16ba3238085289d87e72f3386fa152da7e9b56063f5d610422d20a79fc98b",
+        "head_sha256": "bfebf8d502c737207784ddc842d375c213498dc23b0e199d3c1bf286275d337c",
+        "tail_sha256": "bb4b0c3203ecf773c9cd2cb780c0eb8b272cfeb76f005bf5917ec03a6fcc5d12"
+      },
+      "native_payload_sha256": "4266fde837d8b33cf1e23530f7b6051888cbad9de439d1e96ab0095652e0875f",
+      "native_tiles": 2041930,
+      "upload_etag": "9e5e76dd83e80d58f6b2373b6ac4ff78-2251",
+      "metadata_equal": true,
+      "native_bits_equal": true,
+      "masks_equal": true,
+      "overviews": [],
+      "validator_warnings": [
+        "The file is greater than 512xH or 512xW, it is recommended to include internal overviews"
+      ]
+    }
+  },
+  "manifest": {
+    "previous_sha256": "fb6f93472cffe5868fb6595de725936c9fd881caa7534700fd6bc8d1fde286a6",
+    "sha256": "3f8e6bb95e08063fff773096a6b949d3925527f15e748f66589b6d8ba73993fb",
+    "size_bytes": 6776,
+    "etag": "\"62438d5c269a693eeb0b28986be51070\"",
+    "cache_control": "public,max-age=0,must-revalidate",
+    "ordinary_and_cache_busted_public_readback_equal": true,
+    "publication_last": true
+  },
+  "public_checks": {
+    "paired_windows": [
+      {
+        "kind": "dir",
+        "name": "greenland",
+        "window": [
+          391168,
+          49152,
+          1024,
+          1024
+        ],
+        "equal": true,
+        "expected_cells_sha256": "d7224a1a322eb40808a4435410ea8f38bfe1914c5d33b0e0a41e180b6c66afba",
+        "actual_cells_sha256": "d7224a1a322eb40808a4435410ea8f38bfe1914c5d33b0e0a41e180b6c66afba",
+        "expected_mask_sha256": "73d5774e100d2ede575f0a925035a352385efa1773cd6d6f659916d804fadb4c",
+        "actual_mask_sha256": "73d5774e100d2ede575f0a925035a352385efa1773cd6d6f659916d804fadb4c"
+      },
+      {
+        "kind": "dir",
+        "name": "madagascar",
+        "window": [
+          654848,
+          345600,
+          1024,
+          1024
+        ],
+        "equal": true,
+        "expected_cells_sha256": "ed834596e1c4e790d7f0b214dd3fe41ecc249a70f870daccec9bbd9ac17969c7",
+        "actual_cells_sha256": "ed834596e1c4e790d7f0b214dd3fe41ecc249a70f870daccec9bbd9ac17969c7",
+        "expected_mask_sha256": "509f8bcebab37f53ac0b9898c78e9d3dbe2ecd629ecc559ae5e70d5e1c5f25a7",
+        "actual_mask_sha256": "509f8bcebab37f53ac0b9898c78e9d3dbe2ecd629ecc559ae5e70d5e1c5f25a7"
+      },
+      {
+        "kind": "acc",
+        "name": "greenland",
+        "window": [
+          391168,
+          49152,
+          1024,
+          1024
+        ],
+        "equal": true,
+        "expected_cells_sha256": "3256d8954f47725624bd8613731f3da390595e4026e551404f4c32f0a1f67277",
+        "actual_cells_sha256": "3256d8954f47725624bd8613731f3da390595e4026e551404f4c32f0a1f67277",
+        "expected_mask_sha256": "73d5774e100d2ede575f0a925035a352385efa1773cd6d6f659916d804fadb4c",
+        "actual_mask_sha256": "73d5774e100d2ede575f0a925035a352385efa1773cd6d6f659916d804fadb4c"
+      },
+      {
+        "kind": "acc",
+        "name": "madagascar",
+        "window": [
+          654848,
+          345600,
+          1024,
+          1024
+        ],
+        "equal": true,
+        "expected_cells_sha256": "d8afc6ef0f4aaa965aff8468aa64c77493cfbdd8d576fd315b1f53d53d76795c",
+        "actual_cells_sha256": "d8afc6ef0f4aaa965aff8468aa64c77493cfbdd8d576fd315b1f53d53d76795c",
+        "expected_mask_sha256": "509f8bcebab37f53ac0b9898c78e9d3dbe2ecd629ecc559ae5e70d5e1c5f25a7",
+        "actual_mask_sha256": "509f8bcebab37f53ac0b9898c78e9d3dbe2ecd629ecc559ae5e70d5e1c5f25a7"
+      }
+    ],
+    "paired_validity_equal": true,
+    "http_requests": 38,
+    "response_body_bytes": 2727339,
+    "separate_reference_decoder": "tifffile + imagecodecs, not GDAL",
+    "vector_selected_ids": [
+      1,
+      4097,
+      22337300
+    ],
+    "vector_absent_ids": [
+      22337301
+    ],
+    "vector_rows_match_prior_source_verified_receipt": true,
+    "vector_response_body_bytes": 12182118
+  },
+  "preservation": {
+    "source_objects_unchanged": 10,
+    "existing_artifacts_unchanged": 11,
+    "source_inventory_fields": [
+      "Key",
+      "Size",
+      "ETag",
+      "StorageClass",
+      "LastModified"
+    ],
+    "artifact_checks": [
+      "ContentLength",
+      "ETag",
+      "Metadata"
+    ],
+    "existing_README_unchanged": true,
+    "new_document": "raster-delivery.md"
+  },
+  "tools": {
+    "verifier_commit": "50ad64ef85d53a560062f3e574f50dbe19225dd6",
+    "verifier_sha256": "9278667aa3f1fdee0db2b35cb7b5780a18e4e7503a4d74e7a0f123d5120a366a",
+    "cogger_version": "0.1.1",
+    "cogger_commit": "57f50c6c0234b3702d416cb1eaaab864eb18e52d",
+    "cogger_binary_sha256": "74b7b222a922876763363eed44fdb06bcabe4a58567c90e982a765fd16076e39",
+    "gdaladdo_version": "3.8.4"
+  },
+  "run_notes": [
+    "Source hash and native identity recorded before local mutation.",
+    "Initial direction HTTP/2 connection failed; standard aria2 resumed. Complete source SHA-256 then passed.",
+    "Accumulation SSH did not report process exit after successful remote completion. Final ledger, HEAD and public checks confirmed success; only stale local SSH was terminated. No upload was retried."
+  ],
+  "bulk_cleanup": {
+    "direction": true,
+    "accumulation": true,
+    "trial_and_preflight_receipts_saved": true
+  },
+  "verification_resources": {
+    "acc-verify": {
+      "Elapsed (wall clock) time (h:mm:ss or m:ss)": "11:41.22",
+      "Maximum resident set size (kbytes)": "292268",
+      "Exit status": "0"
+    },
+    "dir-copy": {
+      "Elapsed (wall clock) time (h:mm:ss or m:ss)": "2:40.97",
+      "Maximum resident set size (kbytes)": "150912",
+      "Exit status": "0"
+    },
+    "acc-capture": {
+      "Elapsed (wall clock) time (h:mm:ss or m:ss)": "14:47.01",
+      "Maximum resident set size (kbytes)": "327544",
+      "Exit status": "0"
+    },
+    "dir-verify": {
+      "Elapsed (wall clock) time (h:mm:ss or m:ss)": "2:36.42",
+      "Maximum resident set size (kbytes)": "291948",
+      "Exit status": "0"
+    },
+    "dir-clean": {
+      "Elapsed (wall clock) time (h:mm:ss or m:ss)": "0:00.03",
+      "Maximum resident set size (kbytes)": "41524",
+      "Exit status": "0"
+    },
+    "dir-capture": {
+      "Elapsed (wall clock) time (h:mm:ss or m:ss)": "3:18.83",
+      "Maximum resident set size (kbytes)": "327592",
+      "Exit status": "0"
+    },
+    "acc-clean": {
+      "Elapsed (wall clock) time (h:mm:ss or m:ss)": "0:00.03",
+      "Maximum resident set size (kbytes)": "41828",
+      "Exit status": "0"
+    },
+    "acc-copy": {
+      "Elapsed (wall clock) time (h:mm:ss or m:ss)": "11:40.14",
+      "Maximum resident set size (kbytes)": "150272",
+      "Exit status": "0"
+    }
+  },
+  "cleanup": {
+    "checked_at": "2026-10-08T16:24:42.504008+00:00",
+    "server_id": 169381744,
+    "volume_id": 107079699,
+    "primary_ip_ids": [
+      154299103,
+      154299104
+    ],
+    "all_four_resources_not_found": true,
+    "trial_reminder_cancelled": true,
+    "delivery_reminder_cancelled": true
+  },
+  "cost": {
+    "budget_usd_total": 20,
+    "includes_retained_vm_time": true,
+    "vat_percent": 8.1,
+    "conservative_eur_usd": 1.2,
+    "observed_eur_usd": 1.1177,
+    "fx_observation_date": "2026-10-07",
+    "rounded_server_ipv4_hours": 4,
+    "rounded_volume_hours": 3,
+    "server_ipv4_eur_per_hour_gross": 0.1498266,
+    "volume_500gb_eur_per_month_gross": 30.9166,
+    "volume_hourly_planning_divisor": 720,
+    "compute_volume_usd_estimate": 0.8738,
+    "uncertainty_reserve_usd": 2,
+    "not_an_invoice": true,
+    "egress_bytes_observed": 37782475000,
+    "included_egress_bytes": 21990232555520,
+    "ongoing_delivered_raster_storage_usd_per_month_list_rate": 2.8
+  }
+}

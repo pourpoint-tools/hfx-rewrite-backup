@@ -55,7 +55,8 @@ See [AGENTS.md](AGENTS.md) for development conventions.
 
 ## GRIT vector production
 
-The [GRIT publication record](docs/v0.4.0/grit-verification.md) contains the
+The [GRIT vector record](docs/v0.4.0/grit-verification.md) and
+[raster delivery record](docs/v0.4.0/grit-raster-verification.md) contain the
 public URL, artifact identities, verification results and cleanup status.
 
 Use new, disjoint source/output directories on the same filesystem. Download the
