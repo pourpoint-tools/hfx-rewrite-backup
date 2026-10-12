@@ -1,0 +1,795 @@
+{
+  "kind": "GRIT isolated selective HTTP experiment",
+  "date": "2026-10-12",
+  "probe_commit": "1c3bb5d7ffa072f15b34eddacf8db8c51d203125",
+  "public_base_url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/",
+  "bucket": "pourpoint-hfx",
+  "prefix": "experiments/hfx-0.4.0-rivers-2026-10-12/",
+  "approval": "Maintainer gave green light to proceed on 2026-10-12; this isolated prefix was selected under that approval.",
+  "publication": {
+    "started_at": "2026-10-12T13:41:21.713556+00:00",
+    "finished_at": "2026-10-12T13:41:47.128449+00:00",
+    "status": "passed",
+    "artifact_count": 15,
+    "object_count_including_manifest": 16,
+    "total_bytes_including_manifest": 1896207,
+    "empty_prefix_key_count": 0,
+    "conditional_write": "If-None-Match: * on every PUT",
+    "manifest_last": true,
+    "acl": "public-read per new object only; no bucket ACL/policy changes",
+    "public_full_get": "Every object body compared byte-for-byte with verified local bytes; identity encoding and If-Match pinned PUT ETag."
+  },
+  "evidence_sha256": {
+    "upload-receipt.json": "dd8ee4d836bb5477e3af8abe22a7b70f526defbd80a39a6133c09349f8db9f2e",
+    "publish_sample.py": "6181d7b352d60472083336ddbfd3c2f20bd14170bde3202a6bf4ec7f6d6bfff6",
+    "independent_source_verification_receipt": "26cb4f12bb899d3e4788790979f9ee23c1c4351bba0d6f8bd59b27bc9c93cce2",
+    "hetzner-http-catchments.json": "0675e6895df154c61a7ac0da445227da8c2378f86645aeb2e3fc77d820106550",
+    "hetzner-http-rivers.json": "986ac0085384c12026e0c62aad1f05928b627c1927b228c3151503aa50fcd153",
+    "hetzner-http-river_nodes.json": "0b554cf596dab3af928d75da66e3be1c9ba0bd299a99af7d1d3fc674e7da678e"
+  },
+  "objects": {
+    "CITATION.txt": {
+      "size_bytes": 116,
+      "sha256": "f8bcc5238aa31e04b347b267317ba74c8a69d7d40546235d14a116a5811274bc",
+      "head_sha256": "f8bcc5238aa31e04b347b267317ba74c8a69d7d40546235d14a116a5811274bc",
+      "tail_sha256": "f8bcc5238aa31e04b347b267317ba74c8a69d7d40546235d14a116a5811274bc",
+      "etag": "\"dd8f029efbcc1a73a9ffd11f80e9e688\"",
+      "public_get_status": 200,
+      "public_get_body_bytes": 116,
+      "public_get_body_sha256": "f8bcc5238aa31e04b347b267317ba74c8a69d7d40546235d14a116a5811274bc"
+    },
+    "NOTICE": {
+      "size_bytes": 295,
+      "sha256": "c2357b40c9bd3358d253e6d64a0b28c38699291d00b50996face66f848a09468",
+      "head_sha256": "c2357b40c9bd3358d253e6d64a0b28c38699291d00b50996face66f848a09468",
+      "tail_sha256": "c2357b40c9bd3358d253e6d64a0b28c38699291d00b50996face66f848a09468",
+      "etag": "\"2db55288d64fa1611030adf485840fc7\"",
+      "public_get_status": 200,
+      "public_get_body_bytes": 295,
+      "public_get_body_sha256": "c2357b40c9bd3358d253e6d64a0b28c38699291d00b50996face66f848a09468"
+    },
+    "README.md": {
+      "size_bytes": 712,
+      "sha256": "219ae4f51615608f20d6df18b813096b7c402155af06804e47da12edd87b64c9",
+      "head_sha256": "219ae4f51615608f20d6df18b813096b7c402155af06804e47da12edd87b64c9",
+      "tail_sha256": "219ae4f51615608f20d6df18b813096b7c402155af06804e47da12edd87b64c9",
+      "etag": "\"52087d82ebd29919839ccfe5ec030d3c\"",
+      "public_get_status": 200,
+      "public_get_body_bytes": 712,
+      "public_get_body_sha256": "219ae4f51615608f20d6df18b813096b7c402155af06804e47da12edd87b64c9"
+    },
+    "catchments.arrow": {
+      "size_bytes": 1122754,
+      "sha256": "ac814fbdfd6847d78987186962f2a2625cc7ab94bb2b18ac95dea78deb483319",
+      "head_sha256": "37fad22b137426dfcdc0b303ddf921ca8717ff66f2720b176f9b9749e4f399b8",
+      "tail_sha256": "9536e7b81b5f33f72465c16418473063d0a45853c74263a4e84d11961a9c5d0a",
+      "etag": "\"50213dcaf4cf248ef742ce60281be264\"",
+      "public_get_status": 200,
+      "public_get_body_bytes": 1122754,
+      "public_get_body_sha256": "ac814fbdfd6847d78987186962f2a2625cc7ab94bb2b18ac95dea78deb483319"
+    },
+    "graph.parquet": {
+      "size_bytes": 32879,
+      "sha256": "f353a18c92a40fcc6d767e64a14a6ef7cf035c338c373531111d69f2643e1f75",
+      "head_sha256": "f353a18c92a40fcc6d767e64a14a6ef7cf035c338c373531111d69f2643e1f75",
+      "tail_sha256": "f353a18c92a40fcc6d767e64a14a6ef7cf035c338c373531111d69f2643e1f75",
+      "etag": "\"dafe610ef9c4b9ca45937a94add4ff72\"",
+      "public_get_status": 200,
+      "public_get_body_bytes": 32879,
+      "public_get_body_sha256": "f353a18c92a40fcc6d767e64a14a6ef7cf035c338c373531111d69f2643e1f75"
+    },
+    "lookup-directory.json": {
+      "size_bytes": 129,
+      "sha256": "77650e53f1db916a935a5ab061bd63c7249c02faf4edd7cf2b07d0bf6c26a391",
+      "head_sha256": "77650e53f1db916a935a5ab061bd63c7249c02faf4edd7cf2b07d0bf6c26a391",
+      "tail_sha256": "77650e53f1db916a935a5ab061bd63c7249c02faf4edd7cf2b07d0bf6c26a391",
+      "etag": "\"b53d5ef33949f11e07cfd573b073479d\"",
+      "public_get_status": 200,
+      "public_get_body_bytes": 129,
+      "public_get_body_sha256": "77650e53f1db916a935a5ab061bd63c7249c02faf4edd7cf2b07d0bf6c26a391"
+    },
+    "lookup.arrow": {
+      "size_bytes": 20290,
+      "sha256": "5eada6c0fa8de52eeb0bd07f6b04da05745f01a0ec139207ea4bbb2e6d6c0116",
+      "head_sha256": "5eada6c0fa8de52eeb0bd07f6b04da05745f01a0ec139207ea4bbb2e6d6c0116",
+      "tail_sha256": "5eada6c0fa8de52eeb0bd07f6b04da05745f01a0ec139207ea4bbb2e6d6c0116",
+      "etag": "\"eaba3427857423b6f2354364ab9b2f49\"",
+      "public_get_status": 200,
+      "public_get_body_bytes": 20290,
+      "public_get_body_sha256": "5eada6c0fa8de52eeb0bd07f6b04da05745f01a0ec139207ea4bbb2e6d6c0116"
+    },
+    "river-graph.parquet": {
+      "size_bytes": 33123,
+      "sha256": "210a873db0ec482e32a659ce5adb2a2cd0e17c79e901163c4202d0db671c6032",
+      "head_sha256": "210a873db0ec482e32a659ce5adb2a2cd0e17c79e901163c4202d0db671c6032",
+      "tail_sha256": "210a873db0ec482e32a659ce5adb2a2cd0e17c79e901163c4202d0db671c6032",
+      "etag": "\"d00aea86361d9fd21b63a29b4d78086a\"",
+      "public_get_status": 200,
+      "public_get_body_bytes": 33123,
+      "public_get_body_sha256": "210a873db0ec482e32a659ce5adb2a2cd0e17c79e901163c4202d0db671c6032"
+    },
+    "river-lookup-directory.json": {
+      "size_bytes": 129,
+      "sha256": "5754e3791539909850b8f68cf2a5c969d6354bab8d396cb7d66bf6be5da386a4",
+      "head_sha256": "5754e3791539909850b8f68cf2a5c969d6354bab8d396cb7d66bf6be5da386a4",
+      "tail_sha256": "5754e3791539909850b8f68cf2a5c969d6354bab8d396cb7d66bf6be5da386a4",
+      "etag": "\"ae1c2d42d00c7bea22ca1950c74f8b60\"",
+      "public_get_status": 200,
+      "public_get_body_bytes": 129,
+      "public_get_body_sha256": "5754e3791539909850b8f68cf2a5c969d6354bab8d396cb7d66bf6be5da386a4"
+    },
+    "river-lookup.arrow": {
+      "size_bytes": 20218,
+      "sha256": "98926f6b0a24d7713ac2fefbc5d6ca759dd757d213b3f9b078357ffcf7d21132",
+      "head_sha256": "98926f6b0a24d7713ac2fefbc5d6ca759dd757d213b3f9b078357ffcf7d21132",
+      "tail_sha256": "98926f6b0a24d7713ac2fefbc5d6ca759dd757d213b3f9b078357ffcf7d21132",
+      "etag": "\"a2b2c1365758f5e545df97937bbb96f7\"",
+      "public_get_status": 200,
+      "public_get_body_bytes": 20218,
+      "public_get_body_sha256": "98926f6b0a24d7713ac2fefbc5d6ca759dd757d213b3f9b078357ffcf7d21132"
+    },
+    "river-node-lookup-directory.json": {
+      "size_bytes": 129,
+      "sha256": "9b5c212ed75e3379cf0e90d1378d126f873902518da159bd5b4ecb8bbc6dbd58",
+      "head_sha256": "9b5c212ed75e3379cf0e90d1378d126f873902518da159bd5b4ecb8bbc6dbd58",
+      "tail_sha256": "9b5c212ed75e3379cf0e90d1378d126f873902518da159bd5b4ecb8bbc6dbd58",
+      "etag": "\"49001e01ab08474f89feaa8aaf7b6b3c\"",
+      "public_get_status": 200,
+      "public_get_body_bytes": 129,
+      "public_get_body_sha256": "9b5c212ed75e3379cf0e90d1378d126f873902518da159bd5b4ecb8bbc6dbd58"
+    },
+    "river-node-lookup.arrow": {
+      "size_bytes": 19930,
+      "sha256": "9957f4bd43edae9a66fe8b89cf65f3ed80b58ef9b3074e45b5fbd350496db35a",
+      "head_sha256": "9957f4bd43edae9a66fe8b89cf65f3ed80b58ef9b3074e45b5fbd350496db35a",
+      "tail_sha256": "9957f4bd43edae9a66fe8b89cf65f3ed80b58ef9b3074e45b5fbd350496db35a",
+      "etag": "\"45b250e68aadbcfc130853bd2d538aa7\"",
+      "public_get_status": 200,
+      "public_get_body_bytes": 19930,
+      "public_get_body_sha256": "9957f4bd43edae9a66fe8b89cf65f3ed80b58ef9b3074e45b5fbd350496db35a"
+    },
+    "river-nodes.arrow": {
+      "size_bytes": 76442,
+      "sha256": "a01e41b23fa6bb7ba90e3d659f4f0c05ac97a82866329f9eefb87fa5ed0b3b5d",
+      "head_sha256": "590b01a4959d51cd1c1be25ae67b8ad7c3c07b0863bed47701cdc914901e1442",
+      "tail_sha256": "b0703af4b56bc2111942c021c7e48dfceef6066341ce7d2caac388278ae17122",
+      "etag": "\"ca64a8c5e2eee359d466859033f1251d\"",
+      "public_get_status": 200,
+      "public_get_body_bytes": 76442,
+      "public_get_body_sha256": "a01e41b23fa6bb7ba90e3d659f4f0c05ac97a82866329f9eefb87fa5ed0b3b5d"
+    },
+    "rivers.arrow": {
+      "size_bytes": 540778,
+      "sha256": "d7b29201dac78c1a59d5d012c0823ba2c91fd378e582f7f8d573a616948028aa",
+      "head_sha256": "9163db0f012bd835fe84aea6e1aad7a272b4b9cd8e59916995b75a1fdfc13051",
+      "tail_sha256": "4a01b97e9eca2fe6601a7cf6ace947a6f54544ab2008512ae359af5d347eca79",
+      "etag": "\"8033e0e76ec34fe5f59b5bb0893f356f\"",
+      "public_get_status": 200,
+      "public_get_body_bytes": 540778,
+      "public_get_body_sha256": "d7b29201dac78c1a59d5d012c0823ba2c91fd378e582f7f8d573a616948028aa"
+    },
+    "source-provenance.json": {
+      "size_bytes": 20674,
+      "sha256": "e58e46617ce278659884589e2b0d764271fd0822bb893b10c9d3faf982103495",
+      "head_sha256": "e58e46617ce278659884589e2b0d764271fd0822bb893b10c9d3faf982103495",
+      "tail_sha256": "e58e46617ce278659884589e2b0d764271fd0822bb893b10c9d3faf982103495",
+      "etag": "\"747c5459823cd09bfbc93b4755790864\"",
+      "public_get_status": 200,
+      "public_get_body_bytes": 20674,
+      "public_get_body_sha256": "e58e46617ce278659884589e2b0d764271fd0822bb893b10c9d3faf982103495"
+    },
+    "manifest.json": {
+      "size_bytes": 7609,
+      "sha256": "ea15082eaddc7bd043fba4e84581a48875ab78a2f6c2ed91b6d37c42b34215fd",
+      "head_sha256": "ea15082eaddc7bd043fba4e84581a48875ab78a2f6c2ed91b6d37c42b34215fd",
+      "tail_sha256": "ea15082eaddc7bd043fba4e84581a48875ab78a2f6c2ed91b6d37c42b34215fd",
+      "etag": "\"7aea88f103253e576805058952e39800\"",
+      "public_get_status": 200,
+      "public_get_body_bytes": 7609,
+      "public_get_body_sha256": "ea15082eaddc7bd043fba4e84581a48875ab78a2f6c2ed91b6d37c42b34215fd"
+    }
+  },
+  "probes": {
+    "catchments": {
+      "manifest_sha256": "ea15082eaddc7bd043fba4e84581a48875ab78a2f6c2ed91b6d37c42b34215fd",
+      "manifest_etag": "\"7aea88f103253e576805058952e39800\"",
+      "requested_ids": [
+        1,
+        513,
+        9223372036854775807
+      ],
+      "selected_ids": [
+        1,
+        513
+      ],
+      "absent_ids": [
+        9223372036854775807
+      ],
+      "repeat_policy": "uncached batches; retained head/tail buffers and IPC metadata",
+      "batch_accounting": "touched means received bytes overlap batch metadata/body; not necessarily a full batch",
+      "batch_spans": {
+        "lookup.arrow": [
+          [
+            424,
+            19824
+          ]
+        ],
+        "catchments.arrow": [
+          [
+            1400,
+            478576
+          ],
+          [
+            478576,
+            663984
+          ],
+          [
+            663984,
+            850088
+          ],
+          [
+            850088,
+            1011768
+          ],
+          [
+            1011768,
+            1121216
+          ]
+        ]
+      },
+      "rows": [
+        {
+          "id": 1,
+          "block": 0,
+          "row": 0,
+          "row_ipc_sha256": "f7071fe86aa5fea18f377f897d5a955bee36a4676814feb2f7a793044b0f6453",
+          "geometry_sha256": "ecafee55017b2d3186ccfcbaea1c92bde1a202c3fc474339172babbbcd6f9b80"
+        },
+        {
+          "id": 513,
+          "block": 2,
+          "row": 0,
+          "row_ipc_sha256": "29ba83067f6cb935d71b7f4dc948a8bd48b9084e318b4b8efa3ce9a3536ec0dc",
+          "geometry_sha256": "b1d938b5ef5a7444eb2b7235e564429f80573726cf7e677451e1806ea17ab934"
+        }
+      ],
+      "phases": {
+        "preparation": {
+          "elapsed_seconds": 2.895033125008922,
+          "request_count": 5,
+          "body_bytes": 159100,
+          "requests": [
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/manifest.json",
+              "start": null,
+              "end": null,
+              "bytes": 7609,
+              "etag": "\"7aea88f103253e576805058952e39800\""
+            },
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/lookup-directory.json",
+              "start": 0,
+              "end": 128,
+              "bytes": 129,
+              "etag": "\"b53d5ef33949f11e07cfd573b073479d\""
+            },
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/lookup.arrow",
+              "start": 0,
+              "end": 20289,
+              "bytes": 20290,
+              "etag": "\"eaba3427857423b6f2354364ab9b2f49\""
+            },
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/catchments.arrow",
+              "start": 0,
+              "end": 65535,
+              "bytes": 65536,
+              "etag": "\"50213dcaf4cf248ef742ce60281be264\""
+            },
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/catchments.arrow",
+              "start": 1057218,
+              "end": 1122753,
+              "bytes": 65536,
+              "etag": "\"50213dcaf4cf248ef742ce60281be264\""
+            }
+          ],
+          "selected_lookup_batches": [],
+          "selected_data_batches": [],
+          "touched_lookup_batches": [
+            0
+          ],
+          "fully_fetched_lookup_batches": [
+            0
+          ],
+          "touched_data_batches": [
+            0,
+            4
+          ],
+          "fully_fetched_data_batches": []
+        },
+        "first_access": {
+          "elapsed_seconds": 1.8356670000066515,
+          "request_count": 2,
+          "body_bytes": 663280,
+          "requests": [
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/catchments.arrow",
+              "start": 1400,
+              "end": 478575,
+              "bytes": 477176,
+              "etag": "\"50213dcaf4cf248ef742ce60281be264\""
+            },
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/catchments.arrow",
+              "start": 663984,
+              "end": 850087,
+              "bytes": 186104,
+              "etag": "\"50213dcaf4cf248ef742ce60281be264\""
+            }
+          ],
+          "selected_lookup_batches": [
+            0
+          ],
+          "selected_data_batches": [
+            0,
+            2
+          ],
+          "touched_lookup_batches": [],
+          "fully_fetched_lookup_batches": [],
+          "touched_data_batches": [
+            0,
+            2
+          ],
+          "fully_fetched_data_batches": [
+            0,
+            2
+          ]
+        },
+        "repeated_access": {
+          "elapsed_seconds": 1.8846779579907889,
+          "request_count": 2,
+          "body_bytes": 663280,
+          "requests": [
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/catchments.arrow",
+              "start": 1400,
+              "end": 478575,
+              "bytes": 477176,
+              "etag": "\"50213dcaf4cf248ef742ce60281be264\""
+            },
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/catchments.arrow",
+              "start": 663984,
+              "end": 850087,
+              "bytes": 186104,
+              "etag": "\"50213dcaf4cf248ef742ce60281be264\""
+            }
+          ],
+          "selected_lookup_batches": [
+            0
+          ],
+          "selected_data_batches": [
+            0,
+            2
+          ],
+          "touched_lookup_batches": [],
+          "fully_fetched_lookup_batches": [],
+          "touched_data_batches": [
+            0,
+            2
+          ],
+          "fully_fetched_data_batches": [
+            0,
+            2
+          ]
+        }
+      },
+      "pyarrow_version": "25.0.1",
+      "local_verified_sample_comparison": {
+        "matched_ids": [
+          1,
+          513
+        ],
+        "absent_ids": [
+          9223372036854775807
+        ],
+        "schema_and_all_values_equal": true
+      }
+    },
+    "rivers": {
+      "manifest_sha256": "ea15082eaddc7bd043fba4e84581a48875ab78a2f6c2ed91b6d37c42b34215fd",
+      "manifest_etag": "\"7aea88f103253e576805058952e39800\"",
+      "requested_ids": [
+        1,
+        513,
+        9223372036854775807
+      ],
+      "selected_ids": [
+        1,
+        513
+      ],
+      "absent_ids": [
+        9223372036854775807
+      ],
+      "repeat_policy": "uncached batches; retained head/tail buffers and IPC metadata",
+      "batch_accounting": "touched means received bytes overlap batch metadata/body; not necessarily a full batch",
+      "batch_spans": {
+        "river-lookup.arrow": [
+          [
+            416,
+            19760
+          ]
+        ],
+        "rivers.arrow": [
+          [
+            3016,
+            206160
+          ],
+          [
+            206160,
+            297056
+          ],
+          [
+            297056,
+            389232
+          ],
+          [
+            389232,
+            480096
+          ],
+          [
+            480096,
+            537624
+          ]
+        ]
+      },
+      "rows": [
+        {
+          "id": 1,
+          "block": 0,
+          "row": 0,
+          "row_ipc_sha256": "eb37028009021ce4aee0c769dada97aa301c0f98edc5add2c780c00cfdbc48fd",
+          "geometry_sha256": "f072c0ee5f9b95ccb9433e927f6038a4c5933ef66397e570e987f4e7cb75d801"
+        },
+        {
+          "id": 513,
+          "block": 2,
+          "row": 0,
+          "row_ipc_sha256": "a100217a9642835a4d29320c8b13510eedd7182e2709b9b4b17fd3f54507443b",
+          "geometry_sha256": "9651c3f061a8415938e17778cfa13c6904edf3c63146f0a6bc2b57bd6f40e528"
+        }
+      ],
+      "phases": {
+        "preparation": {
+          "elapsed_seconds": 2.99261241601198,
+          "request_count": 5,
+          "body_bytes": 159028,
+          "requests": [
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/manifest.json",
+              "start": null,
+              "end": null,
+              "bytes": 7609,
+              "etag": "\"7aea88f103253e576805058952e39800\""
+            },
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/river-lookup-directory.json",
+              "start": 0,
+              "end": 128,
+              "bytes": 129,
+              "etag": "\"ae1c2d42d00c7bea22ca1950c74f8b60\""
+            },
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/river-lookup.arrow",
+              "start": 0,
+              "end": 20217,
+              "bytes": 20218,
+              "etag": "\"a2b2c1365758f5e545df97937bbb96f7\""
+            },
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/rivers.arrow",
+              "start": 0,
+              "end": 65535,
+              "bytes": 65536,
+              "etag": "\"8033e0e76ec34fe5f59b5bb0893f356f\""
+            },
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/rivers.arrow",
+              "start": 475242,
+              "end": 540777,
+              "bytes": 65536,
+              "etag": "\"8033e0e76ec34fe5f59b5bb0893f356f\""
+            }
+          ],
+          "selected_lookup_batches": [],
+          "selected_data_batches": [],
+          "touched_lookup_batches": [
+            0
+          ],
+          "fully_fetched_lookup_batches": [
+            0
+          ],
+          "touched_data_batches": [
+            0,
+            3,
+            4
+          ],
+          "fully_fetched_data_batches": [
+            4
+          ]
+        },
+        "first_access": {
+          "elapsed_seconds": 1.7382749579992378,
+          "request_count": 2,
+          "body_bytes": 295320,
+          "requests": [
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/rivers.arrow",
+              "start": 3016,
+              "end": 206159,
+              "bytes": 203144,
+              "etag": "\"8033e0e76ec34fe5f59b5bb0893f356f\""
+            },
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/rivers.arrow",
+              "start": 297056,
+              "end": 389231,
+              "bytes": 92176,
+              "etag": "\"8033e0e76ec34fe5f59b5bb0893f356f\""
+            }
+          ],
+          "selected_lookup_batches": [
+            0
+          ],
+          "selected_data_batches": [
+            0,
+            2
+          ],
+          "touched_lookup_batches": [],
+          "fully_fetched_lookup_batches": [],
+          "touched_data_batches": [
+            0,
+            2
+          ],
+          "fully_fetched_data_batches": [
+            0,
+            2
+          ]
+        },
+        "repeated_access": {
+          "elapsed_seconds": 1.5755183330038562,
+          "request_count": 2,
+          "body_bytes": 295320,
+          "requests": [
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/rivers.arrow",
+              "start": 3016,
+              "end": 206159,
+              "bytes": 203144,
+              "etag": "\"8033e0e76ec34fe5f59b5bb0893f356f\""
+            },
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/rivers.arrow",
+              "start": 297056,
+              "end": 389231,
+              "bytes": 92176,
+              "etag": "\"8033e0e76ec34fe5f59b5bb0893f356f\""
+            }
+          ],
+          "selected_lookup_batches": [
+            0
+          ],
+          "selected_data_batches": [
+            0,
+            2
+          ],
+          "touched_lookup_batches": [],
+          "fully_fetched_lookup_batches": [],
+          "touched_data_batches": [
+            0,
+            2
+          ],
+          "fully_fetched_data_batches": [
+            0,
+            2
+          ]
+        }
+      },
+      "pyarrow_version": "25.0.1",
+      "local_verified_sample_comparison": {
+        "matched_ids": [
+          1,
+          513
+        ],
+        "absent_ids": [
+          9223372036854775807
+        ],
+        "schema_and_all_values_equal": true
+      }
+    },
+    "river_nodes": {
+      "manifest_sha256": "ea15082eaddc7bd043fba4e84581a48875ab78a2f6c2ed91b6d37c42b34215fd",
+      "manifest_etag": "\"7aea88f103253e576805058952e39800\"",
+      "requested_ids": [
+        1,
+        513,
+        9223372036854775807
+      ],
+      "selected_ids": [
+        1,
+        513
+      ],
+      "absent_ids": [
+        9223372036854775807
+      ],
+      "repeat_policy": "uncached batches; retained head/tail buffers and IPC metadata",
+      "batch_accounting": "touched means received bytes overlap batch metadata/body; not necessarily a full batch",
+      "batch_spans": {
+        "river-node-lookup.arrow": [
+          [
+            416,
+            19472
+          ]
+        ],
+        "river-nodes.arrow": [
+          [
+            1856,
+            18824
+          ],
+          [
+            18824,
+            34048
+          ],
+          [
+            34048,
+            49080
+          ],
+          [
+            49080,
+            64064
+          ],
+          [
+            64064,
+            74448
+          ]
+        ]
+      },
+      "rows": [
+        {
+          "id": 1,
+          "block": 0,
+          "row": 0,
+          "row_ipc_sha256": "6c5c3da6b81fc7446da31dd2e420ce55c152d6d3cc4d3a4a0bfd49dbae0cdda9",
+          "geometry_sha256": "dbbef6b30b6bf886ad2c8900caf5730f9ca94b86841cc036a4f7f7c1b6228174"
+        },
+        {
+          "id": 513,
+          "block": 2,
+          "row": 0,
+          "row_ipc_sha256": "3b79df5166f865283068b4a4bd202eaa21d4f889a1aee769be8e6079d37f350d",
+          "geometry_sha256": "7f8270ce5dbd2c4b5778a38072c743a89e70140792064d5d65271a47eddff8ce"
+        }
+      ],
+      "phases": {
+        "preparation": {
+          "elapsed_seconds": 3.1505161249951925,
+          "request_count": 5,
+          "body_bytes": 158740,
+          "requests": [
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/manifest.json",
+              "start": null,
+              "end": null,
+              "bytes": 7609,
+              "etag": "\"7aea88f103253e576805058952e39800\""
+            },
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/river-node-lookup-directory.json",
+              "start": 0,
+              "end": 128,
+              "bytes": 129,
+              "etag": "\"49001e01ab08474f89feaa8aaf7b6b3c\""
+            },
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/river-node-lookup.arrow",
+              "start": 0,
+              "end": 19929,
+              "bytes": 19930,
+              "etag": "\"45b250e68aadbcfc130853bd2d538aa7\""
+            },
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/river-nodes.arrow",
+              "start": 0,
+              "end": 65535,
+              "bytes": 65536,
+              "etag": "\"ca64a8c5e2eee359d466859033f1251d\""
+            },
+            {
+              "url": "https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/river-nodes.arrow",
+              "start": 10906,
+              "end": 76441,
+              "bytes": 65536,
+              "etag": "\"ca64a8c5e2eee359d466859033f1251d\""
+            }
+          ],
+          "selected_lookup_batches": [],
+          "selected_data_batches": [],
+          "touched_lookup_batches": [
+            0
+          ],
+          "fully_fetched_lookup_batches": [
+            0
+          ],
+          "touched_data_batches": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "fully_fetched_data_batches": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "first_access": {
+          "elapsed_seconds": 0.04714175000844989,
+          "request_count": 0,
+          "body_bytes": 0,
+          "requests": [],
+          "selected_lookup_batches": [
+            0
+          ],
+          "selected_data_batches": [
+            0,
+            2
+          ],
+          "touched_lookup_batches": [],
+          "fully_fetched_lookup_batches": [],
+          "touched_data_batches": [],
+          "fully_fetched_data_batches": []
+        },
+        "repeated_access": {
+          "elapsed_seconds": 0.0007173339981818572,
+          "request_count": 0,
+          "body_bytes": 0,
+          "requests": [],
+          "selected_lookup_batches": [
+            0
+          ],
+          "selected_data_batches": [
+            0,
+            2
+          ],
+          "touched_lookup_batches": [],
+          "fully_fetched_lookup_batches": [],
+          "touched_data_batches": [],
+          "fully_fetched_data_batches": []
+        }
+      },
+      "pyarrow_version": "25.0.1",
+      "local_verified_sample_comparison": {
+        "matched_ids": [
+          1,
+          513
+        ],
+        "absent_ids": [
+          9223372036854775807
+        ],
+        "schema_and_all_values_equal": true
+      }
+    }
+  },
+  "cleanup": "Experimental prefix retained until final delivery cleanup; no objects removed. No server was needed for this sample upload/probe.",
+  "limits": [
+    "Small component sample, not worldwide GRIT or full delineation performance.",
+    "Repeated selection has no new batch cache; preparation head/tail buffers and IPC metadata remain.",
+    "Node artifact entirely received in preparation; zero later requests is not zero-cost remote access.",
+    "Full production and public R2 verification remain separate requirements."
+  ]
+}
