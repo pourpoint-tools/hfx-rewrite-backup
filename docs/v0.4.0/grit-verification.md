@@ -2,7 +2,7 @@
 
 Published and verified on 2026-10-07 (UTC):
 <https://basin-delineations-public.upstream.tech/grit/hfx-v0.4.0/>.
-The [vector contract](vector-data.md) describes the files. Source:
+The [historical vector contract](https://github.com/pourpoint-tools/hfx/blob/b5b116440b89a604e12dcc26f09b21ef9e8276a9/docs/v0.4.0/vector-data.md) describes the files. Source:
 <https://basin-delineations-public.upstream.tech/grit/hfx-v0.3.0/>.
 
 Production used commit `5d2cc83d077772e2633a1545d214d975761aa01b`, Python
