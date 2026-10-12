@@ -77,9 +77,10 @@ Smaller levels are coarser. Each coarsest unit has null `parent_id`; other nonnu
 parents resolve at a strictly coarser available catchment level. A child polygon
 must lie within its declared parent, and sibling polygon interiors must not overlap,
 within explicitly documented numerical geometry tolerances. A producer declares
-the tolerance values, units and comparison method and verifies these invariants
-for every delivered parent/child and sibling relationship. Tolerances account for
-numerical representation, not arbitrary source discrepancies. A violation beyond
+the tolerance values, units and comparison method and reports actual validation
+coverage. This contract does not require exhaustive worldwide polygon topology
+certification; full reference and source-fidelity verification is a separate duty.
+Tolerances account for numerical representation, not arbitrary source discrepancies. A violation beyond
 them is nonconforming; recording an anomaly does not waive the invariant. Investigate
 such originals and obtain an explicit contract decision before production rather
 than silently repairing geometry or relaxing containment. Record validation
