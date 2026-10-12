@@ -59,7 +59,7 @@ for source `nbytes` accounting.
 Untouched producer v2 sample, 2026-10-12: 1,197 catchments (3 components,
 135 segments, 1,059 reaches), 1,194 rivers and 1,176 nodes. Complete component
 70000129 plus polygon-only 70115212 and 370650032. Final independent verification
-passed in 18.96 s wall time, peak RSS 195,969,024 bytes. Maximum coordinate error
+passed in 18.56 s wall time, peak RSS 200,491,008 bytes. Maximum coordinate error
 was **0.0 degree**. Four segment/21 reach polygon checks passed with zero outside
 and overlapping area. This is offline verification, not delineation performance.
 
@@ -71,6 +71,10 @@ GDAL path fixed the difference without widening tolerance. The nonzero source
 coordinate regression preserves that evidence.
 
 Compact hashes, layer schemas and methods are in
-[the sample receipt](receipts/grit-river-sample-verification.json). Bulk originals,
+[the sample receipt](receipts/grit-river-reviewed-sample-verification.json). Bulk originals,
 failed scratch outputs and development timing logs remain outside Git. This
 receipt is a local sample, not a public GRIT delivery receipt.
+
+The earlier `grit-river-sample-verification.json` is retained as provisional
+pre-review evidence. It does not establish the later structural-schema, manifest
+declaration, input-snapshot or grouping receipt checks. Use the reviewed receipt.

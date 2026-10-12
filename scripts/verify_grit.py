@@ -141,24 +141,76 @@ def prepare_database(path: Path) -> sqlite3.Connection:
     return db
 
 
+def structural_schema(entity: str) -> pa.Schema:
+    bbox = pa.struct([pa.field(name, pa.float32(), False) for name in ("xmin", "ymin", "xmax", "ymax")])
+    common: list[pa.Field] = [pa.field("id", pa.int64(), False), pa.field("level", pa.int16(), False)]
+    if entity == "graph":
+        return pa.schema(
+            common
+            + [pa.field("upstream_ids", pa.list_(pa.field("item", pa.int64(), False)), False)]
+            + [pa.field(name, pa.float32(), False) for name in ("bbox_minx", "bbox_miny", "bbox_maxx", "bbox_maxy")]
+        )
+    common += [
+        pa.field("source_namespace", pa.string(), False),
+        pa.field("source_id", pa.string(), False),
+        pa.field("bbox", bbox, False),
+        pa.field("geometry", pa.binary(), False),
+    ]
+    if entity == "catchments":
+        extra = [
+            pa.field("parent_id", pa.int64()),
+            pa.field("area_km2", pa.float32(), False),
+            pa.field("up_area_km2", pa.float32()),
+            pa.field("outlet_lon", pa.float64()),
+            pa.field("outlet_lat", pa.float64()),
+        ]
+    elif entity == "rivers":
+        extra = [
+            pa.field(name, pa.int64())
+            for name in (
+                "parent_id",
+                "local_catchment_id",
+                "component_catchment_id",
+                "upstream_node_id",
+                "downstream_node_id",
+            )
+        ] + [pa.field("geometry_orientation", pa.int8(), False)]
+    else:
+        extra = [pa.field("coarser_node_id", pa.int64())]
+    return pa.schema(common + extra)
+
+
+def check_schema(actual: pa.Schema, entity: str) -> None:
+    for field in structural_schema(entity):
+        require(
+            field.name in actual.names and actual.field(field.name).equals(field),
+            f"structural schema differs: {entity}.{field.name}",
+        )
+
+
+def check_nonnull(batch: pa.RecordBatch, entity: str) -> None:
+    for field in structural_schema(entity):
+        column = batch.column(field.name)
+        if not field.nullable:
+            require(column.null_count == 0, f"nonnull structural value missing: {field.name}")
+        if field.name == "bbox":
+            require(
+                all(cast(pa.StructArray, column).field(child.name).null_count == 0 for child in field.type),
+                "nonnull bbox child missing",
+            )
+        elif field.name == "upstream_ids":
+            require(cast(pa.ListArray, column).values.null_count == 0, "nonnull graph edge missing")
+
+
 def stage_output(db: sqlite3.Connection, entity: str, path: Path) -> pa.Schema:
     _ipc_compression(path, compressed=True)
     with pa.memory_map(str(path), "r") as mapped:
         reader = ipc.open_file(mapped)
         schema = reader.schema
-        for name, kind in {
-            "id": pa.int64(),
-            "level": pa.int16(),
-            "source_namespace": pa.string(),
-            "source_id": pa.string(),
-            "geometry": pa.binary(),
-        }.items():
-            require(
-                schema.field(name).type == kind and not schema.field(name).nullable,
-                f"structural type/nullability: {entity}.{name}",
-            )
+        check_schema(schema, entity)
         for block in range(reader.num_record_batches):
             batch = reader.get_batch(block)
+            check_nonnull(batch, entity)
             require(batch.num_rows > 0, "empty data batch")
             for row, record in enumerate(batch.to_pylist()):
                 identifier, level = record["id"], record["level"]
@@ -466,9 +518,11 @@ def verify_graph(db: sqlite3.Connection, entity: str, path: Path) -> None:
     import pyarrow.parquet as pq
 
     graph = pq.ParquetFile(path)
+    check_schema(graph.schema_arrow, "graph")
     db.execute("DROP TABLE IF EXISTS graph_seen")
     db.execute("CREATE TEMP TABLE graph_seen(id INTEGER PRIMARY KEY)")
     for batch in graph.iter_batches(batch_size=4096):
+        check_nonnull(batch, "graph")
         for record in batch.to_pylist():
             identifier = record["id"]
             target = db.execute(
@@ -515,6 +569,65 @@ def verify_graph(db: sqlite3.Connection, entity: str, path: Path) -> None:
     verify_dag(db, entity)
 
 
+def verify_declarations(manifest: dict[str, object]) -> None:
+    require(manifest.get("topology") in {"tree", "dag"}, "catchment topology declaration invalid")
+    require(
+        manifest.get("catchment_batch_bytes") == 8388608 and manifest.get("index_batch_rows") == 65536,
+        "catchment storage declaration invalid",
+    )
+    for entity in ("rivers", "river_nodes"):
+        declaration = cast(dict[str, object], manifest[entity])
+        require(
+            declaration.get("batch_bytes") == 8388608 and declaration.get("index_batch_rows") == 65536,
+            f"{entity} storage declaration invalid",
+        )
+        require(
+            type(declaration.get("count")) is int and cast(int, declaration["count"]) > 0,
+            f"{entity} count declaration invalid",
+        )
+        if entity == "rivers":
+            require(declaration.get("topology") in {"tree", "dag"}, "river topology declaration invalid")
+    require(
+        type(manifest.get("unit_count")) is int and cast(int, manifest["unit_count"]) > 0,
+        "catchment count declaration invalid",
+    )
+
+
+def verify_declared_connectivity(db: sqlite3.Connection, manifest: dict[str, object]) -> None:
+    levels = {row[0] for row in db.execute("SELECT DISTINCT level FROM features WHERE entity='catchments'")}
+    declarations = cast(list[dict[str, object]], manifest.get("catchment_connectivity", []))
+    require(
+        len(declarations) == len(levels) and {entry.get("level") for entry in declarations} == levels,
+        "catchment connectivity declaration coverage differs",
+    )
+    for entry in declarations:
+        require(
+            type(entry["level"]) is int and entry.get("status") in {"supplied", "not_supplied"},
+            "catchment connectivity declaration invalid",
+        )
+        if entry["status"] == "not_supplied":
+            require(
+                db.execute(
+                    "SELECT 1 FROM edges e JOIN features f ON f.entity=e.entity AND f.id=e.downstream WHERE e.entity='catchments' AND f.level=? LIMIT 1",
+                    (entry["level"],),
+                ).fetchone()
+                is None,
+                "not_supplied level contains edges",
+            )
+    for entity, topology in (
+        ("catchments", manifest["topology"]),
+        ("rivers", cast(dict[str, object], manifest["rivers"])["topology"]),
+    ):
+        if topology == "tree":
+            require(
+                db.execute(
+                    "SELECT upstream FROM edges WHERE entity=? GROUP BY upstream HAVING COUNT(*)>1 LIMIT 1", (entity,)
+                ).fetchone()
+                is None,
+                "tree declaration has multiple downstream neighbors",
+            )
+
+
 def verify(
     inventory_path: Path, output: Path, report: Path, scratch: Path, *, worked_example: bool = False
 ) -> dict[str, object]:
@@ -522,6 +635,7 @@ def verify(
     from hfx.verify_candidates import _fingerprint
 
     output, report = output.resolve(), report.resolve()
+    inventory_identity = _fingerprint(inventory_path)
     inventory = cast(dict[str, object], json.loads(inventory_path.read_text()))
     require(not report.exists() and not report.is_relative_to(output), "receipt must be new and outside output")
     sources = cast(list[dict[str, object]], inventory["sources"])
@@ -537,6 +651,7 @@ def verify(
     manifest_identity = _fingerprint(manifest_path)
     manifest = json.loads(manifest_path.read_text())
     require(manifest["format_version"] == "0.4.0" and manifest["crs"] == "EPSG:4326", "wrong format/CRS")
+    verify_declarations(manifest)
     require(manifest["has_up_area"] is False, "GRIT upstream area not supplied")
     require(
         not manifest.get("external_artifacts") and not manifest.get("auxiliary"),
@@ -589,10 +704,22 @@ def verify(
             verify_grouping(db, entity, schema)
         verify_graph(db, "rivers", local(declarations["rivers"]["graph"]))
         verify_graph(db, "catchments", local(declarations["catchments"]["graph"]))
+        verify_declared_connectivity(db, manifest)
         verify_categories(db, manifest, schemas, declarations)
     require(before == {str(path): _fingerprint(path) for path in source_paths}, "originals changed during verification")
     require(manifest_identity == _fingerprint(manifest_path), "manifest changed during verification")
-    require(actual == {name: _fingerprint(output / name) for name in actual}, "output changed during verification")
+    final_paths = list(output.rglob("*"))
+    require(not any(path.is_symlink() for path in final_paths), "output changed during verification")
+    require(
+        actual
+        == {
+            path.relative_to(output).as_posix(): _fingerprint(path)
+            for path in final_paths
+            if path.is_file() and path != manifest_path
+        },
+        "output changed during verification",
+    )
+    require(inventory_identity == _fingerprint(inventory_path), "inventory changed during verification")
     import fiona
     import pyproj
     import rasterio
@@ -605,7 +732,7 @@ def verify(
             "area": f"pyproj {pyproj.__version__}, PROJ {pyproj.proj_version_str}; derived consistency, not independent geodesic algorithm",
             "independence": "GDAL original decode and coordinate transform separate from producer calls; common PROJ mathematics and Shapely output WKB decode",
         },
-        "inventory": _fingerprint(inventory_path),
+        "inventory": inventory_identity,
         "originals": before,
         "manifest": manifest_identity,
         "artifacts": actual,
@@ -616,11 +743,15 @@ def verify(
         "sample_polygon_checks": polygon_sample,
         "checks": [
             "all source rows and native physical types/nulls",
+            "required structural Arrow schemas and actual nonnull values including nested children",
+            "manifest storage/count/topology declarations, connectivity levels and tree downstream degree",
+            "inventory/original/manifest/artifact identity unchanged and final output file-set coverage",
             "source schema ledger",
             "parent and association mappings",
             "reciprocal edges and node incidence",
             "DAG",
             "all lookup addresses and fingerprints",
+            "source order and 256-row incoming groups; maximal 8388608-byte source slices and oversized singletons",
             "GDAL coordinate sequence",
             "derived geodesic area consistency",
         ],

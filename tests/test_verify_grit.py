@@ -1,5 +1,6 @@
 """Independent, hand-authored source expectations; no producer helpers."""
 
+import sqlite3
 import struct
 from pathlib import Path
 from typing import cast
@@ -284,7 +285,21 @@ def complete_fixture(root: Path) -> tuple[Path, Path]:
             else:
                 kind = pa.int64()
             fields.append(
-                pa.field(name, kind, name not in {"id", "level", "source_namespace", "source_id", "geometry", "bbox"})
+                pa.field(
+                    name,
+                    kind,
+                    name
+                    not in {
+                        "id",
+                        "level",
+                        "source_namespace",
+                        "source_id",
+                        "geometry",
+                        "bbox",
+                        "area_km2",
+                        "geometry_orientation",
+                    },
+                )
             )
         schema = pa.schema(fields)
         data = entity + ".arrow"
@@ -313,7 +328,14 @@ def complete_fixture(root: Path) -> tuple[Path, Path]:
                 {"version": 1, "batches": [{"batch": 0, "min_id": 1, "max_id": len(records), "rows": len(records)}]}
             )
         )
-        declarations[entity] = {"data": data, "lookup": lookup, "directory": directory, "count": len(records)}
+        declarations[entity] = {
+            "data": data,
+            "lookup": lookup,
+            "directory": directory,
+            "count": len(records),
+            "batch_bytes": 8388608,
+            "index_batch_rows": 65536,
+        }
         if entity != "river_nodes":
             graph = entity + "-graph.parquet"
             graph_rows = [
@@ -328,8 +350,17 @@ def complete_fixture(root: Path) -> tuple[Path, Path]:
                 }
                 for r in records
             ]
-            pq.write_table(pa.Table.from_pylist(graph_rows), output_dir / graph)
+            graph_schema = pa.schema(
+                [
+                    pa.field("id", pa.int64(), False),
+                    pa.field("level", pa.int16(), False),
+                    pa.field("upstream_ids", pa.list_(pa.field("item", pa.int64(), False)), False),
+                ]
+                + [pa.field(name, pa.float32(), False) for name in ("bbox_minx", "bbox_miny", "bbox_maxx", "bbox_maxy")]
+            )
+            pq.write_table(pa.Table.from_pylist(graph_rows, schema=graph_schema), output_dir / graph)
             declarations[entity]["graph"] = graph
+            declarations[entity]["topology"] = "dag"
     catch = declarations["catchments"]
     manifest = {
         "format_version": "0.4.0",
@@ -340,6 +371,14 @@ def complete_fixture(root: Path) -> tuple[Path, Path]:
         "directory": catch["directory"],
         "graph": catch["graph"],
         "unit_count": 3,
+        "topology": "dag",
+        "catchment_batch_bytes": 8388608,
+        "index_batch_rows": 65536,
+        "catchment_connectivity": [
+            {"level": 0, "status": "not_supplied"},
+            {"level": 1, "status": "supplied"},
+            {"level": 2, "status": "supplied"},
+        ],
         "rivers": declarations["rivers"],
         "river_nodes": declarations["river_nodes"],
         "artifacts": {path.name: _fingerprint(path) for path in output_dir.iterdir()},
@@ -513,3 +552,141 @@ def test_rebatched_bundle_with_fresh_lookup_and_hashes_is_rejected(tmp_path: Pat
     with pytest.raises(ValueError, match="maximal"):
         verify(inventory, output_dir, report, tmp_path / "audit.sqlite")
     assert not report.exists()
+
+
+def test_graph_schema_rejects_inferred_int64_levels_and_null_edges(tmp_path: Path) -> None:
+    import pyarrow.parquet as pq
+
+    from scripts.verify_grit import prepare_database, verify_graph
+
+    graph = tmp_path / "graph.parquet"
+    pq.write_table(
+        pa.Table.from_pylist(
+            [
+                {
+                    "id": 1,
+                    "level": 0,
+                    "upstream_ids": [],
+                    "bbox_minx": 0.0,
+                    "bbox_miny": 0.0,
+                    "bbox_maxx": 1.0,
+                    "bbox_maxy": 1.0,
+                }
+            ]
+        ),
+        graph,
+    )
+    with prepare_database(tmp_path / "audit.sqlite") as db, pytest.raises(ValueError, match="structural schema"):
+        verify_graph(db, "rivers", graph)
+
+
+def test_required_parent_type_and_nonnull_values_are_enforced(tmp_path: Path) -> None:
+    import pyarrow.ipc as ipc
+
+    from scripts.verify_grit import prepare_database, stage_output
+
+    _, output_dir = complete_fixture(tmp_path)
+    path = output_dir / "rivers.arrow"
+    with pa.memory_map(str(path), "r") as mapped:
+        batch = ipc.open_file(mapped).get_batch(0)
+    index = batch.schema.get_field_index("parent_id")
+    wrong = batch.set_column(index, pa.field("parent_id", pa.float64()), pa.array([None, 1.0], pa.float64()))
+    with ipc.new_file(str(path), wrong.schema, options=ipc.IpcWriteOptions(compression="zstd")) as writer:
+        writer.write_batch(wrong)
+    with prepare_database(tmp_path / "type.sqlite") as db, pytest.raises(ValueError, match="structural schema"):
+        stage_output(db, "rivers", path)
+    index = batch.schema.get_field_index("geometry_orientation")
+    wrong = batch.set_column(index, batch.schema.field(index), pa.array([None, 0], pa.int8()))
+    with ipc.new_file(str(path), wrong.schema, options=ipc.IpcWriteOptions(compression="zstd")) as writer:
+        writer.write_batch(wrong)
+    with prepare_database(tmp_path / "null.sqlite") as db, pytest.raises(ValueError, match="nonnull"):
+        stage_output(db, "rivers", path)
+
+
+def test_manifest_storage_and_topology_declarations_are_checked(tmp_path: Path) -> None:
+    import json
+
+    from scripts.verify_grit import verify
+
+    inventory, output_dir = complete_fixture(tmp_path)
+    path = output_dir / "manifest.json"
+    manifest = json.loads(path.read_text())
+    manifest["rivers"].update(batch_bytes=1, index_batch_rows=1, topology="not-a-topology")
+    path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="declaration"):
+        verify(inventory, output_dir, tmp_path / "receipt.json", tmp_path / "audit.sqlite")
+
+
+@pytest.mark.parametrize("mutation", ["inventory", "extra-artifact"])
+def test_receipt_rejects_inputs_or_output_set_changed_during_verification(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mutation: str
+) -> None:
+    from scripts import verify_grit
+
+    inventory, output_dir = complete_fixture(tmp_path)
+    original_check = verify_grit.verify_categories
+
+    def mutate(
+        db: sqlite3.Connection,
+        manifest: dict[str, object],
+        schemas: dict[str, pa.Schema],
+        declarations: dict[str, dict[str, object]],
+    ) -> None:
+        original_check(db, manifest, schemas, declarations)
+        if mutation == "inventory":
+            inventory.write_text(inventory.read_text() + "\n")
+        else:
+            (output_dir / "late-file.txt").write_text("unbound")
+
+    monkeypatch.setattr(verify_grit, "verify_categories", mutate)
+    report = tmp_path / "receipt.json"
+    with pytest.raises(ValueError, match="changed during"):
+        verify_grit.verify(inventory, output_dir, report, tmp_path / "audit.sqlite")
+    assert not report.exists()
+
+
+def test_declared_tree_and_unsupplied_levels_cannot_hide_edges(tmp_path: Path) -> None:
+    from scripts.verify_grit import prepare_database, verify_declared_connectivity
+
+    with prepare_database(tmp_path / "audit.sqlite") as db:
+        for identifier in (1, 2, 3):
+            db.execute(
+                "INSERT INTO features(entity,id,namespace,source_id,level) VALUES ('catchments',?,'synthetic',?,0)",
+                (identifier, str(identifier)),
+            )
+        db.executemany("INSERT INTO edges VALUES ('catchments',?,?)", [(1, 2), (1, 3)])
+        manifest: dict[str, object] = {
+            "topology": "dag",
+            "rivers": {"topology": "dag"},
+            "catchment_connectivity": [{"level": 0, "status": "supplied"}],
+        }
+        verify_declared_connectivity(db, manifest)
+        manifest["topology"] = "tree"
+        with pytest.raises(ValueError, match="multiple downstream"):
+            verify_declared_connectivity(db, manifest)
+        manifest["topology"] = "dag"
+        manifest["catchment_connectivity"] = [{"level": 0, "status": "not_supplied"}]
+        with pytest.raises(ValueError, match="not_supplied"):
+            verify_declared_connectivity(db, manifest)
+        manifest["catchment_connectivity"] = []
+        with pytest.raises(ValueError, match="coverage"):
+            verify_declared_connectivity(db, manifest)
+
+
+def test_graph_and_bbox_actual_nonnull_children_are_checked() -> None:
+    from scripts.verify_grit import check_nonnull
+
+    graph_schema = pa.schema(
+        [
+            pa.field("id", pa.int64(), False),
+            pa.field("level", pa.int16(), False),
+            pa.field("upstream_ids", pa.list_(pa.field("item", pa.int64(), False)), False),
+        ]
+        + [pa.field(name, pa.float32(), False) for name in ("bbox_minx", "bbox_miny", "bbox_maxx", "bbox_maxy")]
+    )
+    graph = pa.RecordBatch.from_pylist(
+        [{"id": 1, "level": 0, "upstream_ids": [None], "bbox_minx": 0, "bbox_miny": 0, "bbox_maxx": 1, "bbox_maxy": 1}],
+        schema=graph_schema,
+    )
+    with pytest.raises(ValueError, match="nonnull graph edge"):
+        check_nonnull(graph, "graph")
