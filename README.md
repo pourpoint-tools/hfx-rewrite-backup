@@ -10,9 +10,13 @@ the repository's purpose are open to redesign, including changes that better
 serve the Python rewrite of Pourpoint.
 
 The [HFX 0.4.0 Vector Data contract](docs/v0.4.0/vector-data.md) specifies
-Arrow catchment batches, an ID lookup, and unchanged graph and snap artifacts.
+catchment and river IPC batches, ID lookups, directed graphs, source nodes and
+explicit drainage-unit associations. Rivers retain native identity and attributes;
+snapping is one possible use, not their stored data model.
 The [raster contract](docs/v0.4.0/raster-data.md) adds optional native-grid D8 pairs
-and defines the approved GRIT raster extension; it is not a delivery receipt.
+and permits explicit immutable references to unchanged raster objects. The
+[river source evidence](docs/v0.4.0/grit-river-evidence.md) records original examples
+and implementation decisions; it is not a production delivery receipt.
 Small production and verification scripts live in `scripts/`. The earlier
 [selective-access candidates](docs/selective-access-candidates.md) remain experimental evidence.
 The package version `0.0.0.dev0` is a setup placeholder, not an HFX format version or release
@@ -53,12 +57,14 @@ for producer verification commands.
 
 See [AGENTS.md](AGENTS.md) for development conventions.
 
-## GRIT vector production
+## Earlier GRIT vector production
 
-The [GRIT vector record](docs/v0.4.0/grit-verification.md) and
+The earlier [GRIT vector record](docs/v0.4.0/grit-verification.md) and
 [raster delivery record](docs/v0.4.0/grit-raster-verification.md) contain the
 public URL, artifact identities, verification results and cleanup status.
 
+The commands below reproduce the earlier normalized catchment/snap delivery, not
+the revised original-source river bundle. They cannot restore lost river fields.
 Use new, disjoint source/output directories on the same filesystem. Download the
 four vector inputs and source `manifest.json`, `NOTICE`, `CITATION.txt`, and
 `README.md`. Verify the source hashes before conversion. The converter hardlinks
