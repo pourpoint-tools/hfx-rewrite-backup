@@ -27,6 +27,7 @@ def test_native_node_dictionary_preserves_underspecified_outlet() -> None:
         "coastal_outlet",
         "sink_outlet",
         "grwl_change",
+        "interbasin",
         "outlet",
     }
     assert "undocumented" in codes["outlet"]
@@ -78,3 +79,20 @@ def test_external_rasters_bind_verified_objects_only_for_production() -> None:
         for field in ("size_bytes", "sha256", "head_sha256", "tail_sha256"):
             assert identity[field] == expected["artifacts"][path][field]
     assert "artifacts" not in fragment
+
+
+def test_original_interbasin_label_is_declared_without_accepting_unknown_codes() -> None:
+    import sqlite3
+
+    from scripts.verify_grit import verify_categories
+
+    # Original AS segment node 170120166: retain its literal source label.
+    schema = pa.schema([pa.field("source_node_type", pa.string())])
+    manifest: dict[str, object] = {"categorical_columns": native_categories("river-nodes.arrow", schema)}
+    with sqlite3.connect(":memory:") as db:
+        db.execute("CREATE TABLE features(entity TEXT, attrs TEXT)")
+        db.execute("INSERT INTO features VALUES (?,?)", ("river_nodes", json.dumps({"source_node_type": "interbasin"})))
+        verify_categories(db, manifest, {"river_nodes": schema}, {"river_nodes": {"data": "river-nodes.arrow"}})
+        db.execute("UPDATE features SET attrs=?", (json.dumps({"source_node_type": "unrecognized_fixture_label"}),))
+        with pytest.raises(ValueError, match="undeclared source categorical value"):
+            verify_categories(db, manifest, {"river_nodes": schema}, {"river_nodes": {"data": "river-nodes.arrow"}})

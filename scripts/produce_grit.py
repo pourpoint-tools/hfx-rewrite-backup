@@ -54,6 +54,10 @@ def native_categories(artifact: str, schema: pa.Schema) -> list[Category]:
                 {"code": "sink_outlet", "meaning": "Source sink outlet label."},
                 {"code": "grwl_change", "meaning": "Source GRWL code-change node label."},
                 {
+                    "code": "interbasin",
+                    "meaning": "Observed source interbasin label, undocumented in GRIT README; precise hydrological meaning unknown.",
+                },
+                {
                     "code": "outlet",
                     "meaning": "Observed source outlet label, undocumented in GRIT README; specific termination meaning unknown.",
                 },
