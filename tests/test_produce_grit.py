@@ -135,6 +135,8 @@ def test_original_layer_mapping(tmp_path: Path) -> None:
     assert unmapped["coarser_node_id"] is None
     assert unmapped["source_segment_node_id"] is None
     manifest = json.loads((output / "manifest.json").read_text())
+    assert {p.name for p in output.iterdir()} == set(manifest["artifacts"]) | {"manifest.json"}
+    assert output.with_name(output.name + "-production.sqlite").is_file()
     assert manifest["unit_count"] == 3
     assert manifest["rivers"]["count"] == 2
     assert manifest["river_nodes"]["count"] == 4
@@ -159,3 +161,28 @@ def test_directed_diamond_and_cycle_rejection(tmp_path: Path) -> None:
         with pytest.raises(ValueError, match="cycle"):
             check_dag(connection, "rivers")
         assert connection.execute("SELECT COUNT(*) FROM edges").fetchone()[0] == 5
+
+
+def test_archive_identity_binds_loose_geopackage(tmp_path: Path) -> None:
+    import hashlib
+    import zipfile
+
+    from scripts.produce_grit import verify_archives
+
+    source = tmp_path / "original.gpkg"
+    source.write_bytes(b"original source bytes")
+    archive = tmp_path / "original.gpkg.zip"
+    with zipfile.ZipFile(archive, "w") as zipped:
+        zipped.writestr(source.name, source.read_bytes())
+    inventory: dict[str, object] = {
+        "sources": [
+            {
+                "path": str(source),
+                "archive": {"path": str(archive), "md5": hashlib.md5(archive.read_bytes()).hexdigest()},
+            }
+        ]
+    }
+    verify_archives(inventory)
+    source.write_bytes(b"different loose source")
+    with pytest.raises(ValueError, match="extracted source differs"):
+        verify_archives(inventory)

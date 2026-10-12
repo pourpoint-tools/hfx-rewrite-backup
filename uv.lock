@@ -270,6 +270,7 @@ vector-production = [
     { name = "fiona" },
     { name = "numpy" },
     { name = "pyproj" },
+    { name = "rasterio" },
     { name = "shapely" },
 ]
 
@@ -297,6 +298,7 @@ vector-production = [
     { name = "fiona", specifier = ">=1.10.1" },
     { name = "numpy", specifier = ">=2.5.3" },
     { name = "pyproj", specifier = ">=3.8.0" },
+    { name = "rasterio", specifier = ">=1.5.2" },
     { name = "shapely", specifier = ">=2.2.0" },
 ]
 

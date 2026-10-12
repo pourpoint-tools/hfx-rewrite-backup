@@ -8,6 +8,7 @@ import json
 import sqlite3
 import struct
 import time
+import zipfile
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -22,7 +23,7 @@ from shapely import from_wkb, to_wkb, transform
 from shapely.geometry import MultiPolygon, Polygon
 from shapely.geometry.base import BaseGeometry
 
-from hfx.candidates import fingerprint, write_json
+from hfx.candidates import Fingerprint, fingerprint, write_json
 from hfx.vector_storage import write_vectors
 
 PROJECTION = Transformer.from_crs(8857, 4326, always_xy=True)
@@ -347,12 +348,14 @@ def produce(inventory_path: Path, output: Path) -> None:
     started = time.perf_counter()
     inventory = cast(dict[str, object], json.loads(inventory_path.read_text()))
     verify_archives(inventory)
-    if output.exists():
-        raise FileExistsError(output)
+    scratch = output.with_name(output.name + "-production.sqlite")
+    if output.exists() or scratch.exists():
+        raise FileExistsError(output if output.exists() else scratch)
     output.mkdir(parents=True)
     layers = read_layers(inventory)
+    before = {path: fingerprint(path) for path in sorted({layer.path for layer in layers})}
     components = set(cast(list[int], inventory["components"])) if "components" in inventory else None
-    with sqlite3.connect(output / "production.sqlite") as connection:
+    with sqlite3.connect(scratch) as connection:
         identities = Identities(connection)
         select_rows(layers, identities, components)
         source_graph(layers, identities)
@@ -374,7 +377,10 @@ def produce(inventory_path: Path, output: Path) -> None:
             write_json(output / directory, value)
         write_graph(layers, identities, "catchments", output / "graph.parquet")
         write_graph(layers, identities, "rivers", output / "river-graph.parquet")
-        finish_manifest(inventory, layers, identities, output, time.perf_counter() - started)
+        after = {path: fingerprint(path) for path in before}
+        if before != after:
+            raise ValueError("original GeoPackage changed during production")
+        finish_manifest(inventory, layers, identities, output, time.perf_counter() - started, after)
 
 
 def check_dag(connection: sqlite3.Connection, family: str) -> None:
@@ -529,10 +535,25 @@ def verify_archives(inventory: dict[str, object]) -> None:
             digest = hashlib.file_digest(stream, "md5").hexdigest()
         if digest != archive["md5"]:
             raise ValueError(f"source archive checksum mismatch: {archive['path']}")
+        path = Path(str(source["path"]))
+        with zipfile.ZipFile(archive["path"]) as zipped:
+            members = [item for item in zipped.infolist() if Path(item.filename).name == path.name]
+            if len(members) != 1:
+                raise ValueError(f"expected exactly one original GeoPackage member: {path.name}")
+            with zipped.open(members[0]) as member, path.open("rb") as loose:
+                member_digest = hashlib.file_digest(cast(zipfile.ZipExtFile, member), "sha256").hexdigest()
+                loose_digest = hashlib.file_digest(loose, "sha256").hexdigest()
+            if member_digest != loose_digest:
+                raise ValueError(f"extracted source differs from verified archive: {path}")
 
 
 def finish_manifest(
-    inventory: dict[str, object], layers: list[Layer], identities: Identities, output: Path, elapsed: float
+    inventory: dict[str, object],
+    layers: list[Layer],
+    identities: Identities,
+    output: Path,
+    elapsed: float,
+    source_identities: dict[Path, Fingerprint],
 ) -> None:
     layer_ledger: list[dict[str, object]] = []
     for layer in layers:
@@ -557,7 +578,7 @@ def finish_manifest(
         {
             "inventory": inventory,
             "layers": layer_ledger,
-            "sources": [{"path": str(path), **fingerprint(path)} for path in sorted({layer.path for layer in layers})],
+            "sources": [{"path": str(path), **identity} for path, identity in source_identities.items()],
             "transformations": {
                 "geometry": "GeoPackage header removed; EPSG:8857 to EPSG:4326 with pyproj always_xy; vertex/part/ring order retained; no repair, clipping, simplification or reversal",
                 "area_km2": "WGS84 geodesic shell area minus holes per polygon; sum components; float32 km2. Native source_area remains equal-area km2.",
