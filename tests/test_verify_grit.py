@@ -4,11 +4,15 @@ import struct
 from pathlib import Path
 from typing import cast
 
-import fiona
 import pyarrow as pa
 import pytest
 
-from scripts.verify_grit import compare_feature, source_schema
+fiona = pytest.importorskip("fiona")
+pytest.importorskip("rasterio")
+pytest.importorskip("pyproj")
+pytest.importorskip("shapely")
+
+from scripts.verify_grit import compare_feature, source_schema  # noqa: E402
 
 
 def original(path: Path) -> None:
@@ -458,3 +462,54 @@ def test_schema_ledger_preserves_nullable_source_declaration(tmp_path: Path) -> 
         verify_ledger(
             cast(dict[str, object], inventory), cast(dict[str, object], ledger), cast(list[dict[str, object]], observed)
         )
+
+
+def test_group_budget_rejects_coherently_rebatched_values(tmp_path: Path) -> None:
+    from scripts.verify_grit import verify_group_batches
+
+    schema = pa.schema([pa.field("id", pa.int64()), pa.field("payload", pa.binary())])
+    incoming = pa.RecordBatch.from_pylist(
+        [{"id": 1, "payload": b"a" * 20}, {"id": 2, "payload": b"b" * 20}, {"id": 3, "payload": b"c" * 20}],
+        schema=schema,
+    )
+    budget = incoming.slice(0, 2).nbytes
+    assert incoming.slice(0, 3).nbytes > budget
+    verify_group_batches(incoming, [2, 1], budget)
+    with pytest.raises(ValueError, match="maximal"):
+        verify_group_batches(incoming, [1, 2], budget)
+    with pytest.raises(ValueError, match="budget"):
+        verify_group_batches(incoming, [3], budget)
+
+
+def test_rebatched_bundle_with_fresh_lookup_and_hashes_is_rejected(tmp_path: Path) -> None:
+    import json
+
+    import pyarrow.ipc as ipc
+
+    from hfx.verify_candidates import _fingerprint
+    from scripts.verify_grit import verify
+
+    inventory, output_dir = complete_fixture(tmp_path)
+    path = output_dir / "rivers.arrow"
+    with pa.memory_map(str(path), "r") as mapped:
+        batch = ipc.open_file(mapped).get_batch(0)
+    with ipc.new_file(str(path), batch.schema, options=ipc.IpcWriteOptions(compression="zstd")) as writer:
+        writer.write_batch(batch.slice(0, 1))
+        writer.write_batch(batch.slice(1, 1))
+    lookup = output_dir / "rivers-lookup.arrow"
+    with pa.memory_map(str(lookup), "r") as mapped:
+        schema = ipc.open_file(mapped).schema
+    metadata = dict(schema.metadata)
+    metadata[b"hfx:data_sha256"] = _fingerprint(path)["sha256"].encode()
+    schema = schema.with_metadata(metadata)
+    with ipc.new_file(str(lookup), schema) as writer:
+        writer.write_batch(pa.record_batch([[1, 2], [0, 1], [0, 0]], schema=schema))
+    manifest_path = output_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    for changed in (path, lookup):
+        manifest["artifacts"][changed.name] = _fingerprint(changed)
+    manifest_path.write_text(json.dumps(manifest))
+    report = tmp_path / "receipt.json"
+    with pytest.raises(ValueError, match="maximal"):
+        verify(inventory, output_dir, report, tmp_path / "audit.sqlite")
+    assert not report.exists()

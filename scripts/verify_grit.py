@@ -585,6 +585,8 @@ def verify(
             )
         counts, error = verify_originals(db, inventory, schemas)
         verify_ledger(inventory, json.loads(local("source-provenance.json").read_text()), counts)
+        for entity, schema in schemas.items():
+            verify_grouping(db, entity, schema)
         verify_graph(db, "rivers", local(declarations["rivers"]["graph"]))
         verify_graph(db, "catchments", local(declarations["catchments"]["graph"]))
         verify_categories(db, manifest, schemas, declarations)
@@ -768,6 +770,55 @@ def verify_sample_polygons(inventory: dict[str, object]) -> dict[str, object]:
         "outside_parent_square_metres": 0,
         "sibling_overlap_square_metres": 0,
     }
+
+
+def verify_group_batches(incoming: pa.RecordBatch, sizes: list[int], budget: int = 8388608) -> None:
+    offset = 0
+    for size in sizes:
+        require(0 < size <= incoming.num_rows - offset, "batch crosses incoming group boundary")
+        require(incoming.slice(offset, size).nbytes <= budget or size == 1, "batch exceeds source byte budget")
+        require(
+            offset + size == incoming.num_rows or incoming.slice(offset, size + 1).nbytes > budget,
+            "batch not maximal source slice",
+        )
+        offset += size
+    require(offset == incoming.num_rows, "incoming group coverage differs")
+
+
+def verify_grouping(db: sqlite3.Connection, entity: str, schema: pa.Schema) -> None:
+    # Rebuild the documented from_pylist representation after original fidelity
+    # checks; do not use decoded IPC nbytes (validity buffers may differ).
+    db.executescript(
+        "DROP TABLE IF EXISTS source_order; CREATE TEMP TABLE source_order(id INTEGER PRIMARY KEY, product INTEGER, region TEXT, layer TEXT, fid INTEGER);"
+    )
+    order = tuple(PRODUCTS)
+    for identifier, ns, attrs in db.execute("SELECT id,namespace,attrs FROM features WHERE entity=?", (entity,)):
+        _, _, region, product, layer = ns.split(":")
+        db.execute(
+            "INSERT INTO source_order VALUES (?,?,?,?,?)",
+            (identifier, order.index(product), region, layer, json.loads(attrs)["source_fid"]),
+        )
+    incoming = db.execute(
+        """SELECT f.attrs,f.geometry,a.block,a.row FROM source_order o
+        JOIN features f ON f.entity=? AND f.id=o.id JOIN addresses a ON a.entity=f.entity AND a.id=f.id
+        ORDER BY o.product,o.region,o.layer,o.fid""",
+        (entity,),
+    )
+    previous_block = -1
+    while group := incoming.fetchmany(256):
+        rows: list[dict[str, object]] = []
+        sizes: list[int] = []
+        for attrs, geometry, block, row in group:
+            record = json.loads(attrs)
+            record["geometry"] = geometry
+            rows.append(record)
+            if not sizes or block != previous_block:
+                require(block == previous_block + 1 and row == 0, "source order/group boundary differs")
+                sizes.append(0)
+                previous_block = block
+            require(row == sizes[-1], "source fid/address order differs")
+            sizes[-1] += 1
+        verify_group_batches(pa.RecordBatch.from_pylist(rows, schema=schema), sizes)
 
 
 def main() -> None:

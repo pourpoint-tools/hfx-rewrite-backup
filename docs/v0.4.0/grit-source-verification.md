@@ -47,15 +47,19 @@ binding and fresh pinned public ranges, upload verification, remote selective
 read measurements, licensing/publication review and full regional acquisition
 remain delivery steps. Source archive-member binding is the producer's separately
 tested acquisition check; this verifier binds and rereads the loose originals.
-IPC batch compression and lookup layout reuse existing independent checks; this
-verifier does not rederive the producer's incoming-group byte-budget splitting.
+IPC compression and lookup layout reuse existing independent checks. Incoming
+groups are reconstructed from independently verified values with the documented
+`RecordBatch.from_pylist` representation: 256 rows across layer boundaries, ordered
+by product/region/table/fid. Every physical batch must be the maximal source slice
+within 8 MiB, or an oversized singleton. Decoded IPC validity buffers are not used
+for source `nbytes` accounting.
 
 ## Original small experiment
 
 Untouched producer v2 sample, 2026-10-12: 1,197 catchments (3 components,
 135 segments, 1,059 reaches), 1,194 rivers and 1,176 nodes. Complete component
 70000129 plus polygon-only 70115212 and 370650032. Final independent verification
-passed in 18.95 s wall time, peak RSS 184,107,008 bytes. Maximum coordinate error
+passed in 18.96 s wall time, peak RSS 195,969,024 bytes. Maximum coordinate error
 was **0.0 degree**. Four segment/21 reach polygon checks passed with zero outside
 and overlapping area. This is offline verification, not delineation performance.
 
