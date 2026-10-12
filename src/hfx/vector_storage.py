@@ -6,7 +6,7 @@ from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 import pyarrow as pa
 import pyarrow.compute as pc
@@ -124,6 +124,7 @@ def write_vectors(
     batch_bytes: int = 8 * 1024 * 1024,
     index_batch_rows: int = 65536,
     format_version: str = "0.4.0",
+    lookup_binding: Literal["hfx:data_sha256", "hfx:catchments_sha256"] = "hfx:data_sha256",
 ) -> Directory:
     """Write typed vectors and their bound lookup. Failed outputs remain for diagnosis.
 
@@ -150,6 +151,6 @@ def write_vectors(
         return _write_lookup(
             connection,
             lookup_path,
-            {b"hfx:data_sha256": digest.encode(), b"hfx:format_version": format_version.encode()},
+            {lookup_binding.encode(): digest.encode(), b"hfx:format_version": format_version.encode()},
             index_batch_rows,
         )

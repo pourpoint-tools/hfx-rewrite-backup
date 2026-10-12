@@ -76,3 +76,23 @@ def test_invalid_ids_fail_without_coercion_and_clean_own_scratch(tmp_path: Path,
     assert not list(tmp_path.glob("hfx-addresses-*"))
     if ids.type == pa.int64():
         assert (tmp_path / "data.arrow").exists()
+
+
+def test_streaming_catchments_keep_historical_lookup_binding(tmp_path: Path) -> None:
+    from hashlib import sha256
+
+    from hfx.vector_storage import write_vectors
+
+    table = pa.table({"id": pa.array([9, 2], type=pa.int64())})
+    write_vectors(
+        table.schema,
+        iter(table.to_batches(max_chunksize=1)),
+        tmp_path / "data.arrow",
+        tmp_path / "lookup.arrow",
+        lookup_binding="hfx:catchments_sha256",
+    )
+    with ipc.open_file(tmp_path / "lookup.arrow") as reader:
+        assert reader.schema.metadata == {
+            b"hfx:catchments_sha256": sha256((tmp_path / "data.arrow").read_bytes()).hexdigest().encode(),
+            b"hfx:format_version": b"0.4.0",
+        }
