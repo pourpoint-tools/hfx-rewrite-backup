@@ -58,8 +58,10 @@ remains the original equal-area value. Upstream polygon-union area is not comput
 retain their separate columns. Component outlets remain null; local polygon
 outlets use the corresponding source river's downstream node.
 
-Typed incoming groups contain 256 rows in product/region/table order, then
-ascending source `fid`. The shared writer retains the 8 MiB logical batch budget
+Typed incoming groups contain 256 rows per feature family, concatenated across
+layers in the documented product order (components, segment catchments, reach
+catchments, segments, reaches), then region/table and ascending source `fid`.
+A group may cross a layer boundary; only the final family group is short. The shared writer retains the 8 MiB logical batch budget
 and oversized-singleton rule. Float32 geometry and graph bounds round outward.
 Selected IDs, references, reciprocal edges, endpoint continuity, node incidence
 and graph acyclicity are checked without repairing source hydrology. Cycle flags
@@ -86,8 +88,9 @@ Independent Fiona original reads and modern GDAL reprojection checked every
 source row and coordinate in the sample: 1,197 catchments, 1,194 rivers and 1,176
 nodes. The maximum coordinate difference was 0.0 degrees. This initial verification
 also checked source attributes/types/nulls, references, graphs, lookup coverage
-and artifact identities. Provenance-ledger declaration checks and sampled polygon
-geometry checks were still pending when this producer slice was prepared.
+and artifact identities. Source-schema ledger checks and four original diamond
+polygon-group checks also passed. Actual output byte-budget/maximal-slice proof
+is a separate remaining verifier check; this is not full format-verifier completion.
 
 The exact fresh manifest SHA-256 is
 `ea15082eaddc7bd043fba4e84581a48875ab78a2f6c2ed91b6d37c42b34215fd`.
