@@ -1,0 +1,345 @@
+{
+  "record_id": 17435232,
+  "doi": "10.5281/zenodo.17435232",
+  "record_url": "https://zenodo.org/records/17435232",
+  "metadata_created": "2025-12-15T13:38:10.377104+00:00",
+  "metadata_modified": "2025-12-15T13:38:13.264612+00:00",
+  "scope": "Five EPSG8857 vector products only; excludes domain and segments_simple and all EPSG4326 variants",
+  "method": "Zenodo metadata plus bounded HTTP Range ZIP central-directory inspection; no full ZIP downloaded. Archive MD5 copied from metadata, not independently verified. Expanded sizes from central-directory headers, not extraction.",
+  "license": "CC-BY-NC-4.0",
+  "documents": [
+    {
+      "name": "README.pdf",
+      "url": "https://zenodo.org/api/records/17435232/files/README.pdf/content",
+      "size_bytes": 150250,
+      "md5": "d31f56d7d0243f923db881ebfaa981d3"
+    },
+    {
+      "name": "LICENSE.md",
+      "url": "https://zenodo.org/api/records/17435232/files/LICENSE.md/content",
+      "size_bytes": 14830,
+      "md5": "59d7685d6efad25746c5a2952326ff3e"
+    }
+  ],
+  "archives": [
+    {
+      "name": "GRITv1.0_component_catchments_GLOBAL_EPSG8857.gpkg.zip",
+      "product": "component_catchments",
+      "region": "GLOBAL",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_component_catchments_GLOBAL_EPSG8857.gpkg.zip/content",
+      "md5": "c7086353ca7cc3504df80ac23e0cedeb",
+      "size_bytes": 360101987,
+      "member": "GRITv1.0_component_catchments_GLOBAL_EPSG8857.gpkg",
+      "extracted_bytes": 1237303296,
+      "crc32": "4eba3490"
+    },
+    {
+      "name": "GRITv1.0_reach_catchments_AF_EPSG8857.gpkg.zip",
+      "product": "reach_catchments",
+      "region": "AF",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_reach_catchments_AF_EPSG8857.gpkg.zip/content",
+      "md5": "291ffcaf9afaf1db5687d60d68928809",
+      "size_bytes": 1947063586,
+      "member": "GRITv1.0_reach_catchments_AF_EPSG8857.gpkg",
+      "extracted_bytes": 8918667264,
+      "crc32": "13fb2bcb"
+    },
+    {
+      "name": "GRITv1.0_reach_catchments_AS_EPSG8857.gpkg.zip",
+      "product": "reach_catchments",
+      "region": "AS",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_reach_catchments_AS_EPSG8857.gpkg.zip/content",
+      "md5": "c219db71ebceadabeb28d4dc33a4114a",
+      "size_bytes": 1880499807,
+      "member": "GRITv1.0_reach_catchments_AS_EPSG8857.gpkg",
+      "extracted_bytes": 8338325504,
+      "crc32": "f2ad0c09"
+    },
+    {
+      "name": "GRITv1.0_reach_catchments_EU_EPSG8857.gpkg.zip",
+      "product": "reach_catchments",
+      "region": "EU",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_reach_catchments_EU_EPSG8857.gpkg.zip/content",
+      "md5": "7bafcfb501bb2060a3a5297c72f89666",
+      "size_bytes": 843099104,
+      "member": "GRITv1.0_reach_catchments_EU_EPSG8857.gpkg",
+      "extracted_bytes": 3764809728,
+      "crc32": "232d5473"
+    },
+    {
+      "name": "GRITv1.0_reach_catchments_NA_EPSG8857.gpkg.zip",
+      "product": "reach_catchments",
+      "region": "NA",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_reach_catchments_NA_EPSG8857.gpkg.zip/content",
+      "md5": "c9b98b714a1eb84a5fb361a3ba8b20f0",
+      "size_bytes": 1579714729,
+      "member": "GRITv1.0_reach_catchments_NA_EPSG8857.gpkg",
+      "extracted_bytes": 6650408960,
+      "crc32": "131b3b15"
+    },
+    {
+      "name": "GRITv1.0_reach_catchments_SA_EPSG8857.gpkg.zip",
+      "product": "reach_catchments",
+      "region": "SA",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_reach_catchments_SA_EPSG8857.gpkg.zip/content",
+      "md5": "922d85c99e55eb207b6e8da67492216b",
+      "size_bytes": 1185563669,
+      "member": "GRITv1.0_reach_catchments_SA_EPSG8857.gpkg",
+      "extracted_bytes": 5272887296,
+      "crc32": "36d45101"
+    },
+    {
+      "name": "GRITv1.0_reach_catchments_SI_EPSG8857.gpkg.zip",
+      "product": "reach_catchments",
+      "region": "SI",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_reach_catchments_SI_EPSG8857.gpkg.zip/content",
+      "md5": "91b7c093f08520468c5f0eaab3a0f2b2",
+      "size_bytes": 930444184,
+      "member": "GRITv1.0_reach_catchments_SI_EPSG8857.gpkg",
+      "extracted_bytes": 4083183616,
+      "crc32": "d4c0e557"
+    },
+    {
+      "name": "GRITv1.0_reach_catchments_SP_EPSG8857.gpkg.zip",
+      "product": "reach_catchments",
+      "region": "SP",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_reach_catchments_SP_EPSG8857.gpkg.zip/content",
+      "md5": "5d5b416c3737c9d92dab0b4222f4d863",
+      "size_bytes": 728927168,
+      "member": "GRITv1.0_reach_catchments_SP_EPSG8857.gpkg",
+      "extracted_bytes": 3199688704,
+      "crc32": "93bde884"
+    },
+    {
+      "name": "GRITv1.0_reaches_AF_EPSG8857.gpkg.zip",
+      "product": "reaches",
+      "region": "AF",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_reaches_AF_EPSG8857.gpkg.zip/content",
+      "md5": "9b396bd365ac631fc1589c68ac345c67",
+      "size_bytes": 1548592430,
+      "member": "GRITv1.0_reaches_AF_EPSG8857.gpkg",
+      "extracted_bytes": 2935341056,
+      "crc32": "b5ec190d"
+    },
+    {
+      "name": "GRITv1.0_reaches_AS_EPSG8857.gpkg.zip",
+      "product": "reaches",
+      "region": "AS",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_reaches_AS_EPSG8857.gpkg.zip/content",
+      "md5": "0d86cd9817a2eb0e24814525d04f4a90",
+      "size_bytes": 1390555160,
+      "member": "GRITv1.0_reaches_AS_EPSG8857.gpkg",
+      "extracted_bytes": 2671833088,
+      "crc32": "363e87c1"
+    },
+    {
+      "name": "GRITv1.0_reaches_EU_EPSG8857.gpkg.zip",
+      "product": "reaches",
+      "region": "EU",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_reaches_EU_EPSG8857.gpkg.zip/content",
+      "md5": "7af05354a5caa6cbf6bfe2b3e9767a1b",
+      "size_bytes": 671121735,
+      "member": "GRITv1.0_reaches_EU_EPSG8857.gpkg",
+      "extracted_bytes": 1269161984,
+      "crc32": "35721505"
+    },
+    {
+      "name": "GRITv1.0_reaches_NA_EPSG8857.gpkg.zip",
+      "product": "reaches",
+      "region": "NA",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_reaches_NA_EPSG8857.gpkg.zip/content",
+      "md5": "9efa04e9b10df41e3b91da14f7b28969",
+      "size_bytes": 1157747703,
+      "member": "GRITv1.0_reaches_NA_EPSG8857.gpkg",
+      "extracted_bytes": 2221015040,
+      "crc32": "38fdff91"
+    },
+    {
+      "name": "GRITv1.0_reaches_SA_EPSG8857.gpkg.zip",
+      "product": "reaches",
+      "region": "SA",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_reaches_SA_EPSG8857.gpkg.zip/content",
+      "md5": "af5ef0fb10253444682c2fa3d8483f39",
+      "size_bytes": 974936622,
+      "member": "GRITv1.0_reaches_SA_EPSG8857.gpkg",
+      "extracted_bytes": 1826779136,
+      "crc32": "4501e548"
+    },
+    {
+      "name": "GRITv1.0_reaches_SI_EPSG8857.gpkg.zip",
+      "product": "reaches",
+      "region": "SI",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_reaches_SI_EPSG8857.gpkg.zip/content",
+      "md5": "e01a1e8ac5da2c8cff5d64a934103343",
+      "size_bytes": 749199959,
+      "member": "GRITv1.0_reaches_SI_EPSG8857.gpkg",
+      "extracted_bytes": 1441701888,
+      "crc32": "84e46f34"
+    },
+    {
+      "name": "GRITv1.0_reaches_SP_EPSG8857.gpkg.zip",
+      "product": "reaches",
+      "region": "SP",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_reaches_SP_EPSG8857.gpkg.zip/content",
+      "md5": "7e2609ec1da4d71b39a6b1cf59f85042",
+      "size_bytes": 568680851,
+      "member": "GRITv1.0_reaches_SP_EPSG8857.gpkg",
+      "extracted_bytes": 1090236416,
+      "crc32": "1193248c"
+    },
+    {
+      "name": "GRITv1.0_segment_catchments_AF_EPSG8857.gpkg.zip",
+      "product": "segment_catchments",
+      "region": "AF",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_segment_catchments_AF_EPSG8857.gpkg.zip/content",
+      "md5": "826f63e8191f2645798c65920242d557",
+      "size_bytes": 717184034,
+      "member": "GRITv1.0_segment_catchments_AF_EPSG8857.gpkg",
+      "extracted_bytes": 2738655232,
+      "crc32": "49bc4d13"
+    },
+    {
+      "name": "GRITv1.0_segment_catchments_AS_EPSG8857.gpkg.zip",
+      "product": "segment_catchments",
+      "region": "AS",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_segment_catchments_AS_EPSG8857.gpkg.zip/content",
+      "md5": "7792f3dfd0e7754f40372e5ee37dd67d",
+      "size_bytes": 720566355,
+      "member": "GRITv1.0_segment_catchments_AS_EPSG8857.gpkg",
+      "extracted_bytes": 2651840512,
+      "crc32": "7d3992fb"
+    },
+    {
+      "name": "GRITv1.0_segment_catchments_EU_EPSG8857.gpkg.zip",
+      "product": "segment_catchments",
+      "region": "EU",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_segment_catchments_EU_EPSG8857.gpkg.zip/content",
+      "md5": "02a23ab0ba81301b2e90bcd64d753089",
+      "size_bytes": 308652931,
+      "member": "GRITv1.0_segment_catchments_EU_EPSG8857.gpkg",
+      "extracted_bytes": 1141108736,
+      "crc32": "93fd523e"
+    },
+    {
+      "name": "GRITv1.0_segment_catchments_NA_EPSG8857.gpkg.zip",
+      "product": "segment_catchments",
+      "region": "NA",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_segment_catchments_NA_EPSG8857.gpkg.zip/content",
+      "md5": "131ffddd6ada1d8231fbe8c010cb6941",
+      "size_bytes": 600558883,
+      "member": "GRITv1.0_segment_catchments_NA_EPSG8857.gpkg",
+      "extracted_bytes": 2131775488,
+      "crc32": "0a8eda92"
+    },
+    {
+      "name": "GRITv1.0_segment_catchments_SA_EPSG8857.gpkg.zip",
+      "product": "segment_catchments",
+      "region": "SA",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_segment_catchments_SA_EPSG8857.gpkg.zip/content",
+      "md5": "b84c300b01f3926cb507f70181c9d70c",
+      "size_bytes": 454420757,
+      "member": "GRITv1.0_segment_catchments_SA_EPSG8857.gpkg",
+      "extracted_bytes": 1681502208,
+      "crc32": "8134b2fe"
+    },
+    {
+      "name": "GRITv1.0_segment_catchments_SI_EPSG8857.gpkg.zip",
+      "product": "segment_catchments",
+      "region": "SI",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_segment_catchments_SI_EPSG8857.gpkg.zip/content",
+      "md5": "d3106a46286d2d01c00a6a3e35507700",
+      "size_bytes": 364089082,
+      "member": "GRITv1.0_segment_catchments_SI_EPSG8857.gpkg",
+      "extracted_bytes": 1340461056,
+      "crc32": "5a264115"
+    },
+    {
+      "name": "GRITv1.0_segment_catchments_SP_EPSG8857.gpkg.zip",
+      "product": "segment_catchments",
+      "region": "SP",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_segment_catchments_SP_EPSG8857.gpkg.zip/content",
+      "md5": "171d32a7dbaf7760545349db65515285",
+      "size_bytes": 279788308,
+      "member": "GRITv1.0_segment_catchments_SP_EPSG8857.gpkg",
+      "extracted_bytes": 1021419520,
+      "crc32": "c06c243a"
+    },
+    {
+      "name": "GRITv1.0_segments_AF_EPSG8857.gpkg.zip",
+      "product": "segments",
+      "region": "AF",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_segments_AF_EPSG8857.gpkg.zip/content",
+      "md5": "b158a3af9b3ca9c5d28426a5812c0b60",
+      "size_bytes": 271124929,
+      "member": "GRITv1.0_segments_AF_EPSG8857.gpkg",
+      "extracted_bytes": 1268584448,
+      "crc32": "2b2362cb"
+    },
+    {
+      "name": "GRITv1.0_segments_AS_EPSG8857.gpkg.zip",
+      "product": "segments",
+      "region": "AS",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_segments_AS_EPSG8857.gpkg.zip/content",
+      "md5": "c9a160718a4ebf03c8e1f72a66d6da69",
+      "size_bytes": 271769943,
+      "member": "GRITv1.0_segments_AS_EPSG8857.gpkg",
+      "extracted_bytes": 1213894656,
+      "crc32": "7ea31477"
+    },
+    {
+      "name": "GRITv1.0_segments_EU_EPSG8857.gpkg.zip",
+      "product": "segments",
+      "region": "EU",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_segments_EU_EPSG8857.gpkg.zip/content",
+      "md5": "31a351e8924e5e0c7beea97ee6b44d44",
+      "size_bytes": 124832586,
+      "member": "GRITv1.0_segments_EU_EPSG8857.gpkg",
+      "extracted_bytes": 563978240,
+      "crc32": "92faef01"
+    },
+    {
+      "name": "GRITv1.0_segments_NA_EPSG8857.gpkg.zip",
+      "product": "segments",
+      "region": "NA",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_segments_NA_EPSG8857.gpkg.zip/content",
+      "md5": "90a0a8d3694e1fe6c1c189fee2b1c224",
+      "size_bytes": 239791156,
+      "member": "GRITv1.0_segments_NA_EPSG8857.gpkg",
+      "extracted_bytes": 1019305984,
+      "crc32": "3c89dcb5"
+    },
+    {
+      "name": "GRITv1.0_segments_SA_EPSG8857.gpkg.zip",
+      "product": "segments",
+      "region": "SA",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_segments_SA_EPSG8857.gpkg.zip/content",
+      "md5": "52ab3e8707fcf34d3ccd29387f0dfdaa",
+      "size_bytes": 180905502,
+      "member": "GRITv1.0_segments_SA_EPSG8857.gpkg",
+      "extracted_bytes": 816545792,
+      "crc32": "d8ac3807"
+    },
+    {
+      "name": "GRITv1.0_segments_SI_EPSG8857.gpkg.zip",
+      "product": "segments",
+      "region": "SI",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_segments_SI_EPSG8857.gpkg.zip/content",
+      "md5": "cb4807e49623b1a68d8dd88d5b1ccdff",
+      "size_bytes": 161635096,
+      "member": "GRITv1.0_segments_SI_EPSG8857.gpkg",
+      "extracted_bytes": 687308800,
+      "crc32": "369855ea"
+    },
+    {
+      "name": "GRITv1.0_segments_SP_EPSG8857.gpkg.zip",
+      "product": "segments",
+      "region": "SP",
+      "url": "https://zenodo.org/api/records/17435232/files/GRITv1.0_segments_SP_EPSG8857.gpkg.zip/content",
+      "md5": "e6c5db8d8ecd06d0bdc9bdb5eaebff09",
+      "size_bytes": 107984343,
+      "member": "GRITv1.0_segments_SP_EPSG8857.gpkg",
+      "extracted_bytes": 483897344,
+      "crc32": "486bb331"
+    }
+  ]
+}

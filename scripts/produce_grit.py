@@ -10,10 +10,11 @@ import struct
 import time
 import zipfile
 from collections.abc import Iterator
+from contextlib import ExitStack, closing
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import cast
+from typing import TypedDict, cast
 
 import numpy as np
 import pyarrow as pa
@@ -25,6 +26,114 @@ from shapely.geometry.base import BaseGeometry
 
 from hfx.candidates import Fingerprint, fingerprint, write_json
 from hfx.vector_storage import write_vectors
+
+
+class Code(TypedDict):
+    code: str | int
+    meaning: str
+
+
+class Category(TypedDict):
+    artifact: str
+    column: str
+    physical_type: str
+    codes: list[Code]
+    null_meaning: str
+
+
+def native_categories(artifact: str, schema: pa.Schema) -> list[Category]:
+    """Describe retained source values, never classify nodes from their incidence."""
+    definitions: dict[str, tuple[pa.DataType, list[Code]]] = {
+        "source_node_type": (
+            pa.string(),
+            [
+                {"code": "bifurcation", "meaning": "Source bifurcation label; not inferred from delivered incidence."},
+                {"code": "confluence", "meaning": "Source confluence label; not inferred from delivered incidence."},
+                {"code": "inlet", "meaning": "Source inlet label."},
+                {"code": "coastal_outlet", "meaning": "Source coastal outlet label."},
+                {"code": "sink_outlet", "meaning": "Source sink outlet label."},
+                {"code": "grwl_change", "meaning": "Source GRWL code-change node label."},
+                {
+                    "code": "outlet",
+                    "meaning": "Observed source outlet label, undocumented in GRIT README; specific termination meaning unknown.",
+                },
+            ],
+        ),
+        "source_continuity_violated": (
+            pa.int64(),
+            [
+                {"code": 0, "meaning": "Source reports flow continuity not violated."},
+                {"code": 1, "meaning": "Source reports flow continuity violated."},
+            ],
+        ),
+        "source_is_mainstem": (
+            pa.int64(),
+            [
+                {"code": 0, "meaning": "Source segment is not the widest segment of bifurcated flow."},
+                {
+                    "code": 1,
+                    "meaning": "Source segment is the widest segment of bifurcated flow or has no upstream bifurcation.",
+                },
+            ],
+        ),
+    }
+    categories: list[Category] = []
+    for column, (expected_type, codes) in definitions.items():
+        if column not in schema.names:
+            continue
+        field = schema.field(column)
+        if field.type != expected_type:
+            raise ValueError(f"unexpected retained native type for {column}: {field.type}")
+        categories.append(
+            {
+                "artifact": artifact,
+                "column": column,
+                "physical_type": str(field.type),
+                "codes": codes,
+                "null_meaning": (
+                    "Native source null or field absent from this source layer; source-provenance.json distinguishes these cases."
+                    if field.nullable
+                    else "not permitted"
+                ),
+            }
+        )
+    return categories
+
+
+def external_rasters(*, production: bool) -> dict[str, object]:
+    """Declare existing raster objects without reading or copying any raster bytes.
+
+    Opting in carries the publisher retention commitment from the raster contract.
+    Component samples must pass production=False.
+    """
+    if not production:
+        return {"auxiliary": []}
+    receipt_path = Path(__file__).resolve().parents[1] / "docs/v0.4.0/receipts/grit-raster-delivery.json"
+    receipt = cast(dict[str, object], json.loads(receipt_path.read_text()))
+    artifacts = cast(dict[str, dict[str, object]], receipt["artifacts"])
+    external: dict[str, dict[str, object]] = {}
+    for kind in ("dir", "acc"):
+        path = f"aux/d8/flow_{kind}.tif"
+        identity = artifacts[path]
+        external[f"grit-flow-{kind}"] = {
+            "url": str(receipt["bundle_url"]) + path,
+            **{key: identity[key] for key in ("size_bytes", "sha256", "head_sha256", "tail_sha256")},
+            "retention": "The GRIT HFX publisher retains this exact public object unchanged for the lifetime of this dependent bundle.",
+        }
+    return {
+        "auxiliary": [
+            {
+                "schema": "hfx.aux.d8_raster.v2",
+                "artifacts": {
+                    "flow_dir": {"external": "grit-flow-dir"},
+                    "flow_acc": {"external": "grit-flow-acc"},
+                },
+                "metadata": {"crs": "EPSG:8857", "flow_dir_encoding": "grass", "flow_acc_units": "km2"},
+            }
+        ],
+        "external_artifacts": external,
+    }
+
 
 PROJECTION = Transformer.from_crs(8857, 4326, always_xy=True)
 GEOD = Geod(ellps="WGS84")
@@ -42,7 +151,7 @@ class Identities:
             "PRIMARY KEY(namespace, source_id), UNIQUE(family, id))"
         )
         self.counts: dict[str, int] = {}
-        self.node_layers: dict[str, Layer] = {}
+        self.node_connections: dict[str, sqlite3.Connection] = {}
 
     def add(self, family: str, namespace: str, source_id: int) -> int:
         identity = self.counts.get(family, 0) + 1
@@ -189,6 +298,7 @@ def read_layers(inventory: dict[str, object]) -> list[Layer]:
 def select_rows(layers: list[Layer], identities: Identities, components: set[int] | None) -> None:
     db = identities.connection
     db.execute("CREATE TABLE selected_rows (namespace TEXT,fid INTEGER,id INTEGER,PRIMARY KEY(namespace,fid))")
+    db.execute("CREATE INDEX selected_identity ON selected_rows(namespace,id)")
     db.execute("CREATE TABLE needed_nodes (namespace TEXT,source_id INTEGER,PRIMARY KEY(namespace,source_id))")
     # Lines establish endpoint closure before node selection. Native GPKGs are never copied.
     ordered = [layer for layer in layers if layer.table != "nodes"] + [
@@ -324,9 +434,11 @@ def mapped_row(layer: Layer, identity: int, row: dict[str, Scalar], identities: 
                 "SELECT s.namespace,s.fid FROM selected_rows s JOIN identities i ON i.namespace=s.namespace AND i.id=s.id WHERE i.family='nodes' AND i.id=?",
                 (node,),
             ).fetchone()
-            node_layer = identities.node_layers[node_space]
-            with sqlite3.connect(f"file:{node_layer.path}?mode=ro", uri=True) as connection:
-                blob = connection.execute("SELECT geom FROM nodes WHERE fid=?", (fid,)).fetchone()[0]
+            blob = (
+                identities.node_connections[node_space]
+                .execute("SELECT geom FROM nodes WHERE fid=?", (fid,))
+                .fetchone()[0]
+            )
             point = from_wkb(export_geometry(blob))
             result.update(outlet_lon=point.x, outlet_lat=point.y)
     return result
@@ -344,9 +456,33 @@ def vector_batches(layers: list[Layer], identities: Identities, output_schema: p
         yield pa.RecordBatch.from_pylist(rows, schema=output_schema)
 
 
+def verify_global_inventory(inventory: dict[str, object]) -> None:
+    """Bind a declared global delivery to all original release products."""
+    pinned = json.loads(
+        (Path(__file__).resolve().parents[1] / "docs/v0.4.0/receipts/grit-original-inventory.json").read_text()
+    )
+    expected = {(item["region"], item["product"]): item for item in pinned["archives"]}
+    sources = cast(list[dict[str, object]], inventory["sources"])
+    keys = [(source["region"], source["product"]) for source in sources]
+    if len(keys) != 29 or set(keys) != set(expected) or "components" in inventory or inventory.get("synthetic_fixture"):
+        raise ValueError("global delivery requires all 29 original products, without a sample filter")
+    for source in sources:
+        entry = expected[(source["region"], source["product"])]
+        archive = cast(dict[str, object], source["archive"])
+        if archive["md5"] != entry["md5"] or Path(str(source["path"])).name != entry["member"]:
+            raise ValueError("global source differs from pinned release inventory")
+    documents = cast(list[dict[str, object]], inventory.get("documents", []))
+    if {str(item["name"]): item["md5"] for item in documents} != {
+        item["name"]: item["md5"] for item in pinned["documents"]
+    }:
+        raise ValueError("global delivery requires original README and license")
+
+
 def produce(inventory_path: Path, output: Path) -> None:
     started = time.perf_counter()
     inventory = cast(dict[str, object], json.loads(inventory_path.read_text()))
+    if inventory.get("external_rasters") is True:
+        verify_global_inventory(inventory)
     verify_archives(inventory)
     scratch = output.with_name(output.name + "-production.sqlite")
     if output.exists() or scratch.exists():
@@ -355,11 +491,15 @@ def produce(inventory_path: Path, output: Path) -> None:
     layers = read_layers(inventory)
     before = {path: fingerprint(path) for path in sorted({layer.path for layer in layers})}
     components = set(cast(list[int], inventory["components"])) if "components" in inventory else None
-    with sqlite3.connect(scratch) as connection:
+    with ExitStack() as stack, sqlite3.connect(scratch) as connection:
         identities = Identities(connection)
         select_rows(layers, identities, components)
         source_graph(layers, identities)
-        identities.node_layers = {layer.namespace: layer for layer in layers if layer.table == "nodes"}
+        identities.node_connections = {
+            layer.namespace: stack.enter_context(closing(sqlite3.connect(f"file:{layer.path}?mode=ro", uri=True)))
+            for layer in layers
+            if layer.table == "nodes"
+        }
         for family, data, lookup, directory in (
             ("catchments", "catchments.arrow", "lookup.arrow", "lookup-directory.json"),
             ("rivers", "rivers.arrow", "river-lookup.arrow", "river-lookup-directory.json"),
@@ -414,6 +554,8 @@ def source_graph(layers: list[Layer], identities: Identities) -> None:
     )
     db.execute("CREATE INDEX edge_destinations ON edges(family,downstream)")
     db.execute("CREATE TABLE endpoints (river INTEGER PRIMARY KEY, upstream INTEGER, downstream INTEGER)")
+    db.execute("CREATE INDEX endpoint_upstream ON endpoints(upstream)")
+    db.execute("CREATE INDEX endpoint_downstream ON endpoints(downstream)")
     db.execute("CREATE TABLE declared_upstream (upstream INTEGER,downstream INTEGER,PRIMARY KEY(upstream,downstream))")
     for layer in layers:
         if layer.table != "lines":
@@ -527,6 +669,12 @@ def write_graph(layers: list[Layer], identities: Identities, family: str, output
 
 
 def verify_archives(inventory: dict[str, object]) -> None:
+    for document in cast(list[dict[str, object]], inventory.get("documents", [])):
+        path = Path(str(document["path"]))
+        with path.open("rb") as stream:
+            digest = hashlib.file_digest(stream, "md5").hexdigest()
+        if digest != document["md5"] or path.stat().st_size != document["size_bytes"]:
+            raise ValueError(f"source document checksum/size mismatch: {path}")
     for source in cast(list[dict[str, object]], inventory["sources"]):
         if inventory.get("synthetic_fixture") is True:
             continue
@@ -597,9 +745,21 @@ def finish_manifest(
     (output / "CITATION.txt").write_text(
         "Wortmann et al. (2025), Global River Topology (GRIT) vector datasets, v1.0. https://doi.org/10.5281/zenodo.17435232\n"
     )
-    (output / "README.md").write_text(
-        "# GRIT original vector conversion\n\nOriginal projected GeoPackage geometry is exported and reprojected without repair. Source fields, identities, types and nulls are retained under source_ names; source-provenance.json records exact mappings. Source partitioned and mainstem drainage areas are not upstream polygon-union areas. Components have no invented outlet or connectivity. Geometry orientation is unspecified. Source diagnostics do not certify hydrological continuity. Graph acyclicity and references are checked; independent fidelity verification is required before publication. No raster or snap copies are produced. This local vector delivery does not yet declare production external raster references.\n"
+    raster_note = (
+        "The manifest references the existing unchanged redesigned rasters; their retention is required for this bundle lifetime."
+        if inventory.get("external_rasters") is True
+        else "This local vector delivery does not declare production external raster references."
     )
+    (output / "README.md").write_text(
+        "# GRIT original vector conversion\n\nOriginal projected GeoPackage geometry is exported and reprojected without repair. Source fields, identities, types and nulls are retained under source_ names; source-provenance.json records exact mappings. Source partitioned and mainstem drainage areas are not upstream polygon-union areas. Components have no invented outlet or connectivity. Geometry orientation is unspecified. Source diagnostics do not certify hydrological continuity. Graph acyclicity and references are checked; independent fidelity verification is required before publication. No raster or snap copies are produced. "
+        + raster_note
+        + "\n"
+    )
+    for document in cast(list[dict[str, object]], inventory.get("documents", [])):
+        name = str(document["name"])
+        if name not in {"README.pdf", "LICENSE.md"}:
+            raise ValueError(f"unexpected original source document: {name}")
+        (output / ("GRIT-original-" + name)).write_bytes(Path(str(document["path"])).read_bytes())
     paths = [p for p in output.iterdir() if p.is_file() and p.suffix != ".sqlite"]
     artifacts = {p.name: fingerprint(p) for p in sorted(paths)}
     bounds = [float("inf"), float("inf"), float("-inf"), float("-inf")]
@@ -622,7 +782,7 @@ def finish_manifest(
 
     rivers = declaration("river", identities.counts["rivers"])
     rivers.update(graph="river-graph.parquet", topology="dag")
-    categories = [
+    categories: list[Category] = [
         {
             "artifact": artifact,
             "column": "level",
@@ -636,6 +796,14 @@ def finish_manifest(
             ("river-nodes.arrow", ("segment node", "reach node")),
         )
     ]
+    for family, artifact in (
+        ("catchments", "catchments.arrow"),
+        ("rivers", "rivers.arrow"),
+        ("nodes", "river-nodes.arrow"),
+    ):
+        categories.extend(
+            native_categories(artifact, schema(family, [layer for layer in layers if layer.family == family]))
+        )
     categories.append(
         {
             "artifact": "rivers.arrow",
@@ -670,7 +838,7 @@ def finish_manifest(
             "directory": "lookup-directory.json",
             "index_batch_rows": 65536,
             "catchment_batch_bytes": 8388608,
-            "auxiliary": [],
+            **external_rasters(production=inventory.get("external_rasters") is True),
             "rivers": rivers,
             "river_nodes": declaration("river-node", identities.counts["nodes"]),
             "catchment_connectivity": [

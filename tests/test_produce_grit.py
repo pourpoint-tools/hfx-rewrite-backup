@@ -114,7 +114,23 @@ def test_original_layer_mapping(tmp_path: Path) -> None:
                 tables = [(table, "POLYGON")]
             connection.executemany("INSERT INTO gpkg_geometry_columns VALUES (?, 'geom', ?, 8857, 0, 0)", tables)
         sources.append({"path": str(path), "region": region, "product": product})
-    inventory = {"sources": sources, "components": [10], "synthetic_fixture": True}
+    import hashlib
+
+    license_path = tmp_path / "LICENSE.md"
+    license_path.write_text("synthetic source license")
+    inventory = {
+        "sources": sources,
+        "components": [10],
+        "synthetic_fixture": True,
+        "documents": [
+            {
+                "name": "LICENSE.md",
+                "path": str(license_path),
+                "size_bytes": license_path.stat().st_size,
+                "md5": hashlib.md5(license_path.read_bytes()).hexdigest(),
+            }
+        ],
+    }
     inventory_path = tmp_path / "inputs.json"
     inventory_path.write_text(json.dumps(inventory))
     output = tmp_path / "output"
@@ -141,6 +157,7 @@ def test_original_layer_mapping(tmp_path: Path) -> None:
     manifest = json.loads((output / "manifest.json").read_text())
     assert {p.name for p in output.iterdir()} == set(manifest["artifacts"]) | {"manifest.json"}
     assert output.with_name(output.name + "-production.sqlite").is_file()
+    assert (output / "GRIT-original-LICENSE.md").read_bytes() == license_path.read_bytes()
     assert manifest["unit_count"] == 3
     assert manifest["rivers"]["count"] == 2
     assert manifest["river_nodes"]["count"] == 4
@@ -190,3 +207,55 @@ def test_archive_identity_binds_loose_geopackage(tmp_path: Path) -> None:
     source.write_bytes(b"different loose source")
     with pytest.raises(ValueError, match="extracted source differs"):
         verify_archives(inventory)
+
+
+def test_node_incidence_lookup_work_is_bounded(tmp_path: Path) -> None:
+    from scripts.produce_grit import source_graph
+
+    with sqlite3.connect(tmp_path / "incidence.sqlite") as connection:
+        identities = Identities(connection)
+        source_graph([], identities)
+        connection.executemany("INSERT INTO endpoints VALUES (?,?,?)", ((i, i, i + 1) for i in range(1, 10001)))
+        steps = 0
+
+        def count_steps() -> int:
+            nonlocal steps
+            steps += 1
+            return 0
+
+        connection.set_progress_handler(count_steps, 1)
+        for endpoint, value, expected in (("upstream", 5000, 5000), ("downstream", 5000, 4999)):
+            assert connection.execute(f"SELECT river FROM endpoints WHERE {endpoint}=?", (value,)).fetchall() == [
+                (expected,)
+            ]
+        connection.set_progress_handler(None, 0)
+        # Indexed point queries must not visit the 10,000 unrelated endpoint rows.
+        assert steps < 500
+
+
+def test_global_delivery_requires_exact_release_inventory() -> None:
+    from scripts.produce_grit import verify_global_inventory
+
+    with pytest.raises(ValueError, match="29"):
+        verify_global_inventory({"sources": [], "external_rasters": True})
+    import json
+
+    pinned = json.loads((Path(__file__).parents[1] / "docs/v0.4.0/receipts/grit-original-inventory.json").read_text())
+    assert len(pinned["archives"]) == 29
+    assert sum(item["size_bytes"] for item in pinned["archives"]) == 21_319_552_599
+    inventory = {
+        "sources": [
+            {
+                "region": item["region"],
+                "product": item["product"],
+                "path": item["member"],
+                "archive": {"md5": item["md5"]},
+            }
+            for item in pinned["archives"]
+        ],
+        "documents": pinned["documents"],
+    }
+    verify_global_inventory(inventory)
+    inventory["sources"][0]["archive"]["md5"] = "0" * 32
+    with pytest.raises(ValueError, match="pinned release"):
+        verify_global_inventory(inventory)
