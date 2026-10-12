@@ -8,6 +8,7 @@ from collections.abc import Iterator
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Thread
+from typing import cast
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -141,7 +142,7 @@ def test_selective_access(server: tuple[str, dict[str, str], list[str]], tmp_pat
     assert data["lookup_batches"] == [0]
     assert data["catchment_batches"] == [1]
     assert data["rows"][0]["geometry_sha256"] == hashlib.sha256(b"b" * 100000).hexdigest()
-    assert data["bytes_received"] < 400000
+    assert sum(data["phases"][name]["body_bytes"] for name in ("preparation", "first_access")) < 400000
     assert any("bytes=" in request for request in requests)
 
 
@@ -272,3 +273,111 @@ def test_report_created_during_probe_is_preserved(tmp_path: Path, monkeypatch: p
     with pytest.raises(FileExistsError):
         check_vector_access.main()
     assert report.read_bytes() == b"other writer"
+
+
+@pytest.mark.parametrize("artifact", ["rivers", "river_nodes"])
+def test_manifest_selected_ipc_source(
+    server: tuple[str, dict[str, str], list[str]], tmp_path: Path, artifact: str
+) -> None:
+    from scripts.check_vector_access import check
+
+    url, _, _ = server
+    manifest_path = tmp_path / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    lookup_path = tmp_path / "lookup.arrow"
+    reader = pa.ipc.open_file(str(lookup_path))
+    batches = [reader.get_batch(i) for i in range(reader.num_record_batches)]
+    schema = reader.schema.with_metadata(
+        {
+            b"hfx:format_version": b"0.4.0",
+            b"hfx:data_sha256": manifest["artifacts"]["catchments.arrow"]["sha256"].encode(),
+        }
+    )
+    with pa.OSFile(str(lookup_path), "wb") as sink, pa.ipc.new_file(sink, schema) as writer:
+        for batch in batches:
+            writer.write_batch(batch.replace_schema_metadata(schema.metadata))
+    data = lookup_path.read_bytes()
+    manifest["artifacts"]["lookup.arrow"] = {
+        "size_bytes": len(data),
+        "sha256": hashlib.sha256(data).hexdigest(),
+        "head_sha256": hashlib.sha256(data[:65536]).hexdigest(),
+        "tail_sha256": hashlib.sha256(data[-65536:]).hexdigest(),
+    }
+    manifest[artifact] = {"data": "catchments.arrow", "lookup": "lookup.arrow", "directory": "lookup-directory.json"}
+    manifest_path.write_text(json.dumps(manifest))
+    result = check(url, [13, 3], tmp_path / "catchments.arrow", artifact)
+    assert result["selected_ids"] == [13]
+    assert cast(dict[str, object], result["source_verification"])["schema_and_all_values_equal"] is True
+
+
+@pytest.mark.parametrize(
+    "path", ["../lookup.arrow", "%2e%2e/lookup.arrow", "https://elsewhere/lookup.arrow", "/lookup.arrow"]
+)
+def test_selected_paths_cannot_escape(server: tuple[str, dict[str, str], list[str]], tmp_path: Path, path: str) -> None:
+    from scripts.check_vector_access import check
+
+    url, _, requests = server
+    manifest_path = tmp_path / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["rivers"] = {"data": "catchments.arrow", "lookup": path, "directory": "lookup-directory.json"}
+    manifest_path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="artifact path"):
+        check(url, [13], artifact="rivers")
+    assert len(requests) == 1
+
+
+def test_river_rejects_catchment_binding(server: tuple[str, dict[str, str], list[str]], tmp_path: Path) -> None:
+    from scripts.check_vector_access import check
+
+    url, _, _ = server
+    manifest_path = tmp_path / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["rivers"] = {"data": "catchments.arrow", "lookup": "lookup.arrow", "directory": "lookup-directory.json"}
+    manifest_path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="binding"):
+        check(url, [13], artifact="rivers")
+
+
+def test_phases_count_actual_network_batches(server: tuple[str, dict[str, str], list[str]]) -> None:
+    from scripts.check_vector_access import check
+
+    url, _, requests = server
+    result = check(url, [13])
+    phases = cast(dict[str, dict[str, object]], result["phases"])
+    assert sum(cast(int, phase["request_count"]) for phase in phases.values()) == len(requests)
+    assert sum(cast(int, phase["body_bytes"]) for phase in phases.values()) == result["bytes_received"]
+    assert phases["preparation"]["touched_data_batches"] == [0, 1]
+    assert phases["preparation"]["fully_fetched_data_batches"] == []
+    for name in ("first_access", "repeated_access"):
+        assert phases[name]["selected_data_batches"] == [1]
+        assert phases[name]["touched_data_batches"] == [1]
+        assert phases[name]["fully_fetched_data_batches"] == [1]
+        assert phases[name]["touched_lookup_batches"] == []  # tiny lookup cached by fingerprint reads
+        assert cast(int, phases[name]["body_bytes"]) > 100000
+        assert cast(float, phases[name]["elapsed_seconds"]) >= 0
+    assert phases["first_access"]["body_bytes"] == phases["repeated_access"]["body_bytes"]
+    assert result["repeat_policy"] == "uncached batches; retained head/tail buffers and IPC metadata"
+
+
+def test_ipc_source_checks_all_values(server: tuple[str, dict[str, str], list[str]], tmp_path: Path) -> None:
+    from scripts.check_vector_access import check
+
+    url, _, _ = server
+    path = tmp_path / "wrong.arrow"
+    table = pa.table({"id": pa.array([13], type=pa.int64()), "geometry": [b"wrong"]})
+    with pa.OSFile(str(path), "wb") as sink, pa.ipc.new_file(sink, table.schema) as writer:
+        writer.write_table(table)
+    with pytest.raises(ValueError, match="Source row mismatch"):
+        check(url, [13], path)
+
+
+def test_directory_full_digest_is_checked(server: tuple[str, dict[str, str], list[str]], tmp_path: Path) -> None:
+    from scripts.check_vector_access import check
+
+    url, _, _ = server
+    path = tmp_path / "manifest.json"
+    manifest = json.loads(path.read_text())
+    manifest["artifacts"]["lookup-directory.json"]["sha256"] = "0" * 64
+    path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="Directory digest mismatch"):
+        check(url, [13])
