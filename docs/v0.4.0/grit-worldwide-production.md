@@ -89,7 +89,11 @@ to an anomaly note. Escalate any contract contradiction before publication.
 Native Arrow types come from original SQLite declarations, not README table type
 labels. All original attributes/nulls remain under `source_`. Dictionaries describe
 node types and available source flags without reclassifying hydrology. Plain
-`outlet` has an explicitly unknown precise termination meaning. Undeclared codes
+`outlet` has an explicitly unknown precise termination meaning. Original worldwide
+segment nodes also contain 19 `interbasin` labels (AS 2, EU 3, NA 6, SA 2, SI 6),
+including AS node 170120166. The original README does not define this label; its
+precise hydrological meaning remains unknown. Preserve it without inventing
+inter-region edges or classifying it as an inlet or outlet. Undeclared codes
 fail independent categorical verification. Cycle values remain source diagnostics,
 not booleans or proof of graph acyclicity. Original README acknowledges unresolved
 cycle/continuity diagnostics and incomplete cross-catchment divergent-flow area
