@@ -4,7 +4,7 @@ Published and verified on 2026-10-08 (UTC):
 <https://basin-delineations-public.upstream.tech/grit/hfx-v0.4.0/>.
 The root manifest now declares both rasters alongside the existing vectors.
 The bundle is self-contained: no 0.3.0 object is needed to discover or read it.
-The [raster contract](raster-data.md) and [vector contract](vector-data.md)
+The [raster contract](raster-data.md) and [historical vector contract](https://github.com/pourpoint-tools/hfx/blob/b5b116440b89a604e12dcc26f09b21ef9e8276a9/docs/v0.4.0/vector-data.md)
 describe interpretation and selected access. Pourpoint reader implementation
 remains separate work.
 

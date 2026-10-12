@@ -11,9 +11,13 @@ has completed or implement a Pourpoint reader.
 ## Manifest declaration
 
 Each pair is an entry in the root manifest's `auxiliary` array, alongside any
-snap declarations. Both artifact paths are required, relative to the bundle
-root, and must not escape it. Each file also has an entry in the root `artifacts`
-fingerprint map, with size, full SHA-256 and head/tail SHA-256 as defined by the
+other auxiliaries. Both artifact references are required. A local path is relative
+to the bundle root and must not escape it; its file has an entry in the root
+`artifacts` fingerprint map. Alternatively, `{ "external": "key" }` resolves to
+the root `external_artifacts` identity under the
+[external raster rules](vector-data.md#external-raster-artifacts). Do not place
+URLs or `../` escapes in local-path strings. Both forms require size, full SHA-256
+and head/tail SHA-256 as defined by the
 [vector contract](vector-data.md#artifact-identity-and-range-access).
 A retained source manifest is provenance, not a raster declaration.
 
@@ -101,7 +105,7 @@ implementation choice. This is a gross-mislocation smoke check, not proof of
 precise coverage. The union of entries should cover the manifest bbox. Consumers
 may query coverage from headers at read time.
 
-## GRIT delivery requirements
+## Existing GRIT raster delivery requirements
 
 The [accepted delivery vision](../../planning/visions/2026-10-08-hfx-0-4-0-raster-delivery.md)
 authorizes an additive extension at the existing 0.4.0 prefix. It requires:
@@ -128,7 +132,7 @@ against independent source references, including tile boundaries, valid cells
 and nodata. Recheck vector identities and selective reads. These full checks are
 producer duties, not a mandatory full-data scan at consumer startup.
 
-## Publication and Pourpoint handoff
+## Existing raster publication and Pourpoint handoff
 
 Follow the [publication rules](vector-data.md#artifact-identity-and-range-access).
 Upload verified new rasters first and amend the root manifest last, retaining
@@ -150,3 +154,61 @@ verification evidence and retained source caveats. Coordinate reader support
 explicitly; this document neither changes Pourpoint's current input contract nor
 claims that its reader accepts these declarations. Delivery evidence and the
 handoff belong to the completed publication, not to this documentation change.
+
+## Reuse in a new river bundle
+
+The new GRIT river publication references the unchanged redesigned 0.4.0 raster
+objects using explicit external identities. It does not copy, reprocess or mutate
+the rasters, amend the old prefix or reinterpret its declarations. Preserve the
+[completed raster receipt](grit-raster-verification.md) and its exact fingerprints,
+license and source semantics. The new manifest binds the direct object URLs,
+not the old manifest. Verify continued public access and pin transport identities
+for selected reads. Record responsibility for retaining the referenced objects
+for the new bundle's lifetime. A new publication is not self-contained when it
+uses these references. This rule leaves native grids and all raster data semantics
+above unchanged; it does not imply compatibility with the current Pourpoint reader.
+
+The following manifest fragment reuses the recorded raster identities. It is an
+example of the required publisher retention commitment, not approval of a new
+write destination or a claim that the new river bundle has been published:
+
+```json
+{
+  "auxiliary": [
+    {
+      "schema": "hfx.aux.d8_raster.v2",
+      "artifacts": {
+        "flow_dir": {
+          "external": "grit-flow-dir"
+        },
+        "flow_acc": {
+          "external": "grit-flow-acc"
+        }
+      },
+      "metadata": {
+        "crs": "EPSG:8857",
+        "flow_dir_encoding": "grass",
+        "flow_acc_units": "km2"
+      }
+    }
+  ],
+  "external_artifacts": {
+    "grit-flow-dir": {
+      "url": "https://basin-delineations-public.upstream.tech/grit/hfx-v0.4.0/aux/d8/flow_dir.tif",
+      "size_bytes": 35460747402,
+      "sha256": "6d03ccdc092b914be0ae41975fbafebb2b02334ff481a1589897539228ab7c65",
+      "head_sha256": "6fdfd1be11525d05e25d90a16558f342497566fac4433f18048f6e771baaf7f0",
+      "tail_sha256": "fb8952bac4fa1785df636c7e553cd1dfe5d7327a128cc39060659a9c38605f70",
+      "retention": "The GRIT HFX publisher retains this exact public object unchanged for the lifetime of this dependent bundle."
+    },
+    "grit-flow-acc": {
+      "url": "https://basin-delineations-public.upstream.tech/grit/hfx-v0.4.0/aux/d8/flow_acc.tif",
+      "size_bytes": 150995308307,
+      "sha256": "01e8b76570a8d98026fdad77107ed5fe719490433d0351c43b62aca32ff0c15d",
+      "head_sha256": "8883dd98fa4b3e1aa0650c73564f31bbcbec96c1305075df5c712fed28aafd7a",
+      "tail_sha256": "bb4b0c3203ecf773c9cd2cb780c0eb8b272cfeb76f005bf5917ec03a6fcc5d12",
+      "retention": "The GRIT HFX publisher retains this exact public object unchanged for the lifetime of this dependent bundle."
+    }
+  }
+}
+```
