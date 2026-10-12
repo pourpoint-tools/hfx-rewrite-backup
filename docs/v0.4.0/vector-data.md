@@ -74,9 +74,16 @@ may retain their existing optional source identity fields when documented proven
 establishes the mapping. Newly produced catchments require both nonnullable fields.
 
 Smaller levels are coarser. Each coarsest unit has null `parent_id`; other nonnull
-parents resolve at a strictly coarser available catchment level. Source hydrologic
-semantics include parent nesting and disjoint sibling interiors; record validation
-coverage and geometric tolerances, not an unverified global certification.
+parents resolve at a strictly coarser available catchment level. A child polygon
+must lie within its declared parent, and sibling polygon interiors must not overlap,
+within explicitly documented numerical geometry tolerances. A producer declares
+the tolerance values, units and comparison method and verifies these invariants
+for every delivered parent/child and sibling relationship. Tolerances account for
+numerical representation, not arbitrary source discrepancies. A violation beyond
+them is nonconforming; recording an anomaly does not waive the invariant. Investigate
+such originals and obtain an explicit contract decision before production rather
+than silently repairing geometry or relaxing containment. Record validation
+coverage separately: sampled checks do not establish worldwide conformance.
 Components may have multiple or no represented outlets, including coastal and
 inland sink polygon-only units. Outlet coordinates are either both null or both
 present. Supply them only for a single source-described outlet; never choose an
@@ -199,7 +206,9 @@ are the canonical incidence relation: incoming rivers have that downstream node;
 outgoing rivers have that upstream node. Preserve original incidence strings,
 ordering-dependent width shares, cross-tier reference columns, diagnostics and
 other typed attributes alongside it. Do not invent nodes for sources without them.
-No node reference may be nonnull when the node artifact is absent.
+No node reference may be nonnull when the node artifact is absent. Verify that
+source-supplied flow edges and endpoint incidence agree; sharing a node alone does
+not imply every possible incoming/outgoing river pair is a source flow edge.
 
 River/node attributes and WKB share compressed IPC batches. Apply the 8388608-byte
 logical slice budget, oversized-singleton rule and Zstandard compression above to
@@ -250,7 +259,7 @@ within the delivered subset. Never turn a known cut into a source terminal.
 `lookup.arrow` is an uncompressed Arrow IPC file with exactly three non-nullable
 fields in this order: `id: int64`, `block: int32`, `row: int32`.
 IDs are strictly ascending across the complete file. Each addressed feature appears once.
-`block` is its zero-based catchment record-batch number; `row` is its zero-based
+`block` is its zero-based addressed-data record-batch number; `row` is its zero-based
 row within that batch. Every address is within bounds and resolves to the stated
 ID. Every batch contains 65536 rows except the final batch, which contains the remaining rows. Schema metadata contains exactly
 `hfx:format_version` with UTF-8 value `0.4.0` and `hfx:catchments_sha256` with the
@@ -269,7 +278,7 @@ are the batch's first and last ID. Ranges are disjoint and ascending. `rows` is
 the batch row count. JSON integer parsing must retain signed 64-bit precision.
 For each requested ID, binary-search these ranges, then binary-search the selected
 lookup batch for an exact match. Return absent if either search finds no match.
-Group matched addresses by block and read each requested catchment batch once.
+Group matched addresses by block and read each requested data batch once.
 Check that the selected row contains the requested ID. Caller ordering and duplicate
 requests can be restored after selection.
 
