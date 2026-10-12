@@ -1,0 +1,304 @@
+{
+  "status": "passed",
+  "methods": {
+    "original_read": "Fiona 1.10.1, GDAL 3.9.2",
+    "transform": "rasterio 1.5.2, GDAL 3.12.2, PROJ 9.8.1",
+    "area": "pyproj 3.8.0, PROJ 9.8.1; derived consistency, not independent geodesic algorithm",
+    "independence": "GDAL original decode and coordinate transform separate from producer calls; common PROJ mathematics and Shapely output WKB decode"
+  },
+  "inventory": {
+    "size_bytes": 1830,
+    "sha256": "57db36840db6f000a1331225a696b43244fa3101e0296a83227ffe74f3ffc52f",
+    "head_sha256": "57db36840db6f000a1331225a696b43244fa3101e0296a83227ffe74f3ffc52f",
+    "tail_sha256": "57db36840db6f000a1331225a696b43244fa3101e0296a83227ffe74f3ffc52f"
+  },
+  "originals": {
+    "/private/tmp/hfx17-source-examples/GRITv1.0_segments_SP_EPSG8857.gpkg": {
+      "size_bytes": 483897344,
+      "sha256": "749d10eddc709319555815bbb0a89f35d0b00220eadfcff70260a411b801d47c",
+      "head_sha256": "79a9df8f42afef1ef88dcf870399006de0df5dd6488f47f7a33b7c3b7cebef30",
+      "tail_sha256": "3c523dacfa0a0d1f098fd706826d73e074dcba0b83c54c4638029c4423771f94"
+    },
+    "/private/tmp/hfx17-source-examples/GRITv1.0_reaches_SP_EPSG8857.gpkg": {
+      "size_bytes": 1090236416,
+      "sha256": "78b12a725d97a11ef6215ed97c26077c43eb4925fc20aa13c484b1a7e41d9eb2",
+      "head_sha256": "5e08ab0136b41c41b20a1b2b1c2773f49cecbe025dd961d2667a665f2d4af4fd",
+      "tail_sha256": "d4e413d6daf4c4469a5a3b3fbc34ced04c4fe8ee33e87e00b352657e8a3a6f7a"
+    },
+    "/private/tmp/hfx-river-investigation/original-polygons/GRITv1.0_component_catchments_GLOBAL_EPSG8857.gpkg": {
+      "size_bytes": 1237303296,
+      "sha256": "24e36e0fcea6cbf67cfcbc1fdac64ac59eb122c8e85a2b9359ddec80b13e43f4",
+      "head_sha256": "e8f080608b6b4769d93d00f732b70209c6e1ff2b801c01588b4dd152fdc4bb1c",
+      "tail_sha256": "3bdeae816f152b975529c50297d3f04101b1bd067617474ce507efea450210ca"
+    },
+    "/private/tmp/hfx-river-investigation/original-polygons/GRITv1.0_segment_catchments_SP_EPSG8857.gpkg": {
+      "size_bytes": 1021419520,
+      "sha256": "91a754c08287077faa217ea83ee0d73287260d53d0cc70b4284233cc6067298d",
+      "head_sha256": "647408dbe0c7fd12082d7530bd885eccbeb72e21fbe29c9090ac9b680eb80928",
+      "tail_sha256": "45a90f9774dfaf4adc168cda6e81c67df7feb524cd09e366a8e09048858c46d8"
+    },
+    "/private/tmp/hfx-river-investigation/original-polygons/GRITv1.0_reach_catchments_SP_EPSG8857.gpkg": {
+      "size_bytes": 3199688704,
+      "sha256": "a5a7f1b5683c821c42da1a97cbbc8d949468b8d7eb87b0d0935af2008649b094",
+      "head_sha256": "e1519441385f62a8ff43be26599bbeff90ca3a322bcc1bda1ad5fd2058ee16a7",
+      "tail_sha256": "cde02f6b1ac38645a4a939853fe4190403a78ecc5028beb94d0dc618954950f7"
+    }
+  },
+  "manifest": {
+    "size_bytes": 7609,
+    "sha256": "ea15082eaddc7bd043fba4e84581a48875ab78a2f6c2ed91b6d37c42b34215fd",
+    "head_sha256": "ea15082eaddc7bd043fba4e84581a48875ab78a2f6c2ed91b6d37c42b34215fd",
+    "tail_sha256": "ea15082eaddc7bd043fba4e84581a48875ab78a2f6c2ed91b6d37c42b34215fd"
+  },
+  "artifacts": {
+    "CITATION.txt": {
+      "size_bytes": 116,
+      "sha256": "f8bcc5238aa31e04b347b267317ba74c8a69d7d40546235d14a116a5811274bc",
+      "head_sha256": "f8bcc5238aa31e04b347b267317ba74c8a69d7d40546235d14a116a5811274bc",
+      "tail_sha256": "f8bcc5238aa31e04b347b267317ba74c8a69d7d40546235d14a116a5811274bc"
+    },
+    "river-node-lookup-directory.json": {
+      "size_bytes": 129,
+      "sha256": "9b5c212ed75e3379cf0e90d1378d126f873902518da159bd5b4ecb8bbc6dbd58",
+      "head_sha256": "9b5c212ed75e3379cf0e90d1378d126f873902518da159bd5b4ecb8bbc6dbd58",
+      "tail_sha256": "9b5c212ed75e3379cf0e90d1378d126f873902518da159bd5b4ecb8bbc6dbd58"
+    },
+    "river-nodes.arrow": {
+      "size_bytes": 76442,
+      "sha256": "a01e41b23fa6bb7ba90e3d659f4f0c05ac97a82866329f9eefb87fa5ed0b3b5d",
+      "head_sha256": "590b01a4959d51cd1c1be25ae67b8ad7c3c07b0863bed47701cdc914901e1442",
+      "tail_sha256": "b0703af4b56bc2111942c021c7e48dfceef6066341ce7d2caac388278ae17122"
+    },
+    "river-lookup-directory.json": {
+      "size_bytes": 129,
+      "sha256": "5754e3791539909850b8f68cf2a5c969d6354bab8d396cb7d66bf6be5da386a4",
+      "head_sha256": "5754e3791539909850b8f68cf2a5c969d6354bab8d396cb7d66bf6be5da386a4",
+      "tail_sha256": "5754e3791539909850b8f68cf2a5c969d6354bab8d396cb7d66bf6be5da386a4"
+    },
+    "river-lookup.arrow": {
+      "size_bytes": 20218,
+      "sha256": "98926f6b0a24d7713ac2fefbc5d6ca759dd757d213b3f9b078357ffcf7d21132",
+      "head_sha256": "98926f6b0a24d7713ac2fefbc5d6ca759dd757d213b3f9b078357ffcf7d21132",
+      "tail_sha256": "98926f6b0a24d7713ac2fefbc5d6ca759dd757d213b3f9b078357ffcf7d21132"
+    },
+    "river-node-lookup.arrow": {
+      "size_bytes": 19930,
+      "sha256": "9957f4bd43edae9a66fe8b89cf65f3ed80b58ef9b3074e45b5fbd350496db35a",
+      "head_sha256": "9957f4bd43edae9a66fe8b89cf65f3ed80b58ef9b3074e45b5fbd350496db35a",
+      "tail_sha256": "9957f4bd43edae9a66fe8b89cf65f3ed80b58ef9b3074e45b5fbd350496db35a"
+    },
+    "NOTICE": {
+      "size_bytes": 295,
+      "sha256": "c2357b40c9bd3358d253e6d64a0b28c38699291d00b50996face66f848a09468",
+      "head_sha256": "c2357b40c9bd3358d253e6d64a0b28c38699291d00b50996face66f848a09468",
+      "tail_sha256": "c2357b40c9bd3358d253e6d64a0b28c38699291d00b50996face66f848a09468"
+    },
+    "README.md": {
+      "size_bytes": 712,
+      "sha256": "219ae4f51615608f20d6df18b813096b7c402155af06804e47da12edd87b64c9",
+      "head_sha256": "219ae4f51615608f20d6df18b813096b7c402155af06804e47da12edd87b64c9",
+      "tail_sha256": "219ae4f51615608f20d6df18b813096b7c402155af06804e47da12edd87b64c9"
+    },
+    "lookup.arrow": {
+      "size_bytes": 20290,
+      "sha256": "5eada6c0fa8de52eeb0bd07f6b04da05745f01a0ec139207ea4bbb2e6d6c0116",
+      "head_sha256": "5eada6c0fa8de52eeb0bd07f6b04da05745f01a0ec139207ea4bbb2e6d6c0116",
+      "tail_sha256": "5eada6c0fa8de52eeb0bd07f6b04da05745f01a0ec139207ea4bbb2e6d6c0116"
+    },
+    "river-graph.parquet": {
+      "size_bytes": 33123,
+      "sha256": "210a873db0ec482e32a659ce5adb2a2cd0e17c79e901163c4202d0db671c6032",
+      "head_sha256": "210a873db0ec482e32a659ce5adb2a2cd0e17c79e901163c4202d0db671c6032",
+      "tail_sha256": "210a873db0ec482e32a659ce5adb2a2cd0e17c79e901163c4202d0db671c6032"
+    },
+    "source-provenance.json": {
+      "size_bytes": 20674,
+      "sha256": "e58e46617ce278659884589e2b0d764271fd0822bb893b10c9d3faf982103495",
+      "head_sha256": "e58e46617ce278659884589e2b0d764271fd0822bb893b10c9d3faf982103495",
+      "tail_sha256": "e58e46617ce278659884589e2b0d764271fd0822bb893b10c9d3faf982103495"
+    },
+    "lookup-directory.json": {
+      "size_bytes": 129,
+      "sha256": "77650e53f1db916a935a5ab061bd63c7249c02faf4edd7cf2b07d0bf6c26a391",
+      "head_sha256": "77650e53f1db916a935a5ab061bd63c7249c02faf4edd7cf2b07d0bf6c26a391",
+      "tail_sha256": "77650e53f1db916a935a5ab061bd63c7249c02faf4edd7cf2b07d0bf6c26a391"
+    },
+    "catchments.arrow": {
+      "size_bytes": 1122754,
+      "sha256": "ac814fbdfd6847d78987186962f2a2625cc7ab94bb2b18ac95dea78deb483319",
+      "head_sha256": "37fad22b137426dfcdc0b303ddf921ca8717ff66f2720b176f9b9749e4f399b8",
+      "tail_sha256": "9536e7b81b5f33f72465c16418473063d0a45853c74263a4e84d11961a9c5d0a"
+    },
+    "rivers.arrow": {
+      "size_bytes": 540778,
+      "sha256": "d7b29201dac78c1a59d5d012c0823ba2c91fd378e582f7f8d573a616948028aa",
+      "head_sha256": "9163db0f012bd835fe84aea6e1aad7a272b4b9cd8e59916995b75a1fdfc13051",
+      "tail_sha256": "4a01b97e9eca2fe6601a7cf6ace947a6f54544ab2008512ae359af5d347eca79"
+    },
+    "graph.parquet": {
+      "size_bytes": 32879,
+      "sha256": "f353a18c92a40fcc6d767e64a14a6ef7cf035c338c373531111d69f2643e1f75",
+      "head_sha256": "f353a18c92a40fcc6d767e64a14a6ef7cf035c338c373531111d69f2643e1f75",
+      "tail_sha256": "f353a18c92a40fcc6d767e64a14a6ef7cf035c338c373531111d69f2643e1f75"
+    }
+  },
+  "layers": [
+    {
+      "namespace": "grit:1.0:SP:segments:lines",
+      "count": 135,
+      "fields": {
+        "fid": "INTEGER",
+        "cat": "INTEGER",
+        "global_id": "INTEGER",
+        "catchment_id": "INTEGER",
+        "upstream_node_id": "INTEGER",
+        "downstream_node_id": "INTEGER",
+        "upstream_line_ids": "TEXT",
+        "downstream_line_ids": "TEXT",
+        "direction_algorithm": "REAL",
+        "width_adjusted": "REAL",
+        "length_adjusted": "REAL",
+        "is_mainstem": "INTEGER",
+        "strahler_order": "INTEGER",
+        "cycle": "INTEGER",
+        "length": "REAL",
+        "azimuth": "REAL",
+        "sinuousity": "REAL",
+        "drainage_area_in": "REAL",
+        "drainage_area_out": "REAL",
+        "drainage_area_mainstem_in": "REAL",
+        "drainage_area_mainstem_out": "REAL",
+        "bifurcation_balance_out": "REAL",
+        "grwl_overlap": "REAL",
+        "grwl_value": "REAL",
+        "name": "TEXT",
+        "name_local": "TEXT",
+        "n_bifurcations_upstream": "INTEGER",
+        "domain": "TEXT"
+      }
+    },
+    {
+      "namespace": "grit:1.0:SP:segments:nodes",
+      "count": 126,
+      "fields": {
+        "fid": "INTEGER",
+        "cat": "INTEGER",
+        "global_id": "INTEGER",
+        "catchment_id": "INTEGER",
+        "upstream_line_ids": "TEXT",
+        "downstream_line_ids": "TEXT",
+        "node_type": "TEXT",
+        "grwl_value": "INTEGER",
+        "width": "REAL",
+        "grwl_transition": "TEXT",
+        "cycle": "INTEGER",
+        "continuity_violated": "INTEGER",
+        "drainage_area": "REAL",
+        "drainage_area_mainstem": "REAL",
+        "downstream_width_share": "TEXT",
+        "n_bifurcations_upstream": "INTEGER",
+        "domain": "TEXT"
+      }
+    },
+    {
+      "namespace": "grit:1.0:SP:reaches:lines",
+      "count": 1059,
+      "fields": {
+        "fid": "INTEGER",
+        "cat": "INTEGER",
+        "segment_id": "INTEGER",
+        "global_id": "INTEGER",
+        "catchment_id": "INTEGER",
+        "upstream_node_id": "INTEGER",
+        "downstream_node_id": "INTEGER",
+        "upstream_line_ids": "TEXT",
+        "downstream_line_ids": "TEXT",
+        "grwl_overlap": "REAL",
+        "grwl_value": "REAL",
+        "grwl_width_median": "REAL",
+        "grwl_width_std": "REAL",
+        "drainage_area_in": "REAL",
+        "drainage_area_out": "REAL",
+        "drainage_area_mainstem_in": "REAL",
+        "drainage_area_mainstem_out": "REAL",
+        "length": "REAL",
+        "sinuosity": "REAL",
+        "azimuth": "REAL",
+        "domain": "TEXT"
+      }
+    },
+    {
+      "namespace": "grit:1.0:SP:reaches:nodes",
+      "count": 1050,
+      "fields": {
+        "fid": "INTEGER",
+        "cat": "INTEGER",
+        "segment_node_id": "REAL",
+        "n_segments": "REAL",
+        "global_id": "INTEGER",
+        "upstream_line_ids": "TEXT",
+        "downstream_line_ids": "TEXT",
+        "domain": "TEXT"
+      }
+    },
+    {
+      "namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+      "count": 3,
+      "fields": {
+        "fid": "INTEGER",
+        "cat": "INTEGER",
+        "global_id": "INTEGER",
+        "area": "REAL",
+        "is_coastal": "INTEGER",
+        "is_sink": "INTEGER",
+        "domain": "TEXT"
+      }
+    },
+    {
+      "namespace": "grit:1.0:SP:segment_catchments:segment_catchments__1",
+      "count": 135,
+      "fields": {
+        "fid": "INTEGER",
+        "cat": "INTEGER",
+        "global_id": "INTEGER",
+        "catchment_id": "INTEGER",
+        "area": "REAL",
+        "domain": "TEXT"
+      }
+    },
+    {
+      "namespace": "grit:1.0:SP:reach_catchments:reach_catchments__1",
+      "count": 1059,
+      "fields": {
+        "fid": "INTEGER",
+        "cat": "INTEGER",
+        "global_id": "INTEGER",
+        "segment_id": "INTEGER",
+        "catchment_id": "INTEGER",
+        "area": "REAL",
+        "domain": "TEXT"
+      }
+    }
+  ],
+  "geometry_tolerance_degrees": 1e-09,
+  "maximum_coordinate_error_degrees": 0.0,
+  "external_rasters": "not verified in local mode",
+  "sample_polygon_checks": {
+    "coverage": "four BORN segment polygons, 21 reach polygons, component 70000129; not worldwide topology certification",
+    "crs": "EPSG:8857",
+    "method": "native GEOS difference/intersection area; independently GDAL-exported originals",
+    "tolerance_square_metres": 0,
+    "outside_parent_square_metres": 0,
+    "sibling_overlap_square_metres": 0
+  },
+  "checks": [
+    "all source rows and native physical types/nulls",
+    "source schema ledger",
+    "parent and association mappings",
+    "reciprocal edges and node incidence",
+    "DAG",
+    "all lookup addresses and fingerprints",
+    "GDAL coordinate sequence",
+    "derived geodesic area consistency"
+  ]
+}
