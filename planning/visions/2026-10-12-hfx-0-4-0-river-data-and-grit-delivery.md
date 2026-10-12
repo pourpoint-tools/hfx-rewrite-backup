@@ -162,8 +162,9 @@ also carry identity, type, direction/continuity diagnostics and other attributes
 A lines-only mapping can lose this information. Determine the smallest explicit
 way to preserve useful node identities, relationships and attributes before fixing
 the contract: a typed node table is a concrete option, not a preselected universal
-node framework. Preserve source node geometry, line endpoint/incidence relationships,
-available cross-tier node references and attributes, without requiring invented
+node framework. Preserve source node layer/tier identity, point geometry, line endpoint/incidence
+relationships, available cross-tier node references, attributes and nulls. Verify
+those facts in the worked example, without requiring invented
 nodes in sources that do not supply them. Do not silently project or discard node
 information. Account for any intentional omission and raise material information-loss
 trade-offs with the maintainer.
@@ -179,7 +180,11 @@ source polygons; record simplification and anomalies rather than inventing exact
 geometric equality. Verify cardinality, polygon availability and level semantics.
 Do not blindly inherit previous adapter graph/area transformations.
 Inspect actual cycle/continuity flags and distinguish preservation from hydrological
-certification.
+certification. Reconcile any observed cycles with the current tree/DAG requirements:
+an anomaly note alone does not establish conformance. Do not silently delete or
+redirect source edges to satisfy the contract. If originals contradict a required
+invariant, investigate and make the contract decision explicit before production;
+raise consequential scope or semantic trade-offs with the maintainer.
 
 ### TDX comparison and limits
 
