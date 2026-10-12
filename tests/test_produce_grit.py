@@ -5,6 +5,10 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("numpy")
+pytest.importorskip("pyproj")
+pytest.importorskip("shapely")
+
 from scripts.produce_grit import Identities
 
 
