@@ -8,21 +8,10 @@ from pathlib import Path
 from typing import TypedDict
 
 import pyarrow as pa
-import pyarrow.compute as pc
 import pyarrow.ipc as ipc
 import pyarrow.parquet as pq
 
-
-class IndexBatch(TypedDict):
-    batch: int
-    min_id: int
-    max_id: int
-    rows: int
-
-
-class Directory(TypedDict):
-    version: int
-    batches: list[IndexBatch]
+from hfx.vector_storage import Directory, budget_batches, write_address_index
 
 
 def write_index(
@@ -34,16 +23,11 @@ def write_index(
     *,
     format_version: str | None = None,
 ) -> Directory:
-    """Sort physical addresses once at publication, without assumptions about IDs."""
-    if batch_rows <= 0:
-        raise ValueError("index batch rows must be positive")
-    schema = pa.schema(
-        [
-            pa.field("id", pa.int64(), nullable=False),
-            pa.field("block", pa.int32(), nullable=False),
-            pa.field("row", pa.int32(), nullable=False),
-        ],
-        metadata={
+    """Sort physical addresses on disk, preserving the catchment lookup binding."""
+    return write_address_index(
+        path,
+        blocks,
+        {
             b"hfx:catchments_sha256": data_hash.encode(),
             **(
                 {b"hfx:format_version": format_version.encode()}
@@ -51,38 +35,8 @@ def write_index(
                 else {b"hfx:candidate": candidate.encode()}
             ),
         },
+        batch_rows,
     )
-    tables = [
-        pa.Table.from_arrays(
-            [
-                ids,
-                pa.repeat(pa.scalar(block, pa.int32()), len(ids)),
-                pa.array(range(len(ids)), type=pa.int32()),
-            ],
-            schema=schema,
-        )
-        for block, ids in enumerate(blocks)
-    ]
-    if not tables:
-        raise ValueError("catchments must not be empty")
-    table = pa.concat_tables(tables).sort_by("id")
-    ids = table["id"].combine_chunks()
-    if ids.null_count or pc.min(ids).as_py() <= 0 or pc.count_distinct(ids).as_py() != len(ids):
-        raise ValueError("IDs must be positive, unique, non-null")
-    directory: Directory = {"version": 1, "batches": []}
-    with ipc.new_file(str(path), schema, options=ipc.IpcWriteOptions(compression=None)) as writer:
-        # Combine chunks so the configured boundary is independent of source groups.
-        for number, batch in enumerate(table.combine_chunks().to_batches(max_chunksize=batch_rows)):
-            writer.write_batch(batch)
-            directory["batches"].append(
-                {
-                    "batch": number,
-                    "min_id": batch.column(0)[0].as_py(),
-                    "max_id": batch.column(0)[-1].as_py(),
-                    "rows": batch.num_rows,
-                }
-            )
-    return directory
 
 
 def write_catchments(source: pq.ParquetFile, path: Path, budget: int) -> list[pa.Array]:
@@ -91,23 +45,10 @@ def write_catchments(source: pq.ParquetFile, path: Path, budget: int) -> list[pa
         raise ValueError("catchment byte budget must be positive")
     blocks: list[pa.Array] = []
     with ipc.new_file(str(path), source.schema_arrow, options=ipc.IpcWriteOptions(compression="zstd")) as writer:
-        for incoming in source.iter_batches(batch_size=4096):
-            offset = 0
-            while offset < incoming.num_rows:
-                remaining = incoming.num_rows - offset
-                low, high = 1, remaining
-                # A single oversized row is emitted alone. Never split WKB.
-                while low < high:
-                    middle = (low + high + 1) // 2
-                    if incoming.slice(offset, middle).nbytes <= budget:
-                        low = middle
-                    else:
-                        high = middle - 1
-                batch = incoming.slice(offset, low)
-                writer.write_batch(batch)
-                # Copy IDs out of buffers retained by the incoming geometry batch.
-                blocks.append(pa.array(batch.column(batch.schema.get_field_index("id")).to_pylist(), type=pa.int64()))
-                offset += low
+        for batch in budget_batches(source.iter_batches(batch_size=4096), budget):
+            writer.write_batch(batch)
+            # Copy IDs out of buffers retained by the incoming geometry batch.
+            blocks.append(pa.array(batch.column(batch.schema.get_field_index("id")).to_pylist(), type=pa.int64()))
     return blocks
 
 
