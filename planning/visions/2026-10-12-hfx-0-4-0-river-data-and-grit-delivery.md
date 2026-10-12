@@ -226,9 +226,37 @@ manifest treatment of old snap artifacts explicitly; do not preserve redundant
 snap copies or change their meaning accidentally. Source normalization remains
 outside the engine, regardless of who writes the wrangling code.
 
-After the small experiment and contract are sound, estimate global input/output
-sizes, temporary disk, RAM, transfer and compute cost. A Hetzner server may run the
-production work. Obtain maintainer approval for costs and provisioning first.
+Use original GRIT v1.0 vectors from [Zenodo record 17435232](https://zenodo.org/records/17435232):
+regional segment and reach GeoPackages (each including line and node layers),
+segment and reach catchments, component catchments, and the product README and
+license. The South Pacific segment/reach pair has already been downloaded and
+checksum-verified as described above. The listed EPSG:8857 archives across those
+five vector products total approximately 21.4 GB compressed. This is a source
+transfer estimate, not an estimate of extracted data or peak working disk. Verify
+release identities and archive checksums when acquiring the remaining regions.
+Download required originals directly to the production server, not through the
+maintainer's laptop. Existing compiled snap artifacts cannot restore discarded
+source fields. No raster download or rewrite is planned; preserve the existing
+raster data and adjust publication references only as required.
+
+Use a temporary Hetzner **CPX62 in Falkenstein (`fsn1`)** for full GRIT production;
+keep small development tests local. The selected configuration is x86 with 16
+shared vCPUs, 32 GB RAM and 640 GB local SSD, initially without an attached volume.
+The 2026-10-12 CLI inspection reported availability and a net server rate of
+EUR 0.2083/hour, approximately EUR 5/day before tax. The maintainer accepted that
+approximate daily cost. Recheck availability and pricing before provisioning; do
+not silently substitute another server type. The active hcloud context was
+`pourpoint`, with no servers or volumes at inspection.
+
+Provision when the production scripts and small experiment are ready, not during
+vision authoring. Before provisioning, estimate extracted inputs, output, temporary
+disk, RAM, transfer and duration; process incrementally and monitor free space.
+Confirm the total budget and provisioning approval with the maintainer. EUR 30 was
+proposed as a compute budget but has not been approved. Any such budget is an
+operational limit, not a provider-enforced spending cap; object storage/API and
+other charges are separate. Delete this effort's server after successful public
+verification and preservation of receipts, subject to the failure-preservation
+rules below. No server has been provisioned by this vision publication.
 The AWS CLI profiles `upstream-r2` and `hetzner-pourpoint` were found locally;
 verify current bucket-specific permissions, endpoint and destination rather than
 assuming profile presence grants write access. Account-wide R2 bucket listing was
