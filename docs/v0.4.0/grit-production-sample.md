@@ -6,7 +6,8 @@ column names and records the exact source schema and renames in
 `source-provenance.json`. HFX identities distinguish source products, regions,
 layers and tiers even when native numeric IDs coincide.
 
-This is a **local sample producer**, not a completed global delivery. Independent
+The [worldwide procedure](grit-worldwide-production.md) adds acquisition and explicit
+external raster declarations. Neither procedure is a completed global delivery. Independent
 verification is required before upload. The sample omits rasters honestly; the
 final GRIT publication must reference the approved existing unchanged rasters.
 No raster or snap copies are produced. No download, upload or provisioning occurs.

@@ -690,3 +690,102 @@ def test_graph_and_bbox_actual_nonnull_children_are_checked() -> None:
     )
     with pytest.raises(ValueError, match="nonnull graph edge"):
         check_nonnull(graph, "graph")
+
+
+def raster_declarations() -> dict[str, object]:
+    """Expected declarations from the published raster delivery, not producer helpers."""
+    import json
+
+    receipt = json.loads((Path(__file__).parents[1] / "docs/v0.4.0/receipts/grit-raster-delivery.json").read_text())
+    return {
+        "external_artifacts": {
+            "grit-flow-" + kind: {
+                "url": "https://basin-delineations-public.upstream.tech/grit/hfx-v0.4.0/aux/d8/flow_" + kind + ".tif",
+                **{
+                    key: receipt["artifacts"][f"aux/d8/flow_{kind}.tif"][key]
+                    for key in ("size_bytes", "sha256", "head_sha256", "tail_sha256")
+                },
+                "retention": "The GRIT HFX publisher retains this exact public object unchanged for the lifetime of this dependent bundle.",
+            }
+            for kind in ("dir", "acc")
+        },
+        "auxiliary": [
+            {
+                "schema": "hfx.aux.d8_raster.v2",
+                "artifacts": {"flow_dir": {"external": "grit-flow-dir"}, "flow_acc": {"external": "grit-flow-acc"}},
+                "metadata": {"crs": "EPSG:8857", "flow_dir_encoding": "grass", "flow_acc_units": "km2"},
+            }
+        ],
+    }
+
+
+def test_external_declarations_require_opt_in_and_record_receipt(tmp_path: Path) -> None:
+    import json
+
+    from hfx.verify_candidates import _fingerprint
+    from scripts.verify_grit import verify
+
+    inventory, output_dir = complete_fixture(tmp_path)
+    manifest_path = output_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest.update(raster_declarations())
+    manifest_path.write_text(json.dumps(manifest))
+    report = tmp_path / "receipt.json"
+    with pytest.raises(ValueError, match="local verification mode"):
+        verify(inventory, output_dir, report, tmp_path / "audit.sqlite")
+    assert not report.exists()
+    source_receipt = Path(__file__).parents[1] / "docs/v0.4.0/receipts/grit-raster-delivery.json"
+    result = verify(inventory, output_dir, report, tmp_path / "audit.sqlite", external_raster_receipt=source_receipt)
+    external = cast(dict[str, object], result["external_rasters"])
+    assert external["receipt"] == {"path": str(source_receipt.resolve()), **_fingerprint(source_receipt)}
+    assert external["status"] == "declarations match supplied receipt"
+    assert external["limitation"] == "No fresh full raster scan or public accessibility check."
+
+
+@pytest.mark.parametrize(
+    "field", ["size_bytes", "sha256", "head_sha256", "tail_sha256", "url", "retention", "auxiliary"]
+)
+def test_external_declaration_mutation_rejected(tmp_path: Path, field: str) -> None:
+    import json
+
+    from scripts.verify_grit import verify
+
+    inventory, output_dir = complete_fixture(tmp_path)
+    manifest_path = output_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest.update(raster_declarations())
+    if field == "auxiliary":
+        manifest["auxiliary"][0]["metadata"]["flow_acc_units"] = "cells"
+    else:
+        manifest["external_artifacts"]["grit-flow-dir"][field] = "changed"
+    manifest_path.write_text(json.dumps(manifest))
+    report = tmp_path / "receipt.json"
+    source_receipt = Path(__file__).parents[1] / "docs/v0.4.0/receipts/grit-raster-delivery.json"
+    with pytest.raises(ValueError, match="raster declarations differ"):
+        verify(inventory, output_dir, report, tmp_path / "audit.sqlite", external_raster_receipt=source_receipt)
+    assert not report.exists()
+
+
+def test_dag_verification_has_bounded_sqlite_work(tmp_path: Path) -> None:
+    from scripts.verify_grit import prepare_database, verify_dag
+
+    with prepare_database(tmp_path / "large-dag.sqlite") as db:
+        db.executemany(
+            "INSERT INTO features(entity,id,namespace,source_id,level) VALUES ('rivers',?,'test',?,0)",
+            [(identifier, str(identifier)) for identifier in range(1, 2001)],
+        )
+        db.executemany("INSERT INTO edges VALUES ('rivers',?,?)", [(i, i + 1) for i in range(1, 2000)])
+        calls = 0
+
+        def work_limit() -> int:
+            nonlocal calls
+            calls += 1
+            # One million VM steps allows ample indexed work, but not a scan
+            # of every river edge for each of the 2,000 feature rows.
+            return int(calls > 1000)
+
+        db.set_progress_handler(work_limit, 1000)
+        try:
+            verify_dag(db, "rivers")
+        finally:
+            db.set_progress_handler(None, 0)

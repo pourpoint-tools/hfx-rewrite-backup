@@ -131,6 +131,7 @@ def prepare_database(path: Path) -> sqlite3.Connection:
             PRIMARY KEY(entity,id), UNIQUE(entity,namespace,source_id));
         CREATE TABLE edges(entity TEXT, upstream INTEGER, downstream INTEGER,
             PRIMARY KEY(entity,upstream,downstream));
+        CREATE INDEX edges_downstream ON edges(entity,downstream,upstream);
         CREATE TABLE expected_edges(entity TEXT, upstream INTEGER, downstream INTEGER,
             PRIMARY KEY(entity,upstream,downstream));
         CREATE TABLE reverse_edges(entity TEXT, upstream INTEGER, downstream INTEGER,
@@ -628,8 +629,49 @@ def verify_declared_connectivity(db: sqlite3.Connection, manifest: dict[str, obj
             )
 
 
+def verify_external_rasters(manifest: dict[str, object], receipt_path: Path) -> dict[str, object]:
+    """Compare declarations only; trust the separately supplied historical receipt."""
+    from hfx.verify_candidates import _fingerprint
+
+    identity = _fingerprint(receipt_path)
+    receipt = json.loads(receipt_path.read_text())
+    require(receipt["format_version"] == "0.4.0", "raster receipt format differs")
+    expected_external = {}
+    for kind in ("dir", "acc"):
+        name = f"aux/d8/flow_{kind}.tif"
+        artifact = receipt["artifacts"][name]
+        expected_external[f"grit-flow-{kind}"] = {
+            "url": receipt["bundle_url"] + name,
+            **{key: artifact[key] for key in ("size_bytes", "sha256", "head_sha256", "tail_sha256")},
+            "retention": "The GRIT HFX publisher retains this exact public object unchanged for the lifetime of this dependent bundle.",
+        }
+    expected_auxiliary = [
+        {
+            "schema": "hfx.aux.d8_raster.v2",
+            "artifacts": {"flow_dir": {"external": "grit-flow-dir"}, "flow_acc": {"external": "grit-flow-acc"}},
+            "metadata": {"crs": "EPSG:8857", "flow_dir_encoding": "grass", "flow_acc_units": "km2"},
+        }
+    ]
+    require(
+        manifest.get("external_artifacts") == expected_external and manifest.get("auxiliary") == expected_auxiliary,
+        "raster declarations differ from supplied receipt/contract",
+    )
+    require(identity == _fingerprint(receipt_path), "raster receipt changed during verification")
+    return {
+        "status": "declarations match supplied receipt",
+        "receipt": {"path": str(receipt_path.resolve()), **identity},
+        "limitation": "No fresh full raster scan or public accessibility check.",
+    }
+
+
 def verify(
-    inventory_path: Path, output: Path, report: Path, scratch: Path, *, worked_example: bool = False
+    inventory_path: Path,
+    output: Path,
+    report: Path,
+    scratch: Path,
+    *,
+    worked_example: bool = False,
+    external_raster_receipt: Path | None = None,
 ) -> dict[str, object]:
     """Check local delivery against separately supplied originals; never overwrite a receipt."""
     from hfx.verify_candidates import _fingerprint
@@ -653,10 +695,14 @@ def verify(
     require(manifest["format_version"] == "0.4.0" and manifest["crs"] == "EPSG:4326", "wrong format/CRS")
     verify_declarations(manifest)
     require(manifest["has_up_area"] is False, "GRIT upstream area not supplied")
-    require(
-        not manifest.get("external_artifacts") and not manifest.get("auxiliary"),
-        "local verification mode does not certify external rasters",
-    )
+    external_rasters: str | dict[str, object] = "not verified in local mode"
+    if external_raster_receipt is None:
+        require(
+            not manifest.get("external_artifacts") and not manifest.get("auxiliary"),
+            "local verification mode does not certify external rasters",
+        )
+    else:
+        external_rasters = verify_external_rasters(manifest, external_raster_receipt)
     paths = list(output.rglob("*"))
     require(not any(path.is_symlink() for path in paths), "symlinked output")
     actual = {
@@ -720,6 +766,11 @@ def verify(
         "output changed during verification",
     )
     require(inventory_identity == _fingerprint(inventory_path), "inventory changed during verification")
+    if external_raster_receipt is not None:
+        require(
+            external_rasters == verify_external_rasters(manifest, external_raster_receipt),
+            "raster receipt changed during verification",
+        )
     import fiona
     import pyproj
     import rasterio
@@ -739,7 +790,7 @@ def verify(
         "layers": counts,
         "geometry_tolerance_degrees": COORDINATE_TOLERANCE_DEGREES,
         "maximum_coordinate_error_degrees": error,
-        "external_rasters": "not verified in local mode",
+        "external_rasters": external_rasters,
         "sample_polygon_checks": polygon_sample,
         "checks": [
             "all source rows and native physical types/nulls",
@@ -963,8 +1014,20 @@ def main() -> None:
     parser.add_argument(
         "--worked-example", action="store_true", help="also reproduce original four-group BORN polygon checks"
     )
+    parser.add_argument(
+        "--external-raster-receipt",
+        type=Path,
+        help="compare unchanged external raster declarations with this historical receipt; no public raster check",
+    )
     args = parser.parse_args()
-    verify(args.inventory, args.output, args.report, args.scratch, worked_example=args.worked_example)
+    verify(
+        args.inventory,
+        args.output,
+        args.report,
+        args.scratch,
+        worked_example=args.worked_example,
+        external_raster_receipt=args.external_raster_receipt,
+    )
 
 
 if __name__ == "__main__":
