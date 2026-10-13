@@ -556,7 +556,7 @@ def source_graph(layers: list[Layer], identities: Identities) -> None:
     db.execute(
         "CREATE TABLE edges (family TEXT,upstream INTEGER,downstream INTEGER,PRIMARY KEY(family,upstream,downstream))"
     )
-    db.execute("CREATE INDEX edge_destinations ON edges(family,downstream)")
+    db.execute("CREATE INDEX edge_destinations ON edges(family,downstream,upstream)")
     db.execute("CREATE TABLE endpoints (river INTEGER PRIMARY KEY, upstream INTEGER, downstream INTEGER)")
     db.execute("CREATE INDEX endpoint_upstream ON endpoints(upstream)")
     db.execute("CREATE INDEX endpoint_downstream ON endpoints(downstream)")

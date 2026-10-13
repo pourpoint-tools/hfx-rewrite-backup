@@ -259,3 +259,30 @@ def test_global_delivery_requires_exact_release_inventory() -> None:
     inventory["sources"][0]["archive"]["md5"] = "0" * 32
     with pytest.raises(ValueError, match="pinned release"):
         verify_global_inventory(inventory)
+
+
+def test_catchment_upstream_join_does_not_scan_unrelated_edges(tmp_path: Path) -> None:
+    from scripts.produce_grit import source_graph
+
+    with sqlite3.connect(tmp_path / "upstream.sqlite") as db:
+        identities = Identities(db)
+        source_graph([], identities)
+        for key in range(1, 10001):
+            identities.add("rivers", "original-segments", key)
+        db.executemany("INSERT INTO edges VALUES ('rivers',?,?)", ((key, key + 1) for key in range(1, 10000)))
+        steps = 0
+
+        def count_steps() -> int:
+            nonlocal steps
+            steps += 1
+            return 0
+
+        db.set_progress_handler(count_steps, 1)
+        upstream = db.execute(
+            "SELECT i.source_id FROM edges e JOIN identities i ON i.family='rivers' AND i.id=e.upstream WHERE e.family='rivers' AND e.downstream=? ORDER BY i.source_id",
+            (5000,),
+        ).fetchall()
+        db.set_progress_handler(None, 0)
+        assert upstream == [(4999,)]
+        # A point lookup must not visit the other 9,998 source edges.
+        assert steps < 500
