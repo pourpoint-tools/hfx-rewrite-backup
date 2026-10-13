@@ -789,3 +789,58 @@ def test_dag_verification_has_bounded_sqlite_work(tmp_path: Path) -> None:
             verify_dag(db, "rivers")
         finally:
             db.set_progress_handler(None, 0)
+
+
+def test_grouping_streams_source_order_without_sorting_payload(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    import json
+
+    from scripts import verify_grit
+
+    # Source order differs from ID order at every key, including numeric FIDs.
+    ordered = [
+        (60, "segments", "AF", "lines", 2),
+        (50, "segments", "AF", "lines", 10),
+        (40, "segments", "AF", "other_lines", 1),
+        (30, "segments", "SP", "lines", 1),
+        (20, "reaches", "AF", "lines", 1),
+    ]
+    expected = [
+        {"source_fid": fid, "label": None if identifier == 40 else str(identifier), "geometry": bytes([identifier])}
+        for identifier, _, _, _, fid in ordered
+    ]
+    schema = pa.schema([("source_fid", pa.int64()), ("label", pa.string()), ("geometry", pa.binary())])
+    batches: list[pa.RecordBatch] = []
+    original_check = verify_grit.verify_group_batches
+
+    def check_batch(batch: pa.RecordBatch, sizes: list[int]) -> None:
+        original_check(batch, sizes)
+        batches.append(batch)
+
+    monkeypatch.setattr(verify_grit, "verify_group_batches", check_batch)
+    with verify_grit.prepare_database(tmp_path / "grouping.sqlite") as db:
+        for row, (identifier, product, region, layer, fid) in enumerate(ordered):
+            db.execute(
+                "INSERT INTO features(entity,id,namespace,source_id,level,attrs,geometry) VALUES (?,?,?,?,?,?,?)",
+                (
+                    "rivers",
+                    identifier,
+                    f"grit:1.0:{region}:{product}:{layer}",
+                    str(identifier),
+                    0,
+                    json.dumps({"source_fid": fid, "label": expected[row]["label"]}),
+                    expected[row]["geometry"],
+                ),
+            )
+            db.execute("INSERT INTO addresses VALUES ('rivers',?,0,?)", (identifier, row))
+        statements: list[str] = []
+        db.set_trace_callback(statements.append)
+        verify_grit.verify_grouping(db, "rivers", schema)
+        db.set_trace_callback(None)
+        assert pa.Table.from_batches(batches).to_pylist() == expected
+        # Inspect the executed payload query, not a separately copied query.
+        queries = [sql for sql in statements if sql.lstrip().startswith("SELECT") and "FROM source_order" in sql]
+        assert len(queries) == 1
+        plan = db.execute("EXPLAIN QUERY PLAN " + queries[0]).fetchall()
+        assert not any("TEMP B-TREE" in step[3] for step in plan), plan
+        opcodes = db.execute("EXPLAIN " + queries[0]).fetchall()
+        assert not any(step[1].startswith("Sorter") for step in opcodes), opcodes
