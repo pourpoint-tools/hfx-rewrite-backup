@@ -980,9 +980,12 @@ def verify_grouping(db: sqlite3.Connection, entity: str, schema: pa.Schema) -> N
             "INSERT INTO source_order VALUES (?,?,?,?,?)",
             (identifier, order.index(product), region, layer, json.loads(attrs)["source_fid"]),
         )
+    db.execute("CREATE INDEX source_order_keys ON source_order(product,region,layer,fid)")
+    # Keep the ordered keys as the outer loop so SQLite does not sort attrs/WKB.
     incoming = db.execute(
         """SELECT f.attrs,f.geometry,a.block,a.row FROM source_order o
-        JOIN features f ON f.entity=? AND f.id=o.id JOIN addresses a ON a.entity=f.entity AND a.id=f.id
+        CROSS JOIN features f ON f.entity=? AND f.id=o.id
+        CROSS JOIN addresses a ON a.entity=f.entity AND a.id=f.id
         ORDER BY o.product,o.region,o.layer,o.fid""",
         (entity,),
     )
