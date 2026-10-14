@@ -161,7 +161,7 @@ def complete_fixture(root: Path, *, isolated_node: bool = False) -> tuple[Path, 
     ledger_layers = []
     rows: dict[str, list[dict[str, object]]] = {"catchments": [], "rivers": [], "river_nodes": []}
     project = Transformer.from_crs(8857, 4326, always_xy=True).transform
-    polygon = {"type": "Polygon", "coordinates": [[(0, 0), (1, 0), (0, 1), (0, 0)]]}
+    polygon = {"type": "Polygon", "coordinates": [[(0, 0), (50, 0), (0, 50), (0, 0)]]}
     line = {"type": "LineString", "coordinates": [(0, 0), (1, 0)]}
     point = {"type": "Point", "coordinates": (0, 0)}
     products = [
@@ -216,7 +216,9 @@ def complete_fixture(root: Path, *, isolated_node: bool = False) -> tuple[Path, 
                         }
                     )
             geom = transform(shape(geometry), project, interleaved=False)
-            # Native equal-area 0.5 square metre triangle; geodesic value is independently fixed below.
+            # A 50 m right triangle in an equal-area CRS has 1,250 m² area.
+            # At this scale the geodesic-edge correction rounds away in float32;
+            # unlike the former 1 m fixture, numerical cancellation does too.
             identifier = level + 1
             row: dict[str, object] = {
                 "id": identifier,
@@ -231,7 +233,7 @@ def complete_fixture(root: Path, *, isolated_node: bool = False) -> tuple[Path, 
             if entity == "catchments":
                 row.update(
                     parent_id=None if level == 0 else level,
-                    area_km2=5.000036051714826e-7,
+                    area_km2=0.00125,
                     up_area_km2=None,
                     outlet_lon=None if level == 0 else 0.0,
                     outlet_lat=None if level == 0 else 0.0,
@@ -500,7 +502,7 @@ def test_complete_verification_rejects_rehashed_source_attribute_corruption(tmp_
 
     inventory, output_dir = complete_fixture(tmp_path)
     path = output_dir / "rivers.arrow"
-    with pa.memory_map(str(path), "r") as mapped:
+    with pa.OSFile(str(path), "r") as mapped:
         reader = ipc.open_file(mapped)
         batch = reader.get_batch(0)
     index = batch.schema.get_field_index("source_catchment_id")
@@ -508,7 +510,7 @@ def test_complete_verification_rejects_rehashed_source_attribute_corruption(tmp_
     with ipc.new_file(str(path), changed.schema, options=ipc.IpcWriteOptions(compression="zstd")) as writer:
         writer.write_batch(changed)
     lookup = output_dir / "rivers-lookup.arrow"
-    with pa.memory_map(str(lookup), "r") as mapped:
+    with pa.OSFile(str(lookup), "r") as mapped:
         reader = ipc.open_file(mapped)
         address = reader.get_batch(0)
     metadata = dict(address.schema.metadata)
@@ -609,13 +611,13 @@ def test_rebatched_bundle_with_fresh_lookup_and_hashes_is_rejected(tmp_path: Pat
 
     inventory, output_dir = complete_fixture(tmp_path)
     path = output_dir / "rivers.arrow"
-    with pa.memory_map(str(path), "r") as mapped:
+    with pa.OSFile(str(path), "r") as mapped:
         batch = ipc.open_file(mapped).get_batch(0)
     with ipc.new_file(str(path), batch.schema, options=ipc.IpcWriteOptions(compression="zstd")) as writer:
         writer.write_batch(batch.slice(0, 1))
         writer.write_batch(batch.slice(1, 1))
     lookup = output_dir / "rivers-lookup.arrow"
-    with pa.memory_map(str(lookup), "r") as mapped:
+    with pa.OSFile(str(lookup), "r") as mapped:
         schema = ipc.open_file(mapped).schema
     metadata = dict(schema.metadata)
     metadata[b"hfx:data_sha256"] = _fingerprint(path)["sha256"].encode()
@@ -666,7 +668,7 @@ def test_required_parent_type_and_nonnull_values_are_enforced(tmp_path: Path) ->
 
     _, output_dir = complete_fixture(tmp_path)
     path = output_dir / "rivers.arrow"
-    with pa.memory_map(str(path), "r") as mapped:
+    with pa.OSFile(str(path), "r") as mapped:
         batch = ipc.open_file(mapped).get_batch(0)
     index = batch.schema.get_field_index("parent_id")
     wrong = batch.set_column(index, pa.field("parent_id", pa.float64()), pa.array([None, 1.0], pa.float64()))
