@@ -255,6 +255,8 @@ def mapped_id(db: sqlite3.Connection, entity: str, ns: str, value: object) -> in
 
 
 def source_ids(value: object) -> list[int]:
+    if value is None:
+        return []
     require(isinstance(value, str), "source incidence must be a string")
     result = [int(part) for part in cast(str, value).split(",") if part]
     require(len(result) == len(set(result)) and all(item > 0 for item in result), "invalid/duplicate source incidence")

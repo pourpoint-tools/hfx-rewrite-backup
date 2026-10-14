@@ -143,7 +143,7 @@ def test_failed_verification_never_emits_success_receipt(tmp_path: Path) -> None
     assert report.read_text() == "retained old receipt"
 
 
-def complete_fixture(root: Path) -> tuple[Path, Path]:
+def complete_fixture(root: Path, *, isolated_node: bool = False) -> tuple[Path, Path]:
     """Seven original layers and hand-mapped outputs, independent of producer code."""
     import json
 
@@ -203,6 +203,18 @@ def complete_fixture(root: Path) -> tuple[Path, Path]:
                 schema={"geometry": geometry["type"], "properties": types},
             ) as target:
                 target.write({"geometry": geometry, "properties": attrs})
+                if isolated_node and product == "reaches" and layer == "nodes":
+                    target.write(
+                        {
+                            "geometry": geometry,
+                            "properties": {
+                                **attrs,
+                                "global_id": 2,
+                                "upstream_line_ids": None,
+                                "downstream_line_ids": None,
+                            },
+                        }
+                    )
             geom = transform(shape(geometry), project, interleaved=False)
             # Native equal-area 0.5 square metre triangle; geodesic value is independently fixed below.
             identifier = level + 1
@@ -236,13 +248,25 @@ def complete_fixture(root: Path) -> tuple[Path, Path]:
             else:
                 row["coarser_node_id"] = None if level == 0 else 1
             rows[entity].append(row)
+            if isolated_node and product == "reaches" and layer == "nodes":
+                rows[entity].append(
+                    {
+                        **row,
+                        "id": 3,
+                        "source_id": "2",
+                        "source_fid": 2,
+                        "source_global_id": 2,
+                        "source_upstream_line_ids": None,
+                        "source_downstream_line_ids": None,
+                    }
+                )
             ledger_layers.append(
                 {
                     "namespace": row["source_namespace"],
                     "product": product,
                     "region": region,
                     "table": layer,
-                    "count": 1,
+                    "count": 2 if isolated_node and product == "reaches" and layer == "nodes" else 1,
                     "fields": [{"name": "fid", "type": "INTEGER", "nullable": False, "output": "source_fid"}]
                     + [
                         {
@@ -385,6 +409,61 @@ def complete_fixture(root: Path) -> tuple[Path, Path]:
     }
     (output_dir / "manifest.json").write_text(json.dumps(manifest))
     return inventory, output_dir
+
+
+def test_complete_verification_accepts_null_incidence_on_isolated_source_node(tmp_path: Path) -> None:
+    from scripts.verify_grit import verify
+
+    # Synthetic analogue of native SI reach nodes 430001282 and 580018839:
+    # nullable TEXT incidence, no line endpoints, and a retained coarser node.
+    inventory, output_dir = complete_fixture(tmp_path, isolated_node=True)
+    result = verify(inventory, output_dir, tmp_path / "receipt.json", tmp_path / "audit.sqlite")
+    assert result["status"] == "passed"
+    assert cast(list[dict[str, object]], result["layers"])[-1]["count"] == 2
+
+
+@pytest.mark.parametrize("value", [False, 0, [], "0", "-1", "1,1", "invalid"])
+def test_source_incidence_rejects_invalid_or_duplicate_ids(value: object) -> None:
+    from scripts.verify_grit import source_ids
+
+    with pytest.raises(ValueError):
+        source_ids(value)
+
+
+@pytest.mark.parametrize("endpoint", ["upstream_node_id", "downstream_node_id"])
+def test_null_incidence_cannot_hide_connected_line(tmp_path: Path, endpoint: str) -> None:
+    from scripts.verify_grit import equal_tables, prepare_database, relationships
+
+    record: dict[str, object] = {
+        "id": 1,
+        "level": 0,
+        "coarser_node_id": None,
+        "source_upstream_line_ids": None,
+        "source_downstream_line_ids": None,
+    }
+    with prepare_database(tmp_path / "incidence.sqlite") as db:
+        relationships(db, "river_nodes", "segments", "SI", record)
+        assert db.execute("SELECT * FROM expected_incidence").fetchall() == []
+        db.execute("INSERT INTO incidence VALUES (1,2,?)", (endpoint,))
+        with pytest.raises(ValueError, match="incidence"):
+            equal_tables(db, "incidence", "expected_incidence", "node,river,endpoint")
+
+
+def test_null_incidence_source_attribute_cannot_be_replaced_with_empty_text() -> None:
+    feature = {
+        "id": "1",
+        "properties": {"upstream_line_ids": None},
+        "geometry": {"type": "Point", "coordinates": (0.0, 0.0)},
+    }
+    batch = pa.record_batch(
+        [[1], pa.array([None], pa.string()), [struct.pack("<BIdd", 1, 1, 0.0, 0.0)]],
+        names=["source_fid", "source_upstream_line_ids", "geometry"],
+    )
+    schema = {"fid": "INTEGER", "upstream_line_ids": "TEXT"}
+    assert compare_feature(feature, "EPSG:4326", schema, batch, 0) == 0.0
+    changed = batch.set_column(1, "source_upstream_line_ids", pa.array([""], pa.string()))
+    with pytest.raises(ValueError, match="source_upstream_line_ids"):
+        compare_feature(feature, "EPSG:4326", schema, changed, 0)
 
 
 def test_complete_original_bundle_and_success_receipt(tmp_path: Path) -> None:
