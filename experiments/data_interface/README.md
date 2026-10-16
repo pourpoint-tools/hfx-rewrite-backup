@@ -74,17 +74,36 @@ peak trace. The verifier uses the same bounds and temporary directories beside
 the candidate, never repository build directories. Full row sorting compares
 original/candidate Arrow rows after restoring the original schema.
 
-Access probes retain Arrow metadata and bounded HTTP fingerprint buffers, not
-selected feature batches. Their local byte/call counters count serialized reads,
+By default, access probes retain Arrow metadata and bounded HTTP fingerprint
+buffers, not selected feature batches. Original graph reads enable Parquet
+`pre_buffer=True`; `record_probe --no-graph-pre-buffer` disables it. The default gives Arrow all selected groups together and streams projected
+batches with `iter_batches`, allowing coalescing across row groups without
+materializing the entire selected projection at once. `--no-graph-grouped` instead
+reads one projected row group at a time. `graph_max_buffer_bytes` reports the
+largest materialized batch, not the serialized Parquet pre-buffer cache.
+Arrow's default lazy cache options apply; this does not promise parallel HTTP reads.
+`--read-ahead-bytes N` opts into a standard seekable IPC buffer of N bytes per open
+IPC file. It can reduce round trips at the cost of extra transfer (including WKB
+between requested fields) and same-instance serialized-data reuse. The default is
+zero. These are reader comparisons, not changes to artifact layout or batch caps. Their local byte/call counters count serialized reads,
 not physical disk traffic; filesystem cache is uncontrolled. Remote counts are
-actual response bodies/ranges, not wire bytes. Opening currently reads the data
-footer for schema discovery then projected opening, identically for original and
-candidate layouts; this duplicate is visible rather than hidden. Geometry receipt
+actual response bodies/ranges, not wire bytes. The current reader discovers schema from the leading IPC schema message, opens
+one projected data reader, and reuses spatial and original Parquet readers within
+an instance. Historical receipts in `results/` and REPORT.md measured the earlier
+reader, which opened the data footer twice and reopened spatial readers; reproduce
+those exact reader policies from the receipt's Git revision. Geometry receipt
 is separate from optional Shapely decode (add `--group vector-production`). Full
 producer checks are separate from ordinary reader address/digest-binding checks.
 The fixed experiment input supplies all three domains; this probe is not a general
 optional-node reader. Native source columns/nulls stay authoritative regardless of
 which derived relationship columns a particular operation projects.
+
+
+For comparable current-reader trials, use the same options on original and
+candidate bundles. For example, add `--graph-grouped --read-ahead-bytes 65536`
+to a spatial `record_probe` command, then compare with `--no-graph-pre-buffer --no-graph-grouped`
+and without read-ahead. This 64 KiB value is an explicit trial setting, not a
+selected production constant. Opening and first discovery remain counted.
 
 ### Resource adjustment
 

@@ -121,3 +121,17 @@ def test_graph_cli_rejects_source_receipt_and_wrong_workload_identity(
     argv[-1] = str(bundle.parent / "receipt.json")
     with pytest.raises(ValueError, match="source manifest"):
         main()
+
+
+def test_grouped_selection_preserves_results_and_reports_materialization(bundle: Path) -> None:
+    from experiments.data_interface.baseline_graph_spatial import conservative, select_graph
+
+    with pq.ParquetFile(bundle / "graph.parquet", pre_buffer=True) as graph:
+        result = select_graph(graph, conservative((1.0, 1.0, 1.0, 1.0)), None, grouped=True)
+        assert result["ids"].tolist() == [41, 7, 90]
+        assert result["groups"] == [0, 1]
+        assert result["rows"] == 4
+        assert result["max_buffer_bytes"] >= result["logical_bytes"]
+        empty = select_graph(graph, conservative((-10.0, -10.0, -9.0, -9.0)), None, grouped=True)
+        assert empty["ids"].tolist() == []
+        assert empty["rows"] == 0

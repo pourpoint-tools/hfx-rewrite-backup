@@ -7,6 +7,7 @@ import hashlib
 import io
 import json
 from bisect import bisect_left
+from collections.abc import Buffer
 from pathlib import Path
 from time import perf_counter
 from typing import Any, cast
@@ -48,13 +49,62 @@ class CountFile(io.RawIOBase):
         return data
 
 
+class ReadIntoFile(io.RawIOBase):
+    """Add the standard readinto protocol for optional seekable read-ahead."""
+
+    def __init__(self, stream: CountFile | RangeFile) -> None:
+        super().__init__()
+        self.stream = stream
+
+    def readable(self) -> bool:
+        return True
+
+    def seekable(self) -> bool:
+        return True
+
+    def tell(self) -> int:
+        return self.stream.tell()
+
+    def seek(self, offset: int, whence: int = 0) -> int:
+        return self.stream.seek(offset, whence)
+
+    def readinto(self, buffer: Buffer, /) -> int:
+        view = memoryview(buffer).cast("B")
+        data = self.stream.read(len(view))
+        view[: len(data)] = data
+        return len(data)
+
+    def close(self) -> None:
+        self.stream.close()
+        super().close()
+
+
 class Access:
-    def __init__(self, root: str, family: str, columns: list[str] | None, *, relationship: bool = False) -> None:
+    def __init__(
+        self,
+        root: str,
+        family: str,
+        columns: list[str] | None,
+        *,
+        relationship: bool = False,
+        graph_pre_buffer: bool = True,
+        graph_grouped: bool = True,
+        read_ahead_bytes: int = 0,
+    ) -> None:
+        if read_ahead_bytes < 0:
+            raise ValueError("read-ahead bytes must not be negative")
+        self.read_ahead_bytes = read_ahead_bytes
+        self.buffered_files: dict[str, io.BufferedReader] = {}
+        self.graph_pre_buffer = graph_pre_buffer
+        self.graph_grouped = graph_grouped
+        self.graph_max_buffer_bytes = 0
         self.root = root.rstrip("/") + "/"
         self.remote = root.startswith(("https://", "http://"))
         self.http = HTTP()
         self.files: dict[str, CountFile | RangeFile] = {}
-        self.pafiles: list[pa.PythonFile] = []
+        self.pafiles: dict[str, pa.PythonFile] = {}
+        self.spatial_reader: ipc.RecordBatchFileReader | None = None
+        self.graph_reader: pq.ParquetFile | None = None
         manifest_bytes = (
             self.http.get(urljoin(self.root, "manifest.json"))
             if self.remote
@@ -99,8 +149,10 @@ class Access:
         ):
             raise ValueError("spatial/data binding differs")
         self.data_file = self.open(self.declaration["data"])
-        full = ipc.open_file(self.data_file)
-        self.schema = full.schema
+        self.data_file.seek(0)
+        if self.data_file.read(8)[:6] != b"ARROW1":
+            raise ValueError("invalid IPC file magic")
+        self.schema = ipc.read_schema(ipc.read_message(self.data_file))
         names = None if columns is None else list(dict.fromkeys([*columns, "id"]))
         fields = None if names is None else [self.schema.get_field_index(name) for name in names]
         if fields is not None and (-1 in fields or not fields):
@@ -136,9 +188,13 @@ class Access:
                         raise ValueError("local bounded fingerprint differs")
                 local.seek(0)
                 self.files[name] = local
-        file = pa.PythonFile(self.files[name], mode="r")
-        self.pafiles.append(file)
-        return file
+        if name not in self.pafiles:
+            stream: CountFile | RangeFile | io.BufferedReader = self.files[name]
+            if self.read_ahead_bytes and name.endswith(".arrow"):
+                stream = io.BufferedReader(ReadIntoFile(self.files[name]), buffer_size=self.read_ahead_bytes)
+                self.buffered_files[name] = stream
+            self.pafiles[name] = pa.PythonFile(stream, mode="r")
+        return self.pafiles[name]
 
     def read_bytes(self, name: str) -> bytes:
         stream = self.open(name)
@@ -150,7 +206,9 @@ class Access:
         return value
 
     def close(self) -> None:
-        for file in self.pafiles:
+        if self.graph_reader is not None:
+            self.graph_reader.close()
+        for file in self.pafiles.values():
             file.close()
         for file in self.files.values():
             if isinstance(file, CountFile):
@@ -175,6 +233,11 @@ class Access:
             "materialized_rows": self.materialized_rows,
             "materialized_bytes": self.materialized_bytes,
             "requested_rows": self.requested_rows,
+            "graph_max_buffer_bytes": self.graph_max_buffer_bytes,
+            "graph_pre_buffer": self.graph_pre_buffer,
+            "graph_grouped": self.graph_grouped,
+            "read_ahead_bytes": self.read_ahead_bytes,
+            "read_ahead_capacity_bytes": len(self.buffered_files) * self.read_ahead_bytes,
             "retained_range_bytes": sum(
                 sum(len(data) for _, data in f.regions) for f in self.files.values() if isinstance(f, RangeFile)
             ),
@@ -183,6 +246,7 @@ class Access:
         }
 
     def reset(self) -> None:
+        self.graph_max_buffer_bytes = 0
         self.lookup_blocks.clear()
         self.data_blocks.clear()
         self.graph_blocks.clear()
@@ -256,8 +320,14 @@ class Access:
     def spatial(self, window: tuple[float, ...], *, level: int | None = None) -> list[int]:
         if not self.manifest.get("experimental") and "graph" in self.declaration:
             return self.graph_spatial(window, level=level)
-        fields = [self.schema.get_field_index(name) for name in ("id", "level", "bbox")]
-        reader = ipc.open_file(self.data_file, options=ipc.IpcReadOptions(included_fields=fields))
+        if self.spatial_reader is None:
+            fields = [self.schema.get_field_index(name) for name in ("id", "level", "bbox")]
+            self.spatial_reader = (
+                self.reader
+                if set(self.reader.schema.names) == {"id", "level", "bbox"}
+                else ipc.open_file(self.data_file, options=ipc.IpcReadOptions(included_fields=fields))
+            )
+        reader = self.spatial_reader
         entries: list[dict[str, Any]] = self.spatial_directory or [
             {"batch": i} for i in range(reader.num_record_batches)
         ]
@@ -292,11 +362,18 @@ class Access:
         return sorted(found)
 
     def graph_spatial(self, window: tuple[float, ...], *, level: int | None = None) -> list[int]:
-        """As-used baseline; isolated comparator retains its Parquet reader separately."""
+        """Original graph discovery with same-instance Parquet metadata reuse."""
         from experiments.data_interface.baseline_graph_spatial import Bounds, conservative, select_graph
 
-        graph = pq.ParquetFile(self.open(self.declaration["graph"]), pre_buffer=False)
-        selected = select_graph(graph, conservative(cast(Bounds, window)), None if level is None else (level,))
+        if self.graph_reader is None:
+            self.graph_reader = pq.ParquetFile(self.open(self.declaration["graph"]), pre_buffer=self.graph_pre_buffer)
+        selected = select_graph(
+            self.graph_reader,
+            conservative(cast(Bounds, window)),
+            None if level is None else (level,),
+            grouped=self.graph_grouped,
+        )
+        self.graph_max_buffer_bytes = max(self.graph_max_buffer_bytes, selected["max_buffer_bytes"])
         self.graph_blocks.update(selected["groups"])
         self.materialized_rows += selected["rows"]
         self.materialized_bytes += selected["logical_bytes"]

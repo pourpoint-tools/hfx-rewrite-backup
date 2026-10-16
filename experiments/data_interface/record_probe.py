@@ -108,9 +108,20 @@ def measure(
     repeats: int,
     window: dict[str, Any] | None = None,
     level: int | None = None,
+    *,
+    graph_pre_buffer: bool = True,
+    graph_grouped: bool = True,
+    read_ahead_bytes: int = 0,
 ) -> dict[str, Any]:
     started = perf_counter()
-    with Access(bundle, family, columns) as access:
+    with Access(
+        bundle,
+        family,
+        columns,
+        graph_pre_buffer=graph_pre_buffer,
+        graph_grouped=graph_grouped,
+        read_ahead_bytes=read_ahead_bytes,
+    ) as access:
         opening_s = perf_counter() - started
         opening = access.stats()
         source_sha = hashlib.sha256((source / "manifest.json").read_bytes()).hexdigest()
@@ -125,7 +136,13 @@ def measure(
             "opening_s": opening_s,
             "opening": opening,
             "repeats": [],
-            "cache_policy": "same Access; bounded head/tail and metadata retained; no selected-batch cache",
+            "cache_policy": "same Access; head/tail and reader metadata retained; no application selected-batch cache; "
+            "optional IPC read-ahead retains bounded serialized data; Parquet pre-buffer uses Arrow defaults",
+            "reader_options": {
+                "graph_pre_buffer": graph_pre_buffer,
+                "graph_grouped": graph_grouped,
+                "read_ahead_bytes": read_ahead_bytes,
+            },
             "filesystem_cache": "uncontrolled, not cold; original-source validation between repeats can warm source files",
             "process_setup": "interpreter/import startup excluded",
             "accounting": "materialized rows/bytes are feature or spatial graph batches, excluding lookup batches; output bytes are Arrow logical nbytes",
@@ -233,6 +250,14 @@ def main() -> None:
     projection.add_argument("--columns", nargs="+", default=None)
     projection.add_argument("--full", action="store_true")
     parser.add_argument("--repeats", type=int, default=2)
+    parser.add_argument("--graph-pre-buffer", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument(
+        "--graph-grouped",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="pre-buffer selected graph groups together and stream projected batches",
+    )
+    parser.add_argument("--read-ahead-bytes", type=int, default=0, help="optional per-IPC-file serialized buffer")
     args = parser.parse_args()
     if args.repeats < 1:
         parser.error("repeats must be positive")
@@ -285,6 +310,9 @@ def main() -> None:
         args.repeats,
         window,
         args.level,
+        graph_pre_buffer=args.graph_pre_buffer,
+        graph_grouped=args.graph_grouped,
+        read_ahead_bytes=args.read_ahead_bytes,
     )
     if args.operation == "records" and args.selection == "absent":
         for repeat in report["repeats"]:
