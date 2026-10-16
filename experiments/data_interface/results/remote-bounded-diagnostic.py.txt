@@ -1,0 +1,120 @@
+"""One-off diagnostic cap around existing HTTP.get; not a performance threshold.
+
+From project root: PYTHONPATH=. uv run python SCRIPT MODULE
+--diagnostic-report /external/evidence.json --max-requests 128 -- MODULE_ARGUMENTS
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import runpy
+import sys
+from collections.abc import Callable
+from datetime import UTC, datetime
+from pathlib import Path
+from threading import Lock
+from time import perf_counter
+from typing import Any
+
+
+class RequestBudgetExceeded(RuntimeError):  # noqa: N818 - explicit diagnostic exception contract
+    pass
+
+
+def run(
+    module: str,
+    argv: list[str],
+    report: Path,
+    maximum: int = 128,
+    driver: Callable[[], None] | None = None,
+    http_class: Any = None,
+) -> int:
+    if not 1 <= maximum <= 128:
+        raise ValueError("Resource cap must be between 1 and 128 successful requests")
+    if http_class is None:
+        from scripts.check_vector_access import HTTP
+
+        http_class = HTTP
+    original = http_class.get
+    requests: list[dict[str, Any]] = []
+    lock = Lock()
+    budget_stopped = False
+
+    def counted(instance: Any, *args: Any, **kwargs: Any) -> bytes:
+        nonlocal budget_stopped
+        # This diagnostic serializes transport to enforce a global cross-instance cap.
+        with lock:
+            if len(requests) >= maximum:
+                budget_stopped = True
+                raise RequestBudgetExceeded(f"Stopped before HTTP.get call {maximum + 1}; resource cap {maximum}")
+            start = len(instance.requests)
+            body = original(instance, *args, **kwargs)
+            requests.extend(dict(receipt) for receipt in instance.requests[start:])
+            return body
+
+    started = perf_counter()
+    started_utc = datetime.now(UTC).isoformat()
+    failure: dict[str, str] | None = None
+    status = 0
+    old_argv = sys.argv
+    # Fail before any driver/network activity if receipt would overwrite evidence.
+    with report.open("x") as output:
+        try:
+            http_class.get = counted
+            sys.argv = [module, *argv]
+            if driver is None:
+                runpy.run_module(module, run_name="__main__", alter_sys=True)
+            else:
+                driver()
+        except BaseException as error:
+            if not isinstance(error, SystemExit) or error.code not in (None, 0):
+                failure = {"type": type(error).__name__, "message": str(error)}
+                status = 3 if isinstance(error, RequestBudgetExceeded) else 1
+        finally:
+            http_class.get = original
+            sys.argv = old_argv
+            if budget_stopped:
+                status = 3
+                if failure is None:
+                    failure = {"type": "RequestBudgetExceeded", "message": "Driver caught request cap exception"}
+            receipt = {
+                "module": module,
+                "argv": argv,
+                "started_utc": started_utc,
+                "finished_utc": datetime.now(UTC).isoformat(),
+                "elapsed_seconds": perf_counter() - started,
+                "exit_code": status,
+                "failure": failure,
+                "maximum_successful_requests": maximum,
+                "successful_request_count": len(requests),
+                "body_bytes": sum(item["bytes"] for item in requests),
+                "requests": requests,
+                "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                "scope": "Resource cap, not performance threshold; HTTP.get serialized globally. Successful bodies only; failed requests, headers, TLS and lower-layer retries excluded. No new transport.",
+            }
+            json.dump(receipt, output, indent=2)
+            output.write("\n")
+            output.flush()
+            os.fsync(output.fileno())
+    return status
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("module")
+    parser.add_argument("--diagnostic-report", type=Path, required=True)
+    parser.add_argument("--max-requests", type=int, default=128)
+    raw = sys.argv[1:]
+    separator = raw.index("--") if "--" in raw else len(raw)
+    args = parser.parse_args(raw[:separator])
+    if not args.diagnostic_report.resolve().is_relative_to(Path(__file__).resolve().parent):
+        raise ValueError("Diagnostic report must be inside this external evidence directory")
+    driver_args = raw[separator + 1 :]
+    raise SystemExit(run(args.module, driver_args, args.diagnostic_report, args.max_requests))
+
+
+if __name__ == "__main__":
+    main()

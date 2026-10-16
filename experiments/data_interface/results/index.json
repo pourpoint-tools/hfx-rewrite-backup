@@ -1,8 +1,8 @@
 {
-  "status": "interim; local matrix complete, remote blocked",
+  "status": "complete experiment; no production adoption",
   "source_manifest_sha256": "b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db",
   "candidate_manifest_sha256": "155535aea34d16e8369ec0db416d2f58058911553c28e9031148607bb7511049",
-  "scope": "original/candidate8192 plus focused candidate256;134 local runs, no remote candidate evidence",
+  "scope": "original/candidate8192 plus focused candidate256; 134 local runs; 36 completed remote result processes and eight capped partial diagnostics",
   "reports": {
     "build-8192-v2.json": {
       "source_receipt": "build-8192-v2.json",
@@ -111,11 +111,89 @@
     "isolated-graph-spatial.json": {
       "source_receipt": "isolated-graph-spatial.json",
       "sha256": "fadae97fdf475ed6cae75eca1dc14c83527d0fc207dab918fae53f0889131774"
+    },
+    "remote-records.json": {
+      "sha256": "3494fd415c78dba135042e40f00aec5061461efb986e6c6faf51fc4779215ffd",
+      "scope": "Compact actual remote evidence or exact archived diagnostic wrapper; raw receipt hashes retained"
+    },
+    "remote-sequences.json": {
+      "sha256": "294c1ae3502425bfc3e839fef8765fb011ac681156b65de04adb378eab353941",
+      "scope": "Compact actual remote evidence or exact archived diagnostic wrapper; raw receipt hashes retained"
+    },
+    "remote-diagnostics.json": {
+      "sha256": "d51a1495c6163ca5f40c16bcf0f6893175041d8745ab5b07dc6ae43d2c1f2d44",
+      "scope": "Compact actual remote evidence or exact archived diagnostic wrapper; raw receipt hashes retained"
+    },
+    "remote-isolated-spatial.json": {
+      "sha256": "8465efe3d406bbec749575f9b25fd9288c29eb8778c2a8ac8f0536f6408a54b8",
+      "scope": "Compact actual remote evidence or exact archived diagnostic wrapper; raw receipt hashes retained"
+    },
+    "remote-repeated-work.json": {
+      "sha256": "3ea40803f327960f3428f3235cc230c9969d6544ef971b665bf597f65de64efe",
+      "scope": "Compact actual remote evidence or exact archived diagnostic wrapper; raw receipt hashes retained"
+    },
+    "remote-lifecycle.json": {
+      "sha256": "f8e1151f46f5b081d7ee8e0b3f472e19bcff6e726ac5c88d786423829d3b89f8",
+      "scope": "Compact actual remote evidence or exact archived diagnostic wrapper; raw receipt hashes retained",
+      "external_raw_receipts": {
+        "remote-upload-summary.json": "eb69dbbf0cffd6b6ff28e8f1d8484ba517e5cf870e767902f403f654fc6362d7",
+        "remote-public-identity.json": "d0e1a45aa1116eba15e311e129dd6f426f5a83b7bc9a995560be1355181aeb84",
+        "remote-cleanup-summary.json": "f093dd55ef5cf90d336b2647e679f6ea48cc2e6811f40239470bf9f448c0ee3d",
+        "r2-candidate-objects.json": "b69315be472494ab2f0fac3fb6b1943ec16efc052c48a20197071071f9709d8c"
+      }
+    },
+    "remote-bounded-diagnostic.py.txt": {
+      "sha256": "0563329111cc3d7c24977cf861df3d971dbe8fdf211773dbc2f00d367858d7a8",
+      "scope": "Compact actual remote evidence or exact archived diagnostic wrapper; raw receipt hashes retained"
+    },
+    "remote-code-bindings.json": {
+      "sha256": "163d192eb66ad178289d1ac5e3ac249fe29ae5d0c0a5bc2d9d738650c522cb67",
+      "scope": "Compact actual remote evidence or exact archived diagnostic wrapper; raw receipt hashes retained"
     }
   },
   "units": "decimal bytes/GB; elapsed seconds; process lifetime peakRSS not retained buffers",
   "cache": "fresh process, uncontrolled filesystem; repeated instances retain bounded transport metadata, no selected feature cache",
   "concurrency": "source-only diagnostics and first full river scan disclosed; isolated matrix serialized; tiny native tests occasionally concurrent",
   "large_requests": "excluded from compact copies; raw external immutable receipts retained",
-  "candidate256_manifest_sha256": "5633d6798795d2c34886676fb85d9f1ec8c62fb85a419b27308403ea0a5e4a8a"
+  "candidate256_manifest_sha256": "5633d6798795d2c34886676fb85d9f1ec8c62fb85a419b27308403ea0a5e4a8a",
+  "remote": {
+    "processes": 44,
+    "completed_results": 36,
+    "partial_resource_diagnostics": 8,
+    "cache": "Serial fresh processes; same-instance repeats; filesystem/CDN/network uncontrolled, not cold",
+    "candidate_remote_prefix": "historical; deleted after measurement",
+    "units": "Successful HTTP response-body bytes and calls, not wire traffic",
+    "measured_code_commit": "973b95a25525b2d308e47d3e45197e69cb1b4fa1"
+  },
+  "current_experiment_files_sha256": {
+    "experiments/data_interface/README.md": "82d6e2ccf72b866e3a140c1500b31e01f4cffa9e5db376bf8f16726cb4da8985",
+    "experiments/data_interface/REPORT.md": "aa21786a00c3fc90791bf526dfe56c86d100ea2135debb946de70de035198b1e",
+    "experiments/data_interface/REPRODUCE.md": "5d2e12db9231c7a7e3bf3162374deb2a9dc54f2783bd812faf1829f216422059",
+    "experiments/data_interface/association_probe.py": "9702632990f30d529194dded4f640981b8e64c434ba2b592e87278541508d910",
+    "experiments/data_interface/baseline_column_scan.py": "fcb75aae2dca4dd214f99f070b5dab2217b1304449d13aea43f4048a39342572",
+    "experiments/data_interface/baseline_graph_spatial.py": "5814c7f60b4d9c05becc0f35e563beeecb2b782e1097594977f9d14f5b7fa85f",
+    "experiments/data_interface/build.py": "623aa57bd0b217d0136794fcae799dee9699403b0605c1a97b92e8d943c8262f",
+    "experiments/data_interface/features.py": "035bd42ecec05f76f87315f4e1dc37da7bc86c27fa9cc8777dec67a8e87645cb",
+    "experiments/data_interface/oracles/catchment_flow_oracle.py": "69bbbe2b4587ed3afb636896a4a07280adacd924c770d169834a1473d638fade",
+    "experiments/data_interface/oracles/establish_workloads.py": "b04d549f608bd358d5ec7c75ee8fc3cfd8f6518127c41c37047b6998bf2e6b38",
+    "experiments/data_interface/oracles/source_node_spatial.py": "5fef8f6746acdba022fc5f2467240e25c79a76625da423ed363ac5533a4b7b94",
+    "experiments/data_interface/probe.py": "7c2ffa28c975d0f08ad0a4dcbd07f321e2335d8ac009b0062320e9cd2db45b2c",
+    "experiments/data_interface/record_probe.py": "35c9f1980f6a2071797564a62b2f7d9205e53582c9dc49085b87fbb172595439",
+    "experiments/data_interface/relation_baseline.py": "6ba91e95fdbc459d0067332122d3728df2cd454996a52d3f9ebe1897a741ff6c",
+    "experiments/data_interface/relationships.py": "e2eca1a90bae9ab338a84eae9f73ae5687c73d84fead0473f438a657200e67aa",
+    "experiments/data_interface/test_association_probe.py": "c1bc91f6a61c8050635f2d61f4fc7c118c6ac4b05a17fedaea05591297d8aedd",
+    "experiments/data_interface/test_baseline_graph_spatial.py": "baef3276a470963f5c2677420b6cbf42a3da4cfd73191e731b4ffc6a478da668",
+    "experiments/data_interface/test_catchment_flow_oracle.py": "f9fdbfc5a7fa487349759200157726fdd52bb0b519638f159dea365973e00c85",
+    "experiments/data_interface/test_features.py": "4b91b2cd946582ffd64d8ab4664cb6ecf389990e832ecdc5070377991f8a5a28",
+    "experiments/data_interface/test_oracle_outputs.py": "3d2880bbe5686753ace908b29d394455370d32ffa18dc3627f67080427ed5c5e",
+    "experiments/data_interface/test_probe.py": "07e8fedda037a3309f9605b8f39bf03dcfb9bfa8677a8b7ebfeadd8d909d9429",
+    "experiments/data_interface/test_record_probe.py": "92e5deb915c310e3d8d04a2cdc6e9251ceef318006f32b4feb0434b4b5a81e8b",
+    "experiments/data_interface/test_relation_baseline.py": "4398250172b18733a8e3948fe93631dab2b844c7a593e51c058cc3a2c2f7a803",
+    "experiments/data_interface/test_remote_traversal.py": "3a503f2876481d7c49210957e3dafb97885496959caa7a26a603ac54c1c1c400",
+    "experiments/data_interface/test_source_node_spatial.py": "5f354db9a947e4382c68b8ee1376a837f9222faef18e4dfa4f29f8f9dda3688e",
+    "experiments/data_interface/test_traversal_probe.py": "6d21b9b5416ef3c03d706382e44d3808ed8c10278a8f2790a502ab14af1694aa",
+    "experiments/data_interface/test_verify.py": "c1d77134b522e4044472ca1b85e45e1ffbd41398f8e1c085f2af54e223611f53",
+    "experiments/data_interface/traversal_probe.py": "bb7e1b21c76ede74ae1052a38b3a191aad5d2b2d00349b732826530d3f37be96",
+    "experiments/data_interface/verify.py": "49381a56a9915b29d76387b6c362326f73c9f99cd24e9433111aabfc2802a060"
+  }
 }

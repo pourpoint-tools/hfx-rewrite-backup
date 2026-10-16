@@ -76,8 +76,9 @@ uses `--catchment 8720 --association component_river_ids --window large_amazon`
 without geometry and yields no records. This is explicit association∩bbox, not
 basin delineation.
 
-Traversal strategies are `selective`, query-owned `batch-cache`, `bulk`, and local
-original `consumer`; upstream seed `1233924` is the large case. Workflow options
+Traversal strategies are `selective`, query-owned `batch-cache`, projected `bulk`,
+whole-artifact `bulk-file`, original projected `consumer` and original whole-graph
+`consumer-file`; upstream seed `1233924` is the large case. Workflow options
 in `traversal_probe --help` combine independent spatial seeds, supplied membership,
 and requested records. The isolated `baseline_graph_spatial` command keeps one Parquet reader from timed
 opening through selection, separately from complete-record fetch; the as-used
@@ -121,6 +122,67 @@ remain. Legacy selective-relationship receipts wrongly label an adjacency block
 as both lookup and data; current code classifies it only as data. Actual serialized
 bytes were never doubled. Retain legacy evidence rather than rewriting receipts.
 
-HTTP roots require approval of an immutable upload prefix. No local/loopback result
-substitutes for remote evidence. Bounded ordinary checks, full producer verification
-and remote readback have different costs. Do not put credentials or data in Git.
+## Actual HTTP reproduction
+
+The measured temporary candidate prefix is **deleted**. To repeat HTTP work, obtain
+approval for a new empty experiment-only prefix and retention/cleanup plan. Publish
+the verified bundle without byte changes, artifacts first and manifest last. Record
+local SHA-256/length, uploaded object identity/HEAD and public readback before running
+probes. Keep the exact owned-key/ETag ledger outside Git. The private upload helper
+is not part of this experiment; use approved object-storage tooling, not production
+prefixes. Delete only owned matching-ETag keys afterward, verify their absence and
+an empty prefix/no pending multipart uploads, and compare the original manifest.
+The [historical lifecycle receipt](results/remote-lifecycle.json) documents what ran.
+Never place credentials, profiles, datasets or full request logs in Git.
+
+Use a local verified `$SOURCE` for independent record validation and an HTTP root
+as the target. Actual remote counts cover returned successful response bodies, not
+wire bytes, headers, failed requests or lower-layer retries. No local/loopback result
+substitutes for remote evidence; cache/CDN/network state is uncontrolled.
+
+```sh
+export SOURCE_HTTP=https://basin-delineations-public.upstream.tech/grit/hfx-v0.4.0-rivers-2026-10-12
+export CANDIDATE_HTTP=https://your-approved-host/new-empty-experiment-prefix
+export SOURCE_SHA=b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db
+uv run --group data-interface python -m experiments.data_interface.record_probe "$CANDIDATE_HTTP" --source "$SOURCE" --family catchments --workloads "$WORKLOADS" --selection clustered --columns id level bbox --repeats 2 --report "$REPORT/remote-catchments-projected.json"
+uv run --group data-interface python -m experiments.data_interface.traversal_probe --bundle "$SOURCE_HTTP" --seed 1233924 --direction upstream --strategy consumer-file --repeats 2 --source-manifest-sha256 "$SOURCE_SHA" --oracles "$ORACLES" --report "$REPORT/remote-original-flow.json"
+uv run --group data-interface python -m experiments.data_interface.traversal_probe --bundle "$CANDIDATE_HTTP" --seed 1233924 --direction upstream --strategy bulk-file --repeats 10 --source-manifest-sha256 "$SOURCE_SHA" --oracles "$ORACLES" --report "$REPORT/remote-bulk-10.json"
+uv run --group data-interface python -m experiments.data_interface.traversal_probe --bundle "$CANDIDATE_HTTP" --seed 1233924 --direction upstream --strategy batch-cache --repeats 10 --source-manifest-sha256 "$SOURCE_SHA" --oracles "$ORACLES" --report "$REPORT/remote-cached-10.json"
+```
+
+The two ten-query commands ran bulk-file first, then batch-cache, in separate
+processes. Sum opening+preparation+actual query phase prefixes for cumulative
+comparison, not receipt wall time. Query-owned batch reuse clears adjacency each
+query; whole-file keeps the projected global graph resident. `bulk-file` acquires
+all relationships, not only requested fields; `consumer-file` acquires the original
+graph. Both pin identity and verify full SHA-256/length before local projection and
+numeric preparation, all inside preparation time. Temporary downloaded files are
+owned and removed by the probe. Existing opening GETs are counted, not optimized away.
+For small flow use seed `4`, downstream, two repeats. Repeat the earlier combined
+workflow commands with HTTP roots and original `consumer-file`; add
+`--source-manifest-sha256 "$SOURCE_SHA"`. Record comparisons use the same columns,
+source witness and optional geometry dependency group on both layouts.
+
+### Reproduce partial diagnostics only
+
+The exact measured one-off wrapper is archived as
+`results/remote-bounded-diagnostic.py.txt`; it is not a reader API. Copy it outside
+the repository, beside fresh output receipts. It caps **successful HTTP.get calls
+across all instances**, serializes transport and stops before call 129. Exit 3 is
+an expected resource stop, not a completed query or a performance test failure.
+The cap is a resource budget, never a completion-time estimate. The unchanged
+wrapper records its SHA-256, actual successful response bodies and failure status.
+
+```sh
+cp experiments/data_interface/results/remote-bounded-diagnostic.py.txt "$REPORT/run_bounded_remote.py"
+PYTHONPATH=. uv run --group data-interface python "$REPORT/run_bounded_remote.py" experiments.data_interface.traversal_probe --diagnostic-report "$REPORT/remote-selective-partial.json" --max-requests 128 -- --bundle "$CANDIDATE_HTTP" --seed 4 --direction downstream --strategy selective --repeats 2 --source-manifest-sha256 "$SOURCE_SHA" --oracles "$ORACLES" --report "$REPORT/unfinished-driver.json"
+```
+
+Use `bulk` for projected candidate preparation or `$SOURCE_HTTP`/`consumer` for
+original projected preparation; repeat large upstream seed `1233924`. The two
+original Amazon partials wrap `experiments.data_interface.record_probe` with
+`"$SOURCE_HTTP" --source "$SOURCE" --family rivers` (then catchments),
+`--workloads "$WORKLOADS" --operation spatial --spatial-window large_amazon
+--columns id level bbox --repeats 1 --report "$REPORT/unfinished-records.json"`.
+Always choose fresh wrapper and driver report names. Keep capped receipts separate
+from completed results; partial response bodies do not imply equal progress.

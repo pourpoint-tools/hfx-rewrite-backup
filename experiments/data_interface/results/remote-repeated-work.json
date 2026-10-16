@@ -1,0 +1,56 @@
+{
+  "bulk_file": {
+    "receipt": "candidate-rivers-large88513-bulk-file-10queries.json",
+    "receipt_sha256": "6948b4191c27fc4ab1b4368c3af6971bf6c2d702dcadb1026b91c48e7c6073ba",
+    "cumulative_timed_seconds": [
+      27.902777999988757,
+      32.79040495795198,
+      37.66856270795688,
+      42.548986582958605,
+      47.409379874996375,
+      52.26681112498045,
+      57.14069216698408,
+      62.00350858399179,
+      66.86906279297546,
+      71.74365596001735
+    ],
+    "opening_s": 1.980284749995917,
+    "preparation_s": 21.026625374972355,
+    "full_file": {
+      "temporary_directory": "hfx-adjacency-60lrepvz",
+      "http_body_bytes": 2298473610,
+      "disk_bytes": 2298473610,
+      "sha256": "8f481cc458e984952ec47eb771ddf8713731ec8112ffb9a8f10173ea967fec85",
+      "download_s": 20.92068029200891
+    },
+    "total_http_requests": 9,
+    "total_http_body_bytes": 2299084636
+  },
+  "batch_cache": {
+    "receipt": "candidate-rivers-large88513-batch-cache-10queries.json",
+    "receipt_sha256": "7a6814ca7be34a96921c48f04c833bddb9ffbc24cd0b117e8800eba5ea944817",
+    "cumulative_timed_seconds": [
+      17.568476416985504,
+      33.20065783400787,
+      48.60651379299816,
+      64.78922162600793,
+      80.36811295896769,
+      95.70947508397512,
+      111.19923858396942,
+      127.29661562497495,
+      142.6494304999942,
+      158.3259200839675
+    ],
+    "opening_s": 1.9134589589666575,
+    "preparation_s": 1.737498678267002e-05,
+    "total_http_requests": 428,
+    "total_http_body_bytes": 24273826
+  },
+  "first_observed_query_count_bulk_no_slower": 2,
+  "oracle": {
+    "count": 88513,
+    "sha256": "f019291d28c4279c8e9c05d29e0c9594e89da191b58808253194b2fee8f8dab4",
+    "all_20_phases_matched": true
+  },
+  "limits": "Observed same-seed 88513-node queries, bulk-file process first then batch-cache process; filesystem/CDN/network uncontrolled; bulk retains projected whole global graph and batch-cache clears each query. Cumulative phase sums are not wall-clock process totals. Not universal query-count or reach-count threshold."
+}

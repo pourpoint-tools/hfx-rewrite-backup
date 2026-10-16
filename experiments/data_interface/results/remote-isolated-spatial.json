@@ -1,0 +1,44 @@
+[
+  {
+    "file": "original-rivers-small-isolated-graph.json",
+    "receipt_sha256": "58f9f3a0bd9ee05f0b77cf1f380b23a5cc274ccb432c795ccba753c49aeb6909",
+    "source_oracle_count_and_hash_match": true,
+    "rows": 7,
+    "total_s": 154.57869229099015,
+    "phases": {
+      "opening": {
+        "elapsed_seconds": 2.14933187502902,
+        "http_request_count": 4,
+        "http_body_bytes": 62573165
+      },
+      "selection": {
+        "elapsed_seconds": 152.42919312498998,
+        "http_request_count": 648,
+        "http_body_bytes": 596867
+      }
+    },
+    "census_ok": true,
+    "script_sha256": "5814c7f60b4d9c05becc0f35e563beeecb2b782e1097594977f9d14f5b7fa85f"
+  },
+  {
+    "file": "original-catchments-small-isolated-graph.json",
+    "receipt_sha256": "bf156a5239f83f140355e33180dc8c53891274c8236d60715c5e164530e92b72",
+    "source_oracle_count_and_hash_match": true,
+    "rows": 8,
+    "total_s": 205.4081484999624,
+    "phases": {
+      "opening": {
+        "elapsed_seconds": 1.768289542000275,
+        "http_request_count": 4,
+        "http_body_bytes": 62788411
+      },
+      "selection": {
+        "elapsed_seconds": 203.63965358299902,
+        "http_request_count": 882,
+        "http_body_bytes": 795930
+      }
+    },
+    "census_ok": true,
+    "script_sha256": "5814c7f60b4d9c05becc0f35e563beeecb2b782e1097594977f9d14f5b7fa85f"
+  }
+]

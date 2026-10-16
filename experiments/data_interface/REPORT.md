@@ -1,14 +1,15 @@
 # HFX data interface findings
 
-**Interim report.** Global correctness and the first local measurements passed.
-Both global layouts passed complete verification; 134 local runs are complete. True remote candidate measurements are blocked pending approval of an immutable experimental upload
-prefix. This is evidence for discussion, not adoption of a new format.
+Global verification and 134 local runs passed. Actual remote work completed with
+36 successful result processes and eight explicitly partial request-capped diagnostics.
+The approved temporary publication was removed and the original public manifest
+remained unchanged. This is completed experimental evidence, not format adoption.
 
 Related: [HFX #35](https://github.com/pourpoint-tools/hfx/issues/35),
 [Pourpoint #36](https://github.com/pourpoint-tools/pourpoint/issues/36), and the
 [published vision](../../planning/visions/2026-10-16-hfx-data-interface-experiments-with-grit.md).
 
-## Findings so far
+## Findings
 
 1. **The current IPC files already support independent columns.** PyArrow 25.0.1
    `IpcReadOptions(included_fields=...)` skips unrequested compressed buffers.
@@ -22,10 +23,11 @@ Related: [HFX #35](https://github.com/pourpoint-tools/hfx/issues/35),
    WKB for some known IDs. A 256-row variation reduced that overread but increased
    catalogs/footer startup to about 80 ms/17.9 MB per domain and slowed global
    projected scans. Smaller blocks alone do not solve the trade-off.
-4. **Local evidence does not settle HTTP behavior.** Projection reduces bytes but
-   can multiply requests. One real river batch required 583,216 bytes/one range in
-   full versus 2,921 bytes/five projected ranges. These were correctness
-   diagnostics concurrent with acquisition, not isolated timing comparisons.
+4. **HTTP request count can outweigh byte savings.** Candidate small spatial and
+   combined sequences improved, but projected known-ID access often regressed.
+   Whole-file preparation amortized in the measured large repeated-work series,
+   at the cost of global buffers and much greater transfer. Cache/network state
+   was uncontrolled; neither a universal crossover nor a format winner follows.
 
 ## Candidate interface and physical layout
 
@@ -146,7 +148,7 @@ The 88,513-river upstream case took about 5.5–5.9 s across published strategie
 The deliberately shared `union1d`/frontier algorithm dominates; this is not an
 optimized engine or a regression against the archived millisecond traversal.
 Batch reuse reduced reads from 1.578 GB to 2.366 MB, but local elapsed time barely
-changed. Remote selective/bulk crossover remains unmeasured.
+changed. The actual HTTP comparison below separates first use from repeated-work amortization.
 
 Combined access sequences also passed independent seeds and closure hashes:
 small catchment selection grew from three spatial seeds to ten upstream polygons,
@@ -155,7 +157,7 @@ consumer; geometry decoding was separate. Two spatial river seeds traced beyond
 the window to 1,290 records in 117.9 ms candidate cached startup versus 220.6 ms
 bulk and 5.004 s original. These are access sequences, not delineation, snapping
 or a production river-selection policy. [Raw compact summaries](results/) retain
-producer, traversal and workflow observations. Remote measurements remain pending.
+producer, traversal and workflow observations. Actual remote results follow below.
 
 Source-node spatial discovery exercises a distinct domain without a supplied graph.
 The original projected bounds scan returned five IDs in 6.468 s/475.62 MB versus
@@ -173,6 +175,157 @@ Arrow stream identities agreed with independent original-source reads.
 [Compact full-record/attribute/tier results](results/full-attributes-tiers-summary.json).
 A component-catchment association returned 393,725 explicit river IDs (3.1498 MB);
 that stored association is not a geographic-intersection result.
+
+## Actual HTTP comparisons
+
+The final serial matrix has 44 processes: 36 completed results passed; eight
+request-capped diagnostics remained partial. This replaces the initial planned
+matrix, not a claim that every initially proposed path completed.
+These are serialized laptop runs, not cold-cache measurements. First use includes
+opening, preparation and result acquisition; Shapely decoding remains separate.
+Same-instance repeats retain bounded metadata; adjacency batch reuse resets per query.
+
+| First result | Original seconds / GETs / MB | Candidate seconds / GETs / MB |
+| --- | ---: | ---: |
+| rivers clustered-projected | 4.247 / 9 / 5.553 | 7.054 / 18 / 2.163 |
+| rivers clustered-full | 4.696 / 10 / 5.713 | 5.062 / 13 / 7.051 |
+| rivers scattered-full | 6.312 / 14 / 7.742 | 7.241 / 17 / 14.315 |
+| catchments clustered-projected | 4.578 / 9 / 5.567 | 15.240 / 39 / 2.866 |
+| catchments clustered-full | 4.019 / 10 / 12.320 | 8.683 / 16 / 26.169 |
+| catchments scattered-full | 7.386 / 14 / 13.753 | 6.830 / 17 / 15.991 |
+
+Projection saved bytes but often multiplied sequential requests. It was not a
+general remote win. Candidate clustered catchments required 28 fetch GETs on each
+same-instance projected repeat versus one original GET; exact source rows matched.
+Fresh-process catchment projected reruns reproduced the same transfer census:
+4.830 s versus 14.099 s (original then candidate), not confidence intervals.
+
+### Completed spatial and workflow sequences
+
+| Candidate bounds discovery + records | Rows | First seconds / GETs / MB |
+| --- | ---: | ---: |
+| rivers small | 7 | 35.327 / 91 / 6.282 |
+| catchments small | 8 | 55.632 / 139 / 5.662 |
+| rivers large_amazon | 75495 | 134.658 / 334 / 25.030 |
+| catchments large_amazon | 75929 | 276.185 / 631 / 28.405 |
+
+Source as-used small river/catchment sequences matched the same 7/8 rows: 168.288 s, 684 GETs, 71.877 MB / 225.025 s, 922 GETs, 71.257 MB.
+The isolated original comparator retains Parquet metadata and does only graph
+selection, not records. River/catchment totals were 154.579 s (652 GETs) / 205.408 s (886 GETs).
+It still projected many small graph ranges. This is not a controlled pure-layout
+speedup: original reader behavior and supplied graph organization both matter.
+
+These results fetched bounds, not regional WKB. Candidate local milliseconds did
+not translate into remote milliseconds: request latency matters despite small bodies.
+
+| Small spatial → supplied flow → decoded records | Seeds / reached | Startup seconds | First GETs / MB |
+| --- | ---: | ---: | ---: |
+| Candidate rivers, cached | 2 / 1290 | 49.986 | 132 / 43.409 |
+| Original rivers, whole graph | 2 / 1290 | 201.345 | 508 / 740.396 |
+| Candidate catchments, cached | 3 / 10 | 35.704 | 85 / 12.734 |
+| Original catchments, whole graph | 3 / 10 | 78.072 | 240 / 725.300 |
+
+Workflow seeds/closures and source identities matched independent witnesses. This
+driver checks addressed output IDs, not independent complete-row equality for every
+workflow; global verification and separate record probes establish value/WKB fidelity.
+The original file strategy includes actual graph acquisition and reverse preparation.
+Its geography and record paths still use the explicitly measured as-used reader.
+
+### Flow acquisition and repeated use
+
+Candidate query-owned batch reuse reads immediate adjacency once per reached batch.
+Whole-file strategies acquire and verify the complete relevant artifact into temporary
+local storage, then project and prepare within the first-result timer. They are not
+equal-byte comparisons: candidate adjacency includes all relationships (2.298 GB);
+the original graph is 596.714 MB. Prepared repeated traversals issue zero HTTP GETs.
+
+| Supplied river membership | Candidate cached first / repeat | Candidate whole file first / repeat | Original whole graph first / repeat |
+| --- | ---: | ---: | ---: |
+| 4: 1,292 inclusive | 5.794 / 2.873 s | 159.148 / 0.037 s | 14.423 / 0.038 s |
+| 1233924: 88,513 inclusive | 21.694 / 15.054 s | 30.231 / 4.938 s | 13.685 / 4.964 s |
+
+No first-use reached-count crossover between candidate query-owned batch reuse
+and whole-file preparation was observed at 1,292 or 88,513 IDs. The same candidate artifact downloaded in 156.806 and 23.252 seconds
+in the two runs: cache/CDN/route/transfer state was uncontrolled. Reached count did
+not cause that transfer-time difference. The common NumPy frontier algorithm also
+accounts for seconds in the larger traversal; this is not delineation performance.
+
+
+The large cached query used 42 GETs / 2.366 MB and retained
+2.354 MB of adjacency. Candidate whole-file preparation retained
+447.215 MB and used 2.298 GB temporary disk; original whole-graph preparation
+retained 450.007 MB and used 596.714 MB temporary disk. Logical buffers,
+workspace and lifetime RSS remain distinct in [sequence receipts](results/remote-sequences.json).
+
+### Observed repeated-work crossover
+
+Ten same-seed, 88,513-ID queries ran in each of two fresh processes: candidate
+whole-file first, then candidate query-owned batch reuse. Each of the 20 closures
+matched its independent source witness. Cumulative phase sums include opening,
+acquisition and preparation once, plus each actual measured query:
+
+| Query count | Whole-file cumulative seconds | Cached cumulative seconds |
+| ---: | ---: | ---: |
+| 1 | 27.903 | 17.568 |
+| 2 | 32.790 | 33.201 |
+| 10 | 71.744 | 158.326 |
+
+The first observed whole-file total no slower than cached was query 2. This is
+actual repeated-work amortization, not a universal query-count or reach-count
+threshold. Whole-file retained the projected global graph; cached cleared adjacency
+between queries. CDN/network/filesystem state and run order were uncontrolled.
+Totals are phase sums, not wall-clock process times. Small-work repeated crossover
+was not established beyond two queries. [All ten points and bindings](results/remote-repeated-work.json).
+
+### Associations and bounded diagnostics
+
+Association composition remained explicit association∩bbox, not flow, containment
+or delineation. Actual HTTP first/repeat seconds were:
+
+| Composition | Association / spatial / result IDs | First / repeat seconds |
+| --- | ---: | ---: |
+| local_river_ids ∩ small | 1 / 7 / 1 | 35.612 / 29.384 |
+| component_river_ids ∩ large_amazon | 393,725 / 75,495 / 0 | 79.522 / 70.752 |
+
+The empty component result is valid. Source record values and independent ID
+witnesses matched; original reverse preparation is reported separately, not hidden.
+
+Eight real-HTTP diagnostics stopped before GET 129 after 128 successful GETs.
+This is a resource budget, not a performance threshold. Uncached traversal,
+projected batch-by-batch bulk and original projected graph preparation did not
+finish at either flow size. Neither original Amazon discovery finished. Observed
+bodies/time-to-stop were:
+
+| Partial path, small / large | Actual MB | Seconds to cap |
+| --- | ---: | ---: |
+| Candidate uncached | 6.116 / 8.014 | 31.532 / 31.531 |
+| Candidate projected bulk | 5.577 / 7.203 | 30.655 / 30.186 |
+| Original projected consumer | 62.671 / 62.670 | 30.942 / 31.083 |
+| Original Amazon rivers / catchments | 67.165 / 67.405 | 33.577 / 33.264 |
+
+These are partial transfer observations, never completed query times or estimates.
+Equal GET counts do not mean equal information or progress; original partials
+include large graph-footer reads. [Stop receipts and raw hashes](results/remote-diagnostics.json).
+
+### Temporary publication lifecycle
+
+Approved upload published 26 objects / 37,546,154,090 bytes in
+3418.153 s (10.984 MB/s), separate from producer build/verify.
+Local SHA-256, multipart identity/HEAD checks and public manifest/bounded artifact
+readback passed; public checking was not a second full global download. Full-file
+flow acquisition additionally checked complete downloaded SHA-256 and length.
+
+Only the 26 exact experiment-owned keys were then deleted with matching ETags;
+each returned 404, the prefix was empty and no multipart uploads remained. The
+original public manifest SHA-256 was unchanged before/after. Local originals and
+candidates were not deleted. The candidate URL is historical and no longer serves
+data. [Upload, public identity and cleanup evidence](results/remote-lifecycle.json)
+retains every owned object identity. No production runtime or input contract changed.
+
+[Compact remote records](results/remote-records.json),
+[isolated graph comparisons](results/remote-isolated-spatial.json) and
+[code/raw-receipt bindings](results/remote-code-bindings.json) preserve exact units,
+phase boundaries and provenance without committing range logs or global data.
 
 ## Focused 256-row variation
 
@@ -288,8 +441,9 @@ For maintainer discussion, not adoption:
   membership substitutes for supplied flow or exact geographic selection.
 
 Do not adopt either tested row cap. The completed one-factor variation exposes
-locality/geometry overread versus metadata/startup/global-scan cost. Finish remote
-request-count/coalescing and traversal crossover measurements, then discuss trade-offs. Parquet remains a justified focused alternative only if a material IPC
+locality/geometry overread versus metadata/startup/global-scan cost. Actual HTTP
+results add request amplification and an observed repeated-work trade-off, not a
+production recommendation. Parquet remains a justified focused alternative only if a material IPC
 weakness remains; no exhaustive format tournament was run. A SQLite HTTP VFS,
 runtime-specific snapshots, native-coordinate geometry rewrite and precomputed
 transitive closures add no demonstrated need here. Full closures would duplicate
@@ -298,10 +452,9 @@ measured or invented.
 
 A subsequent agreed production vision is still required. Starting from verified
 hosted vectors, this laptop trial measured roughly 414 s build plus 432 s complete
-verification and a 37.55 GB output; it did not measure original-source re-ingest,
-full production review or upload/readback time. Production would need approved
-immutable destination/retention, full uploaded identity readback, public selective
-checks, provenance/licensing and manifest-last publication comparable to PR #32.
-Original rasters and publications remain unchanged. Remote evidence and final
-format choices are unresolved; findings must return to the maintainer and
-Pourpoint #36 before production adoption.
+verification and a 37.55 GB output, plus separately measured experimental upload
+and bounded public readback. It did not measure original-source re-ingest or full
+production review. Production would still need an agreed contract, approved
+immutable destination/retention and production publication verification comparable
+to PR #32. Original rasters and publications remain unchanged. Bring these findings
+to the maintainer and Pourpoint #36 before selecting any production design.
