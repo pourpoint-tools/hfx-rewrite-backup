@@ -107,7 +107,7 @@ def remote_bundle(tmp_path: Path) -> Iterator[tuple[str, Path, dict[str, str], l
         thread.join()
 
 
-@pytest.mark.parametrize("strategy", ["consumer", "bulk-file"])
+@pytest.mark.parametrize("strategy", ["consumer", "consumer-file", "bulk-file"])
 def test_remote_cli_includes_preparation_and_actual_transfers(
     remote_bundle: tuple[str, Path, dict[str, str], list[dict[str, Any]]],
     tmp_path: Path,
@@ -116,7 +116,7 @@ def test_remote_cli_includes_preparation_and_actual_transfers(
 ) -> None:
     root, candidate, _, calls = remote_bundle
     report = tmp_path / "receipt.json"
-    bundle = root + ("/original" if strategy == "consumer" else "/candidate")
+    bundle = root + ("/original" if strategy.startswith("consumer") else "/candidate")
     expected_source = hashlib.sha256((candidate.parent / "original/manifest.json").read_bytes()).hexdigest()
     argv = [
         "traverse",
@@ -145,14 +145,16 @@ def test_remote_cli_includes_preparation_and_actual_transfers(
     assert receipt["after_preparation"]["http_body_bytes"] > 0
     assert receipt["after_preparation"]["http_requests"] == len(receipt["requests"])
     assert receipt["after_preparation"]["http_body_bytes"] == sum(call["bytes"] for call in calls)
-    if strategy == "bulk-file":
-        full = [call for call in calls if call["path"] == "/candidate/flow.arrow" and not call["range"]]
+    if strategy in ("bulk-file", "consumer-file"):
+        artifact = "/original/graph.parquet" if strategy == "consumer-file" else "/candidate/flow.arrow"
+        local_artifact = candidate.parent / artifact.lstrip("/")
+        full = [call for call in calls if call["path"] == artifact and not call["range"]]
         assert len(full) == 1
         assert full[0]["if_match"] == '"fixed-artifact"'
         assert full[0]["user_agent"] == "hfx-vector-verification/0.4.0"
         download = receipt["bulk_file"]
-        assert download["sha256"] == fingerprint(candidate / "flow.arrow")["sha256"]
-        assert download["disk_bytes"] == (candidate / "flow.arrow").stat().st_size
+        assert download["sha256"] == fingerprint(local_artifact)["sha256"]
+        assert download["disk_bytes"] == local_artifact.stat().st_size
         assert not Path(download["temporary_directory"]).exists()
         assert receipt["phases"][0]["http_body_bytes"] == 0
     argv[argv.index("--source-manifest-sha256") + 1] = "0" * 64

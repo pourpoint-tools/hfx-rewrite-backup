@@ -75,6 +75,59 @@ def traverse(neighbors: Callable[[IntArray], IntArray], seed: int | IntArray) ->
     return visited, peak
 
 
+def download_artifact(http: HTTP, url: str, identity: dict[str, Any], path: Path, receipt: dict[str, Any]) -> None:
+    """Stream one pinned full artifact; acquisition and digest stay inside preparation."""
+    etag = http.etags[url]
+    request = Request(
+        url,
+        headers={
+            "Accept-Encoding": "identity",
+            "If-Match": etag,
+            "User-Agent": "hfx-vector-verification/0.4.0",
+        },
+    )
+    digest = hashlib.sha256()
+    received = 0
+    started = perf_counter()
+    with urlopen(request) as response:
+        try:
+            if response.status != 200:
+                raise ValueError("full artifact download requires HTTP 200")
+            if response.headers.get("ETag") != etag:
+                raise ValueError("ETag changed during full download")
+            if response.headers.get("Content-Encoding", "identity") != "identity":
+                raise ValueError("full download encoding must preserve bytes")
+            if response.headers.get("Content-Length") != str(identity["size_bytes"]):
+                raise ValueError("full download length differs")
+            with path.open("xb") as output:
+                while chunk := response.read(8 * 1024 * 1024):
+                    received += len(chunk)
+                    if received > identity["size_bytes"]:
+                        raise ValueError("full download exceeds declared length")
+                    digest.update(chunk)
+                    output.write(chunk)
+        finally:
+            http.requests.append(
+                {
+                    "url": url,
+                    "start": None,
+                    "end": None,
+                    "bytes": received,
+                    "etag": response.headers.get("ETag", ""),
+                }
+            )
+            receipt.update(
+                {
+                    "http_body_bytes": received,
+                    "disk_bytes": path.stat().st_size if path.exists() else 0,
+                    "sha256": digest.hexdigest(),
+                    "download_s": perf_counter() - started,
+                }
+            )
+    if received != identity["size_bytes"] or digest.hexdigest() != identity["sha256"]:
+        raise ValueError("full download size or digest differs")
+
+
 class Published:
     """Narrow query-owned batch reuse; no cross-query adjacency cache."""
 
@@ -99,55 +152,7 @@ class Published:
             name = self.access.declaration["data"]
             identity = self.access.manifest["artifacts"][name]
             url = urljoin(self.access.root, name)
-            etag = self.access.http.etags[url]
-            request = Request(
-                url,
-                headers={
-                    "Accept-Encoding": "identity",
-                    "If-Match": etag,
-                    "User-Agent": "hfx-vector-verification/0.4.0",
-                },
-            )
-            digest = hashlib.sha256()
-            received = 0
-            started = perf_counter()
-            with urlopen(request) as response:
-                try:
-                    if response.status != 200:
-                        raise ValueError("full artifact download requires HTTP 200")
-                    if response.headers.get("ETag") != etag:
-                        raise ValueError("ETag changed during full download")
-                    if response.headers.get("Content-Encoding", "identity") != "identity":
-                        raise ValueError("full download encoding must preserve bytes")
-                    if response.headers.get("Content-Length") != str(identity["size_bytes"]):
-                        raise ValueError("full download length differs")
-                    with path.open("xb") as output:
-                        while chunk := response.read(8 * 1024 * 1024):
-                            received += len(chunk)
-                            if received > identity["size_bytes"]:
-                                raise ValueError("full download exceeds declared length")
-                            digest.update(chunk)
-                            output.write(chunk)
-                finally:
-                    self.access.http.requests.append(
-                        {
-                            "url": url,
-                            "start": None,
-                            "end": None,
-                            "bytes": received,
-                            "etag": response.headers.get("ETag", ""),
-                        }
-                    )
-                    self.download.update(
-                        {
-                            "http_body_bytes": received,
-                            "disk_bytes": path.stat().st_size if path.exists() else 0,
-                            "sha256": digest.hexdigest(),
-                            "download_s": perf_counter() - started,
-                        }
-                    )
-            if received != identity["size_bytes"] or digest.hexdigest() != identity["sha256"]:
-                raise ValueError("full download size or digest differs")
+            download_artifact(self.access.http, url, identity, path, self.download)
             fields = [self.access.schema.get_field_index(name) for name in ["id", self.column]]
             with pa.OSFile(str(path), "rb") as source:
                 reader = pa.ipc.open_file(source, options=pa.ipc.IpcReadOptions(included_fields=fields))
@@ -215,6 +220,9 @@ class Original:
         self.root = root.rstrip("/") + "/"
         self.remote = root.startswith(("http://", "https://"))
         self.http = HTTP()
+        self.scratch: TemporaryDirectory[str] | None = None
+        self.download: dict[str, Any] = {}
+        self.download_reader: pq.ParquetFile | None = None
         raw = (
             self.http.get(urljoin(self.root, "manifest.json"))
             if self.remote
@@ -243,6 +251,18 @@ class Original:
         self.stream = pa.PythonFile(self.file, mode="r")
         self.reader = pq.ParquetFile(self.stream, pre_buffer=False)
 
+    def acquire_file(self) -> pq.ParquetFile:
+        if not self.remote:
+            raise ValueError("consumer-file requires an HTTP bundle")
+        self.scratch = TemporaryDirectory(prefix="hfx-original-graph-")
+        path = Path(self.scratch.name) / "graph.parquet"
+        self.download["temporary_directory"] = self.scratch.name
+        download_artifact(
+            self.http, urljoin(self.root, self.name), self.manifest["artifacts"][self.name], path, self.download
+        )
+        self.download_reader = pq.ParquetFile(path, pre_buffer=False)
+        return self.download_reader
+
     def stats(self) -> dict[str, Any]:
         return {
             "http_requests": len(self.http.requests),
@@ -257,10 +277,14 @@ class Original:
         }
 
     def close(self) -> None:
+        if self.download_reader is not None:
+            self.download_reader.close()
         self.stream.close()
         if isinstance(self.file, CountFile):
             self.file.stream.close()
         self.file.close()
+        if self.scratch is not None:
+            self.scratch.cleanup()
 
 
 def id_identity(values: IntArray) -> dict[str, Any]:
@@ -284,7 +308,9 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=4)
     parser.add_argument("--direction", choices=["upstream", "downstream"], default="downstream")
     parser.add_argument(
-        "--strategy", choices=["selective", "batch-cache", "bulk", "bulk-file", "consumer"], required=True
+        "--strategy",
+        choices=["selective", "batch-cache", "bulk", "bulk-file", "consumer", "consumer-file"],
+        required=True,
     )
     parser.add_argument("--repeats", type=int, default=3)
     parser.add_argument("--report", type=Path, required=True)
@@ -352,7 +378,7 @@ def main() -> None:
         )
         access: Access | Original = (
             Original(args.bundle, args.family)
-            if args.strategy == "consumer"
+            if args.strategy in ("consumer", "consumer-file")
             else Access(args.bundle, args.family, ["id", column], relationship=True)
         )
     except Exception as error:
@@ -442,7 +468,8 @@ def main() -> None:
             check_connectivity(statuses, args.level)
         if isinstance(access, Original):
             columns = ["id", "upstream_ids"] + (["level"] if args.family == "catchments" and not args.window else [])
-            table = access.reader.read(columns=columns).combine_chunks()
+            original_reader = access.acquire_file() if args.strategy == "consumer-file" else access.reader
+            table = original_reader.read(columns=columns).combine_chunks()
             if args.family == "catchments" and not args.window:
                 row = table.filter(pc.equal(table["id"], args.seed))
                 if row.num_rows != 1:
@@ -567,6 +594,8 @@ def main() -> None:
             if provider.download:
                 report["bulk_file"] = provider.download
             provider.close()
+        if isinstance(access, Original) and access.download:
+            report["bulk_file"] = access.download
         if validation is not None:
             validation.close()
         if features is not None:
