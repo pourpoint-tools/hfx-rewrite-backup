@@ -189,6 +189,10 @@ from completed results; partial response bodies do not imply equal progress.
 
 ## Current workload and workflow probes
 
+See the [current physical-layout findings](PHYSICAL_LAYOUT.md) and
+[local receipt summary](results/physical-layout-local.json). Remote conclusions
+and the final recommendation are still pending.
+
 These commands use the current reader, not the historical receipt revision.
 Generate the new witness file outside the source bundle and repository; the
 original witness entries remain unchanged. The medium square has radius 0.1°;
