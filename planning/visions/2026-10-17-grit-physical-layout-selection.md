@@ -52,7 +52,15 @@ publication, not a compatibility constraint for this investigation. PRs
 [#36](https://github.com/pourpoint-tools/hfx/pull/36) and
 [#37](https://github.com/pourpoint-tools/hfx/pull/37) preserve delivery and experiment context.
 
-Use the existing R2 infrastructure, not a newly provisioned storage service:
+R2 is the practical development and measurement target, not a format dependency.
+The layout and access contract must remain portable to AWS S3, Hetzner object storage
+and other hosts offering immutable objects and HTTP byte ranges. Avoid provider-specific
+APIs or R2/CDN/cache quirks as requirements or reasons to select a layout. Separate general
+layout/read improvements from provider/network effects, and state where performance on
+other providers remains untested. A full multi-provider benchmark campaign is not required
+for this follow-up; portability does not imply identical latency across providers.
+
+Use the existing R2 infrastructure for the GRIT trials, not a newly provisioned service:
 
 - AWS CLI operations use `aws --profile upstream-r2`; use the configured R2 endpoint.
   Do not expose credentials or account configuration in Git or reports.
@@ -95,6 +103,36 @@ or publish every candidate merely to repeat an already answered comparison.
 
 ## Focused investigation
 
+Start with a bounded prior-art review of existing cloud-native GIS formats and readers,
+not only the custom IPC candidates. Reuse established mechanisms wherever they fit:
+
+- [FlatGeobuf](https://flatgeobuf.org/) combines spatial clustering, a packed Hilbert
+  R-tree and HTTP range reads. Examine its spatial access and existing readers as a
+  concrete comparator or source of reusable mechanisms. Existing readers include
+  [GDAL](https://gdal.org/en/stable/drivers/vector/flatgeobuf.html),
+  [Rust HttpFgbReader](https://docs.rs/flatgeobuf/latest/flatgeobuf/struct.HttpFgbReader.html)
+  and the [official HTTP reader](https://github.com/flatgeobuf/flatgeobuf/blob/master/src/ts/http-reader.ts)
+  with buffered/grouped access. Its row-oriented feature storage
+  and native geometry encoding are not a drop-in guarantee of independent column access,
+  exact original WKB or complete Arrow-schema fidelity. Assess whether it fits as a full
+  representation or a derived spatial access artifact without relaxing preservation.
+- [GeoParquet](https://geoparquet.org/releases/v1.1.0/) supports WKB, column projection
+  and bounding-box coverings usable with Parquet statistics. Investigate spatially
+  organized row groups and existing readers rather than comparing against arbitrary
+  unoptimized Parquet. [Overture Maps' remote DuckDB queries](https://docs.overturemaps.org/getting-data/duckdb/)
+  provide a concrete deployed example; this is prior art, not a GRIT performance claim.
+- Existing readers already offer request optimization. For example,
+  [PyArrow Parquet pre-buffering](https://arrow.apache.org/docs/python/generated/pyarrow.parquet.read_table.html)
+  coalesces reads and issues them in parallel for high-latency storage. Inspect and use
+  suitable library capabilities before building custom range planners.
+
+Explain which requirements these existing solutions already address and which remain
+specific to HFX. Documentation alone does not establish exact source fidelity or GRIT
+first-result performance. Select concrete comparisons from that evidence; do not require
+full rebuilds of every format. Neither an existing format nor custom IPC has privileged
+status. The need for a material weakness applies to new custom machinery as well as to
+alternative formats. Keep this review focused on the remaining physical-layout decision.
+
 First establish what a corrected reader can do with unchanged artifacts. Use actual
 column projection, retain reusable metadata within the reader instance and investigate
 range-request grouping. Include opening and all prerequisite reads in first-result
@@ -103,10 +141,11 @@ candidate artifacts; distinguish reader changes from physical-layout changes.
 
 Then address material residual costs with focused metadata or physical-layout variations.
 Compact or selectively readable metadata, spatial organization and independently readable
-information are possibilities, not selected mechanisms. Existing libraries and formats
-should be investigated before inventing custom machinery. Test an alternative such as
-Parquet where an actual IPC weakness justifies it, not as an exhaustive format tournament.
-Do not simply accumulate sidecars around a bad underlying layout.
+information are possibilities, not selected mechanisms. Use the prior-art findings to
+choose focused existing-format comparisons and justified layout variations, not an
+exhaustive format tournament. Do not simply accumulate sidecars around a bad underlying
+layout. Reader corrections remain the first measurement step; prior art can reveal a
+better-established storage path without requiring an IPC-only optimization campaign first.
 
 Use a representative, bounded workload set grounded in the prior source-only witnesses:
 
