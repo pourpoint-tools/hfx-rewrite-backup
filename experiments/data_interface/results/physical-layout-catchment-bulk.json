@@ -1,0 +1,351 @@
+{
+  "scope": "six serial local projected geometry-free feature censuses, repeats2; approved uploadPID61090 overlapped, elapsed non-isolated; uncontrolled not-cold filesystem",
+  "driver_archive": "useful-bulk.py.txt",
+  "driver_sha256": "542c05d9968808566f97ccbe36f92a086d48c1207205d7d2841077dcae389c43",
+  "reader_commit": "8b2fac6d928c493187a97928c06b4749b6f50f1f",
+  "audit_binding": {
+    "file": "useful-local/summary.json",
+    "sha256": "658c3d6c5d9cd8941a8474537f3e1bac5ddf4f55d2f93d0cfdef0783f29392e2"
+  },
+  "trials": [
+    {
+      "family": "catchments",
+      "layout": "original",
+      "report": "useful-local/catchments-original-census.json",
+      "report_sha256": "af1f5bc7fb0faed975bba330d1d3a272482dac16b0b2238aaf411acd253ef48d",
+      "opening_s": 0.0034873750410042703,
+      "first_s": 23.364826042030472,
+      "reuse_s": 23.553957708005328,
+      "rows": 22419857,
+      "phases": [
+        {
+          "repeat": 0,
+          "scan_s": 23.361338666989468,
+          "total_to_result_s": 23.364826042030472,
+          "rows": 22419857,
+          "physical_batches": 87613,
+          "id_sum_diagnostic": 251325005160153,
+          "null_counts": {
+            "id": 0,
+            "level": 0,
+            "bbox": 0,
+            "source_area": 0,
+            "bbox.xmin": 0,
+            "bbox.ymin": 0,
+            "bbox.xmax": 0,
+            "bbox.ymax": 0
+          },
+          "by_tier_count": {
+            "0": 82557,
+            "1": 1767065,
+            "2": 20570235
+          },
+          "projected_logical_bytes": 762275138,
+          "max_projected_batch_buffer_bytes": 8704,
+          "transport": {
+            "http_requests": 0,
+            "http_body_bytes": 0,
+            "local_read_calls": 87624,
+            "local_read_bytes": 5744221781
+          },
+          "retained_range_bytes": 0,
+          "read_ahead_capacity_bytes": 131072,
+          "complete_scan": true
+        },
+        {
+          "repeat": 1,
+          "scan_s": 23.553957708005328,
+          "total_to_result_s": 23.553957708005328,
+          "rows": 22419857,
+          "physical_batches": 87613,
+          "id_sum_diagnostic": 251325005160153,
+          "null_counts": {
+            "id": 0,
+            "level": 0,
+            "bbox": 0,
+            "source_area": 0,
+            "bbox.xmin": 0,
+            "bbox.ymin": 0,
+            "bbox.xmax": 0,
+            "bbox.ymax": 0
+          },
+          "by_tier_count": {
+            "0": 82557,
+            "1": 1767065,
+            "2": 20570235
+          },
+          "projected_logical_bytes": 762275138,
+          "max_projected_batch_buffer_bytes": 8704,
+          "transport": {
+            "http_requests": 0,
+            "http_body_bytes": 0,
+            "local_read_calls": 87611,
+            "local_read_bytes": 5741674496
+          },
+          "retained_range_bytes": 0,
+          "read_ahead_capacity_bytes": 131072,
+          "complete_scan": true
+        }
+      ],
+      "process_lifetime_peak_rss_bytes": 121192448,
+      "source_manifest_sha256": "b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db",
+      "manifest_sha256": "b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db",
+      "projection_schema_sha256": "162b6e1ffe2e60c9a38d4dfc134174552a93006f5e27dd82eb8a5228e8efaf7a",
+      "columns": [
+        "id",
+        "level",
+        "bbox",
+        "source_area"
+      ],
+      "opening": {
+        "http_requests": 0,
+        "http_body_bytes": 0,
+        "local_read_calls": 13,
+        "local_read_bytes": 2547285,
+        "lookup_blocks": [],
+        "data_blocks": [],
+        "graph_blocks": [],
+        "materialized_rows": 0,
+        "materialized_bytes": 0,
+        "requested_rows": 0,
+        "graph_max_buffer_bytes": 0,
+        "graph_pre_buffer": true,
+        "graph_grouped": true,
+        "read_ahead_bytes": 65536,
+        "read_ahead_capacity_bytes": 131072,
+        "retained_range_bytes": 0,
+        "arrow_allocator_bytes": 0,
+        "process_peak_rss_bytes": 89817088
+      },
+      "read_ahead_bytes": 65536,
+      "validation_scope": "row count independently from pinned source manifest; ID sum diagnostic, not multiset proof; full source/native preservation verified separately",
+      "cache_policy": "same Access projected reader; metadata and configured bounded read-ahead retained; filesystem/CDN uncontrolled"
+    },
+    {
+      "family": "catchments",
+      "layout": "candidate8192",
+      "report": "useful-local/catchments-candidate8192-census.json",
+      "report_sha256": "4baa34100d6c017fc6bb5bff13b8787c05e84e8f8b0767e63d4793944b4fa754",
+      "opening_s": 0.0092040830058977,
+      "first_s": 1.3797081669908948,
+      "reuse_s": 0.9409568330156617,
+      "rows": 22419857,
+      "phases": [
+        {
+          "repeat": 0,
+          "scan_s": 1.3705040839849971,
+          "total_to_result_s": 1.3797081669908948,
+          "rows": 22419857,
+          "physical_batches": 6706,
+          "id_sum_diagnostic": 251325005160153,
+          "null_counts": {
+            "id": 0,
+            "level": 0,
+            "bbox": 0,
+            "source_area": 0,
+            "bbox.xmin": 0,
+            "bbox.ymin": 0,
+            "bbox.xmax": 0,
+            "bbox.ymax": 0
+          },
+          "by_tier_count": {
+            "0": 82557,
+            "1": 1767065,
+            "2": 20570235
+          },
+          "projected_logical_bytes": 762275138,
+          "max_projected_batch_buffer_bytes": 278528,
+          "transport": {
+            "http_requests": 0,
+            "http_body_bytes": 0,
+            "local_read_calls": 12686,
+            "local_read_bytes": 832056862
+          },
+          "retained_range_bytes": 0,
+          "read_ahead_capacity_bytes": 131072,
+          "complete_scan": true
+        },
+        {
+          "repeat": 1,
+          "scan_s": 0.9409568330156617,
+          "total_to_result_s": 0.9409568330156617,
+          "rows": 22419857,
+          "physical_batches": 6706,
+          "id_sum_diagnostic": 251325005160153,
+          "null_counts": {
+            "id": 0,
+            "level": 0,
+            "bbox": 0,
+            "source_area": 0,
+            "bbox.xmin": 0,
+            "bbox.ymin": 0,
+            "bbox.xmax": 0,
+            "bbox.ymax": 0
+          },
+          "by_tier_count": {
+            "0": 82557,
+            "1": 1767065,
+            "2": 20570235
+          },
+          "projected_logical_bytes": 762275138,
+          "max_projected_batch_buffer_bytes": 278528,
+          "transport": {
+            "http_requests": 0,
+            "http_body_bytes": 0,
+            "local_read_calls": 12670,
+            "local_read_bytes": 830341120
+          },
+          "retained_range_bytes": 0,
+          "read_ahead_capacity_bytes": 131072,
+          "complete_scan": true
+        }
+      ],
+      "process_lifetime_peak_rss_bytes": 155107328,
+      "source_manifest_sha256": "b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db",
+      "manifest_sha256": "155535aea34d16e8369ec0db416d2f58058911553c28e9031148607bb7511049",
+      "projection_schema_sha256": "162b6e1ffe2e60c9a38d4dfc134174552a93006f5e27dd82eb8a5228e8efaf7a",
+      "columns": [
+        "id",
+        "level",
+        "bbox",
+        "source_area"
+      ],
+      "opening": {
+        "http_requests": 0,
+        "http_body_bytes": 0,
+        "local_read_calls": 16,
+        "local_read_bytes": 1715742,
+        "lookup_blocks": [],
+        "data_blocks": [],
+        "graph_blocks": [],
+        "materialized_rows": 0,
+        "materialized_bytes": 0,
+        "requested_rows": 0,
+        "graph_max_buffer_bytes": 0,
+        "graph_pre_buffer": true,
+        "graph_grouped": true,
+        "read_ahead_bytes": 65536,
+        "read_ahead_capacity_bytes": 131072,
+        "retained_range_bytes": 0,
+        "arrow_allocator_bytes": 0,
+        "process_peak_rss_bytes": 92028928
+      },
+      "read_ahead_bytes": 65536,
+      "validation_scope": "row count independently from pinned source manifest; ID sum diagnostic, not multiset proof; full source/native preservation verified separately",
+      "cache_policy": "same Access projected reader; metadata and configured bounded read-ahead retained; filesystem/CDN uncontrolled"
+    },
+    {
+      "family": "catchments",
+      "layout": "candidate256",
+      "report": "useful-local/catchments-candidate256-census.json",
+      "report_sha256": "53288628f03b42b6ea235683b08f1468207309ce10041dfcc87cd8a79713fa97",
+      "opening_s": 0.08704508299706504,
+      "first_s": 23.44545262499014,
+      "reuse_s": 23.60804012499284,
+      "rows": 22419857,
+      "phases": [
+        {
+          "repeat": 0,
+          "scan_s": 23.358407541993074,
+          "total_to_result_s": 23.44545262499014,
+          "rows": 22419857,
+          "physical_batches": 87590,
+          "id_sum_diagnostic": 251325005160153,
+          "null_counts": {
+            "id": 0,
+            "level": 0,
+            "bbox": 0,
+            "source_area": 0,
+            "bbox.xmin": 0,
+            "bbox.ymin": 0,
+            "bbox.xmax": 0,
+            "bbox.ymax": 0
+          },
+          "by_tier_count": {
+            "0": 82557,
+            "1": 1767065,
+            "2": 20570235
+          },
+          "projected_logical_bytes": 762275138,
+          "max_projected_batch_buffer_bytes": 8704,
+          "transport": {
+            "http_requests": 0,
+            "http_body_bytes": 0,
+            "local_read_calls": 87602,
+            "local_read_bytes": 5755931896
+          },
+          "retained_range_bytes": 0,
+          "read_ahead_capacity_bytes": 131072,
+          "complete_scan": true
+        },
+        {
+          "repeat": 1,
+          "scan_s": 23.60804012499284,
+          "total_to_result_s": 23.60804012499284,
+          "rows": 22419857,
+          "physical_batches": 87590,
+          "id_sum_diagnostic": 251325005160153,
+          "null_counts": {
+            "id": 0,
+            "level": 0,
+            "bbox": 0,
+            "source_area": 0,
+            "bbox.xmin": 0,
+            "bbox.ymin": 0,
+            "bbox.xmax": 0,
+            "bbox.ymax": 0
+          },
+          "by_tier_count": {
+            "0": 82557,
+            "1": 1767065,
+            "2": 20570235
+          },
+          "projected_logical_bytes": 762275138,
+          "max_projected_batch_buffer_bytes": 8704,
+          "transport": {
+            "http_requests": 0,
+            "http_body_bytes": 0,
+            "local_read_calls": 87586,
+            "local_read_bytes": 5740036096
+          },
+          "retained_range_bytes": 0,
+          "read_ahead_capacity_bytes": 131072,
+          "complete_scan": true
+        }
+      ],
+      "process_lifetime_peak_rss_bytes": 186695680,
+      "source_manifest_sha256": "b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db",
+      "manifest_sha256": "5633d6798795d2c34886676fb85d9f1ec8c62fb85a419b27308403ea0a5e4a8a",
+      "projection_schema_sha256": "162b6e1ffe2e60c9a38d4dfc134174552a93006f5e27dd82eb8a5228e8efaf7a",
+      "columns": [
+        "id",
+        "level",
+        "bbox",
+        "source_area"
+      ],
+      "opening": {
+        "http_requests": 0,
+        "http_body_bytes": 0,
+        "local_read_calls": 16,
+        "local_read_bytes": 15895800,
+        "lookup_blocks": [],
+        "data_blocks": [],
+        "graph_blocks": [],
+        "materialized_rows": 0,
+        "materialized_bytes": 0,
+        "requested_rows": 0,
+        "graph_max_buffer_bytes": 0,
+        "graph_pre_buffer": true,
+        "graph_grouped": true,
+        "read_ahead_bytes": 65536,
+        "read_ahead_capacity_bytes": 131072,
+        "retained_range_bytes": 0,
+        "arrow_allocator_bytes": 0,
+        "process_peak_rss_bytes": 156516352
+      },
+      "read_ahead_bytes": 65536,
+      "validation_scope": "row count independently from pinned source manifest; ID sum diagnostic, not multiset proof; full source/native preservation verified separately",
+      "cache_policy": "same Access projected reader; metadata and configured bounded read-ahead retained; filesystem/CDN uncontrolled"
+    }
+  ]
+}

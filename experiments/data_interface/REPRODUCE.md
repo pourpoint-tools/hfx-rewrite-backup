@@ -19,8 +19,8 @@ uv run --group data-interface python -m experiments.data_interface.build "$SOURC
 ```
 
 Run benchmarks in fresh processes, serially. Same-instance repeats are diagnostic,
-not independent opening trials. Filesystem cache is uncontrolled. WKB decode needs
-`--group vector-production` (Shapely); ordinary probes do not.
+not independent opening trials. Filesystem cache is uncontrolled. Returning WKB also performs decode in `record_probe`; use
+`--group vector-production` (Shapely). Attribute-only probes do not need it.
 
 ```sh
 uv run --group data-interface python -m experiments.data_interface.record_probe "$CANDIDATE" --source "$SOURCE" --family rivers --workloads "$WORKLOADS" --selection scattered --columns id level bbox --report "$REPORT/records.json"
@@ -51,8 +51,8 @@ The retained combined river/catchment workflows use these exact shapes. Switch
 
 ```sh
 export WORKFLOW_ORACLES=experiments/data_interface/results/workflow-oracles.json
-uv run --group data-interface --group vector-production python -m experiments.data_interface.traversal_probe --bundle "$CANDIDATE" --family rivers --direction downstream --strategy batch-cache --workloads "$WORKLOADS" --window small --level 0 --record-columns id bbox geometry --decode-geometry --workflow-oracles "$WORKFLOW_ORACLES" --repeats 2 --report "$REPORT/workflow-rivers-small-batch-cache.json"
-uv run --group data-interface --group vector-production python -m experiments.data_interface.traversal_probe --bundle "$CANDIDATE" --family catchments --direction upstream --strategy batch-cache --workloads "$WORKLOADS" --window small --level 1 --record-columns id bbox geometry --decode-geometry --workflow-oracles "$WORKFLOW_ORACLES" --repeats 2 --report "$REPORT/workflow-catchments-small-batch-cache.json"
+uv run --group data-interface --group vector-production python -m experiments.data_interface.traversal_probe --source "$SOURCE" --bundle "$CANDIDATE" --family rivers --direction downstream --strategy batch-cache --workloads "$WORKLOADS" --window small --level 0 --record-columns id bbox geometry --decode-geometry --workflow-oracles "$WORKFLOW_ORACLES" --repeats 2 --report "$REPORT/workflow-rivers-small-batch-cache.json"
+uv run --group data-interface --group vector-production python -m experiments.data_interface.traversal_probe --source "$SOURCE" --bundle "$CANDIDATE" --family catchments --direction upstream --strategy batch-cache --workloads "$WORKLOADS" --window small --level 1 --record-columns id bbox geometry --decode-geometry --workflow-oracles "$WORKFLOW_ORACLES" --repeats 2 --report "$REPORT/workflow-catchments-small-batch-cache.json"
 uv run --group data-interface python -m experiments.data_interface.relation_baseline "$SOURCE/rivers.arrow" --column component_catchment_id --targets 8720 --repeats 3 --report "$REPORT/original-reverse-rivers-component_catchment_id-isolated.json"
 ```
 
@@ -206,7 +206,16 @@ uv run --group data-interface python -m experiments.data_interface.record_probe 
 uv run --group data-interface --group vector-production python -m experiments.data_interface.traversal_probe --bundle "$CANDIDATE" --source "$SOURCE" --strategy batch-cache --window small --level 0 --workloads "$WORKLOADS" --workflow-oracles experiments/data_interface/results/workflow-oracles.json --record-columns id source_global_id geometry --decode-geometry --repeats 2 --report "$REPORT/workflow-records.json"
 ```
 
-Workflow `--source` is required for independent exact projected-record equality.
+The separate point-domain case uses `--family river_nodes --operation spatial`,
+`--node-spatial-oracle experiments/data_interface/results/source-node-spatial.json`
+and `--columns id level bbox coarser_node_id geometry --read-ahead-bytes 65536`
+with `--group vector-production` and the same source-only extended workload file.
+Its source/candidate equality and immutable receipt hashes are in
+[source-node evidence](results/physical-layout-source-nodes.json).
+
+All current workflow recipes, including the earlier combined cases and their
+HTTP repeats, retain `--source "$SOURCE"` for independent exact projected-record
+equality. Historical receipt commands remain bound to their original code version.
 Validation runs after timed fetch/decode, can warm local source files before
 repeats, and contributes to lifetime peak RSS. Each phase's `total_transport`
 includes all distinct adjacency, feature and connectivity-check Access instances:
@@ -216,3 +225,72 @@ Use the same optional `--read-ahead-bytes N` on compared workflow commands; the
 default is zero. Original `consumer` now enables Parquet pre-buffering, with all
 projected graph acquisition and numeric preparation still inside first use.
 These drivers do not establish a remote performance or physical-layout result.
+
+## Historical census and incidence drivers
+
+The exact measured one-off sources are archived unchanged, not maintained APIs:
+[IPC census/incidence](results/useful-bulk.py.txt),
+[GeoParquet census](results/geoparquet-bulk.py.txt), and tiny tests for
+[IPC](results/test-useful-bulk.py.txt) / [GeoParquet](results/test-geoparquet-bulk.py.txt).
+[Archive binding](results/physical-layout-source-archives.json) records exact hashes,
+native checks and sanitized command templates. No private driver is needed.
+
+Copy these four files outside Git with their original Python module names. Save
+`ARCHIVE_ROOT` as this checkout's absolute path; choose a fresh existing `$REPORT`
+outside both input bundles and Git. Copy before switching to a measured checkout.
+
+```sh
+cp "$ARCHIVE_ROOT/experiments/data_interface/results/useful-bulk.py.txt" "$REPORT/useful_bulk.py"
+cp "$ARCHIVE_ROOT/experiments/data_interface/results/test-useful-bulk.py.txt" "$REPORT/test_useful_bulk.py"
+cp "$ARCHIVE_ROOT/experiments/data_interface/results/geoparquet-bulk.py.txt" "$REPORT/geoparquet_bulk.py"
+cp "$ARCHIVE_ROOT/experiments/data_interface/results/test-geoparquet-bulk.py.txt" "$REPORT/test_geoparquet_bulk.py"
+shasum -a 256 "$REPORT/useful_bulk.py" "$REPORT/geoparquet_bulk.py" "$REPORT/test_useful_bulk.py" "$REPORT/test_geoparquet_bulk.py"
+```
+
+For IPC use a separate checkout at **`8b2fac6d928c493187a97928c06b4749b6f50f1f`**.
+Run from that checkout root with its native uv environment. Match source manifest
+`b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db` and candidate
+manifest `155535aea34d16e8369ec0db416d2f58058911553c28e9031148607bb7511049`.
+Use the immutable artifact hashes in [local evidence](results/physical-layout-local.json);
+a local path or matching row count is not input identity. Measured versions were
+PyArrow 25.0.1, NumPy 2.5.3 and Shapely 2.2.0; verify versions rather than treating
+an unconstrained fresh dependency resolution as an exact environment replay.
+
+```sh
+PYTHONPATH=".:$REPORT" uv run --group data-interface --group vector-production pytest -q "$REPORT/test_useful_bulk.py"
+uv run ruff check "$REPORT/useful_bulk.py"
+uv run --group data-interface --group vector-production ty check "$REPORT/useful_bulk.py"
+PYTHONPATH=. uv run --group data-interface --group vector-production python "$REPORT/useful_bulk.py" census "$SOURCE" --source "$SOURCE" --family rivers --repeats 2 --read-ahead-bytes 65536 --report "$REPORT/rivers-original-census.json"
+PYTHONPATH=. uv run --group data-interface --group vector-production python "$REPORT/useful_bulk.py" census "$CANDIDATE" --source "$SOURCE" --family rivers --repeats 2 --read-ahead-bytes 65536 --report "$REPORT/rivers-candidate-census.json"
+PYTHONPATH=. uv run --group data-interface --group vector-production python "$REPORT/useful_bulk.py" immediate "$CANDIDATE" --source "$SOURCE" --repeats 2 --read-ahead-bytes 65536 --report "$REPORT/node2-incidence.json"
+```
+
+For zero-buffer controls change only `--read-ahead-bytes 0` and use fresh report
+names. For catchment census use `--family catchments`; it projects `source_area`
+instead of river `source_length`. `immediate` is the fixed source-node-2 incidence
+control, not arbitrary traversal. `total_to_records_s` excludes geometry decode;
+`total_to_result_s` includes it. The unchanged driver's generic `timer_boundary`
+prose incorrectly says WKB decode is outside: numeric fields and the tiny test
+establish the actual boundary. Independent source equality/hash stays outside.
+
+For GeoParquet use a separate checkout at
+**`44f1346ce298ee241841c890a557750346c3f122`**. Its tracked
+`experiments.data_interface.geoparquet` and `geoparquet_probe` modules provide the
+producer, full verifier and useful-result probe; consult their `--help`. Use the
+same verified IPC candidate and set `$GEOPARQUET` to the derivative bundle. The
+[evidence](results/physical-layout-geoparquet.json) binds exact derivative
+manifest/artifact hashes and writer options; do not silently reuse a lookup's old
+IPC hash as Parquet authority. Generate the original census witness above first.
+
+```sh
+uv run --group data-interface --group vector-production python -m experiments.data_interface.geoparquet_probe "$GEOPARQUET" --candidate "$CANDIDATE" --source "$SOURCE" --workloads "$REPORT/extended-workloads.json" --spatial-window medium --columns id level bbox source_length geometry --decode-geometry --repeats 2 --report "$REPORT/geoparquet-rivers-medium.json"
+PYTHONPATH=".:$REPORT" uv run --group data-interface pytest -q "$REPORT/test_geoparquet_bulk.py"
+uv run ruff check "$REPORT/geoparquet_bulk.py"
+uv run --group data-interface ty check "$REPORT/geoparquet_bulk.py"
+PYTHONPATH=. uv run --group data-interface python "$REPORT/geoparquet_bulk.py" --bundle "$GEOPARQUET" --candidate "$CANDIDATE" --source "$SOURCE" --witness "$REPORT/rivers-original-census.json" --report "$REPORT/geoparquet-rivers-local-census.json"
+```
+
+Run performance commands serially, separate from global verification or witness
+regeneration. Do not overwrite existing receipts. Upload concurrency, native cache
+retention, ordinary manifest reads and lifetime RSS limits are disclosed in the
+[current findings](PHYSICAL_LAYOUT.md); local replay is not remote evidence.
