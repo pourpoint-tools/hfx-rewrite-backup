@@ -9,10 +9,33 @@ from pathlib import Path
 from time import perf_counter
 from typing import Any
 
+import pyarrow as pa
+
 from experiments.data_interface.build import FAMILIES, peak_rss
 from experiments.data_interface.features import verify_features
 from experiments.data_interface.relationships import verify_relationships
 from hfx.candidates import fingerprint
+
+
+def verify_source_claims(source: Path, manifest: dict[str, Any], source_manifest: dict[str, Any]) -> None:
+    remap = {FAMILIES[family]: declaration["data"] for family, declaration in manifest["families"].items()}
+    expected_categories = [
+        {**entry, "artifact": remap[entry["artifact"]]}
+        for entry in source_manifest.get("categorical_columns", [])
+        if entry["artifact"] in remap
+    ]
+    if manifest["categorical_columns"] != expected_categories:
+        raise ValueError("categorical source meanings differ")
+    expected_schemas = {}
+    for family in manifest["families"]:
+        with pa.OSFile(str(source / FAMILIES[family]), "rb") as stream:
+            schema = pa.ipc.open_file(stream).schema
+        expected_schemas[family] = {
+            "artifact": FAMILIES[family],
+            "arrow_schema_sha256": hashlib.sha256(schema.serialize().to_pybytes()).hexdigest(),
+        }
+    if manifest["source_schemas"] != expected_schemas:
+        raise ValueError("source schema declarations differ")
 
 
 def verify(source: Path, output: Path) -> dict[str, Any]:
@@ -23,6 +46,7 @@ def verify(source: Path, output: Path) -> dict[str, Any]:
     source_manifest = json.loads((source / "manifest.json").read_bytes())
     if manifest["input_artifacts"] != source_manifest["artifacts"]:
         raise ValueError("source artifact declarations differ")
+    verify_source_claims(source, manifest, source_manifest)
     needed = {FAMILIES[family] for family in manifest["families"]}
     if manifest["relationships"]:
         needed.update([*FAMILIES.values(), "graph.parquet", "river-graph.parquet"])

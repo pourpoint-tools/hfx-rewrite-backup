@@ -99,7 +99,11 @@ def build_features(
                 blocks.append(np.full(batch.num_rows, block, dtype=np.int32))
                 positions.append(np.arange(batch.num_rows, dtype=np.int32))
                 count += batch.num_rows
-                temporary_bytes = max(temporary_bytes, sum(p.stat().st_size for p in staging.rglob("*") if p.is_file()))
+                if (block + 1) % 1024 == 0:
+                    temporary_bytes = max(
+                        temporary_bytes, sum(p.stat().st_size for p in staging.rglob("*") if p.is_file())
+                    )
+            temporary_bytes = max(temporary_bytes, sum(p.stat().st_size for p in staging.rglob("*") if p.is_file()))
     finally:
         connection.close()
     staging.rmdir()
