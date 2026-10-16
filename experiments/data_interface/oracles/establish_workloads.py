@@ -235,6 +235,8 @@ def main() -> None:
     ROOT, CATCHMENT_GRAPH, OUT = args.source, args.source / "graph.parquet", args.report
     if OUT.exists():
         raise FileExistsError(OUT)
+    if args.report.resolve().is_relative_to(args.source.resolve()):
+        raise ValueError("report must be outside input bundle")
     result: dict[str, Any] = {
         "scope": "source-only correctness inventory; no timing or candidate",
         "versions": {"pyarrow": pa.__version__, "numpy": np.__version__, "shapely": shapely.__version__},

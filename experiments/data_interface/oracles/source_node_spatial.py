@@ -43,6 +43,8 @@ def main() -> None:
     args = parser.parse_args()
     if args.report.exists():
         raise FileExistsError(args.report)
+    if args.report.resolve().is_relative_to(args.source.resolve()):
+        raise ValueError("report must be outside input bundle")
     manifest_bytes = (args.source / "manifest.json").read_bytes()
     manifest = json.loads(manifest_bytes)
     data_name = manifest["river_nodes"]["data"]

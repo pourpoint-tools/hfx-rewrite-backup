@@ -164,8 +164,8 @@ comparison matched both layouts. IPC projection reads top-level schema fields;
 the access result explicitly restores caller-requested column order. An initial
 stream-hash difference was only column order: restoring the same requested order
 makes both hashes equal. The follow-up
-source scan overlapped reverse-index timings; affected reverse timings are excluded
-until the clean rerun. [Node correctness](results/node-spatial-correctness.json).
+source scan overlapped earlier reverse-index timings; the retained seven reverse
+comparisons are completed isolated reruns. [Node correctness](results/node-spatial-correctness.json).
 
 Complete-record, selected-source-attribute and small-window probes covered every
 available river/catchment tier in 22 additional local cases. Exact selected
