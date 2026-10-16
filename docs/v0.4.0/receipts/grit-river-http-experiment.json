@@ -785,7 +785,14 @@
       }
     }
   },
-  "cleanup": "Experimental prefix retained until final delivery cleanup; no objects removed. No server was needed for this sample upload/probe.",
+  "cleanup": {
+    "status": "passed",
+    "date": "2026-10-16",
+    "deleted_objects": 16,
+    "remaining_objects": 0,
+    "identity_check": "Exact key set, size and ETag matched this receipt before deletion. Only the isolated experiment prefix was removed; bucket and other objects retained.",
+    "evidence": "grit-river-delivery.json"
+  },
   "limits": [
     "Small component sample, not worldwide GRIT or full delineation performance.",
     "Repeated selection has no new batch cache; preparation head/tail buffers and IPC metadata remain.",

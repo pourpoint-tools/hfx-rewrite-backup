@@ -41,11 +41,13 @@ with **0 m² tolerance** because these original shared boundaries are exact. It
 checks containment and disjoint interiors, not exact child-union equality. Its
 coverage is explicit; it is not worldwide polygon topology certification.
 
-This script checks local vector output, not publication readiness. It rejects
-raster declarations rather than falsely certify them. External raster receipt
-binding and fresh pinned public ranges, upload verification, remote selective
-read measurements, licensing/publication review and full regional acquisition
-remain delivery steps. Source archive-member binding is the producer's separately
+This script checks local vector output, not publication readiness. External raster
+declarations require the explicit `--external-raster-receipt` option described in
+[worldwide production](grit-worldwide-production.md). It checks their exact
+identities, URLs and meanings against the supplied historical receipt, not fresh
+raster bytes or public access. Fresh pinned public ranges, upload verification,
+remote selective-read measurements and licensing/publication review remain
+separate delivery checks. Source archive-member binding is the producer's separately
 tested acquisition check; this verifier binds and rereads the loose originals.
 IPC compression and lookup layout reuse existing independent checks. Incoming
 groups are reconstructed from independently verified values with the documented

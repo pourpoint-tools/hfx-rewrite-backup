@@ -17,6 +17,9 @@ The [raster contract](docs/v0.4.0/raster-data.md) adds optional native-grid D8 p
 and permits explicit immutable references to unchanged raster objects. The
 [river source evidence](docs/v0.4.0/grit-river-evidence.md) records original examples
 and implementation decisions; it is not a production delivery receipt.
+The [completed GRIT river delivery](docs/v0.4.0/grit-river-delivery.md) records the
+new public bundle, verification and cleanup. [TDX conversion](docs/v0.4.0/tdx-handoff.md)
+remains separate work; current Pourpoint reader compatibility is not assumed.
 Small production and verification scripts live in `scripts/`. The earlier
 [selective-access candidates](docs/selective-access-candidates.md) remain experimental evidence.
 The package version `0.0.0.dev0` is a setup placeholder, not an HFX format version or release
