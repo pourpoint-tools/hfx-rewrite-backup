@@ -238,6 +238,18 @@
     "local-validation.txt": {
       "sha256": "d083e474e09fca8fa079b23e5f333bd7bf11213521b961fa8635802d2777177f",
       "size_bytes": 2549
+    },
+    "experiment-before-cleanup.json": {
+      "sha256": "63768f7413c42df98286a274cffe4a6a805ac18c92b46407d2a82b8b89331eea",
+      "size_bytes": 4142
+    },
+    "experiment-delete-result.json": {
+      "sha256": "e18e8b1532e3082906853599fe140371196878a87566335655f73e95d382427d",
+      "size_bytes": 1626
+    },
+    "experiment-after-cleanup.json": {
+      "sha256": "aacbcc94b367f6b19190d12456ab66656eb5bc589f69d07ae79592f59cb94639",
+      "size_bytes": 89
     }
   },
   "evidence_location": "Session 01a1443a-c691-70b3-845e-2d7b1e7c2555, grit-delivery; bulk receipts remain outside Git.",
@@ -644,7 +656,14 @@
     "compact_evidence_archive_sha256": "0ef08016ed579e551698325f7a964a7b5040239453afb66668421d82b104570b",
     "estimated_server_cost_eur": 21.05,
     "cost_caveat": "Elapsed-time estimate, not provider invoice; other charges excluded.",
-    "provider_remaining_servers_volumes_primary_ips": []
+    "provider_remaining_servers_volumes_primary_ips": [],
+    "experimental_prefix": {
+      "status": "passed",
+      "prefix": "experiments/hfx-0.4.0-rivers-2026-10-12/",
+      "deleted_objects": 16,
+      "remaining_objects": 0,
+      "predelete_exact_keys_sizes_etags_matched": true
+    }
   },
   "public_url": "https://basin-delineations-public.upstream.tech/grit/hfx-v0.4.0-rivers-2026-10-12/",
   "commands": {

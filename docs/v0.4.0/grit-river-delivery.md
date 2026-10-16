@@ -102,7 +102,9 @@ logs and selected samples were preserved outside bulk storage before deletion;
 temporary upload credentials were removed. User-supplied downloads and existing
 publications were not deleted. Estimated server cost was **EUR 21.05**, not an
 invoice; other charges are excluded. The compact receipt binds cleanup evidence
-and the preserved evidence archive. The isolated small experiment is documented
-separately; its retention status is not established by this compute cleanup.
+and the preserved evidence archive. The isolated small-experiment prefix was also
+removed after matching all 16 keys, sizes and ETags to its receipt; deletion
+succeeded and the exact prefix listing was empty. No bucket or other objects
+were removed.
 
 TDX conversion remains a [separate handoff](tdx-handoff.md), not part of this delivery.

@@ -4,7 +4,7 @@ On 2026-10-12, the independently verified GRIT component sample passed selective
 public HTTP reads on Hetzner Object Storage. This establishes small-sample remote
 addressing and row fidelity, not worldwide GRIT delivery or delineation performance.
 
-Public sample: <https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/>
+Historical sample URL (removed after final delivery): <https://pourpoint-hfx.fsn1.your-objectstorage.com/experiments/hfx-0.4.0-rivers-2026-10-12/>
 
 [Receipt](receipts/grit-river-http-experiment.json) retains object identities,
 manifest binding, request ranges and phase measurements. Manifest SHA-256:
@@ -54,7 +54,7 @@ are response bodies, not wire overhead. Times include probe selection/receipt
 work and are single observations, with no latency target or global-scale claim.
 See [probe semantics](selective-http-probe.md).
 
-Reproduce reads while the experimental prefix remains available:
+Historical read command (the experimental prefix was removed on 2026-10-16):
 
 ```sh
 uv run python scripts/check_vector_access.py \
@@ -68,7 +68,9 @@ identity verification is separate from this bounded selective read command.
 Original upload logs, script and probe receipts remain in the session evidence;
 the committed receipt records their hashes and compact results.
 
-The isolated prefix is retained until final delivery cleanup, not promised as a
-permanent production endpoint. Full GRIT production, public R2 verification and
-final resource cleanup remain separate requirements. The sample retains GRIT
-v1.0 attribution and CC BY-NC 4.0 in its `CITATION.txt` and `NOTICE`.
+After [full GRIT delivery](grit-river-delivery.md) passed, the isolated prefix was
+removed on 2026-10-16. All 16 keys, sizes and ETags matched this receipt before
+deletion; all deletes succeeded and the prefix listing was empty afterward.
+No bucket or other objects were removed. The receipt preserves the experiment
+and its GRIT v1.0 attribution/CC BY-NC 4.0 evidence; this URL is not a permanent
+production endpoint.
