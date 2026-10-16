@@ -1,0 +1,640 @@
+{
+  "upload": {
+    "bucket": "basin-delineations-public",
+    "prefix": "grit/experiments/hfx-data-interface-2026-10-16/",
+    "manifest_sha256": "155535aea34d16e8369ec0db416d2f58058911553c28e9031148607bb7511049",
+    "objects": 26,
+    "bytes": 37546154090,
+    "duration_s": 3418.1531277080067,
+    "effective_MB_s": 10.984339404120268,
+    "objects_checked": [
+      {
+        "name": "CITATION.txt",
+        "bytes": 116,
+        "sha256": "f8bcc5238aa31e04b347b267317ba74c8a69d7d40546235d14a116a5811274bc",
+        "etag": "\"1d317c5e7f794cbc23ab35a4792e909a-1\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 1,
+        "multipart_etag_verified": true
+      },
+      {
+        "name": "GRIT-original-LICENSE.md",
+        "bytes": 14830,
+        "sha256": "79921188c8de139804eb5d4d90dc53d16cd77fe1ef6bf8699d33fcf145d68480",
+        "etag": "\"59d7685d6efad25746c5a2952326ff3e\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 0,
+        "multipart_etag_verified": null
+      },
+      {
+        "name": "GRIT-original-README.pdf",
+        "bytes": 150250,
+        "sha256": "76ad38a03806b9b6e1a235241ed78c1eaea5fe81e751dbf70c187deb3e529c60",
+        "etag": "\"d31f56d7d0243f923db881ebfaa981d3\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 0,
+        "multipart_etag_verified": null
+      },
+      {
+        "name": "NOTICE",
+        "bytes": 295,
+        "sha256": "c2357b40c9bd3358d253e6d64a0b28c38699291d00b50996face66f848a09468",
+        "etag": "\"2db55288d64fa1611030adf485840fc7\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 0,
+        "multipart_etag_verified": null
+      },
+      {
+        "name": "README.md",
+        "bytes": 746,
+        "sha256": "8924c5cb0019c663cfd0aa6d0224d4438861c148733ac544e1b3e751762ebe3b",
+        "etag": "\"4ae2e2d0f8e75cb4957b3fd8bf2390ff\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 0,
+        "multipart_etag_verified": null
+      },
+      {
+        "name": "catchments-lookup-directory.json",
+        "bytes": 23926,
+        "sha256": "1bcc8b56bb4295dbc564392fc16cb44dd1b79c276d93e15f50de33389c710bb3",
+        "etag": "\"39a5860b7d8ff00ac7f43c6491972675\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 0,
+        "multipart_etag_verified": null
+      },
+      {
+        "name": "catchments-lookup.arrow",
+        "bytes": 358809026,
+        "sha256": "577c981a58f8b1cf42ecd7b29fed5ae7ee601a21f30e27bff1fe8a0e422e217f",
+        "etag": "\"bea87cacf85ac97e86661e7afaa1d059-6\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 6,
+        "multipart_etag_verified": true
+      },
+      {
+        "name": "catchments-relationships-directory.json",
+        "bytes": 190528,
+        "sha256": "5f26b50f43bddb472e120ad6a3497c6e0d409a94ec16fb01def1f5ed15819a2c",
+        "etag": "\"a94b109a4d06d44dc83b98cb97754dc1\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 0,
+        "multipart_etag_verified": null
+      },
+      {
+        "name": "catchments-relationships.arrow",
+        "bytes": 1792733506,
+        "sha256": "278435d86ac8275d77a7d1254bc75f35733284116e2d4e54545b354fdc41790f",
+        "etag": "\"d197aae53b11417111f908313941cd31-27\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 27,
+        "multipart_etag_verified": true
+      },
+      {
+        "name": "catchments-spatial.json",
+        "bytes": 1014228,
+        "sha256": "c4b00bd93b7e9c3827deb84d1017eaccc7d265710db3237c3d747f18fe091287",
+        "etag": "\"15beaab6fb3825e22fe14340b5fdc8b4\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 0,
+        "multipart_etag_verified": null
+      },
+      {
+        "name": "catchments.arrow",
+        "bytes": 20743073794,
+        "sha256": "6cf36189de7a0d8cb6d22077151678f6578c4d32840b0aa9e532303daea7c832",
+        "etag": "\"9bbc92277d5ffd4c572133bc888d59d1-310\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 310,
+        "multipart_etag_verified": true
+      },
+      {
+        "name": "river_nodes-lookup-directory.json",
+        "bytes": 23714,
+        "sha256": "683d358083d3dfb9168745519ebe81ff2cc62fc6275f24477a04270b8a1740cb",
+        "etag": "\"90d15430ac140285ebb58efb78ff419c\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 0,
+        "multipart_etag_verified": null
+      },
+      {
+        "name": "river_nodes-lookup.arrow",
+        "bytes": 356552242,
+        "sha256": "bd6d15e473fbeba3197df1f7b46df1b58dfc1fc1f2498503ca6a20e247178bdb",
+        "etag": "\"2143aa77972512ff9f517bab120de587-6\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 6,
+        "multipart_etag_verified": true
+      },
+      {
+        "name": "river_nodes-relationships-directory.json",
+        "bytes": 189321,
+        "sha256": "d154646aa0551d99f352f5304c6cbc42940ad012b03c0e85964f7cfb5e688747",
+        "etag": "\"92120d8223e3ed5a8999180ce860f522\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 0,
+        "multipart_etag_verified": null
+      },
+      {
+        "name": "river_nodes-relationships.arrow",
+        "bytes": 921484562,
+        "sha256": "cc8d4b8b81c1dfa34ccf7ea07f95f5b4961b95335af0ffa0fc9199aacaa597eb",
+        "etag": "\"f732a5a4ba20c47ff7aef40f8d1b1c22-14\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 14,
+        "multipart_etag_verified": true
+      },
+      {
+        "name": "river_nodes-spatial.json",
+        "bytes": 411475,
+        "sha256": "be640ec472191024c4e86c0a29f8065aacb2b67fb4ded3a1ae7df3d06bd790ac",
+        "etag": "\"cc8de4ffff966c5e05de03458f2d852e\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 0,
+        "multipart_etag_verified": null
+      },
+      {
+        "name": "river_nodes.arrow",
+        "bytes": 1367021202,
+        "sha256": "53390f0e3538e78d7f3598635fd11d77cac7b5d4be0f1f0dec07534d73175b80",
+        "etag": "\"a23ed6388fea1092c1b1391170fd2159-21\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 21,
+        "multipart_etag_verified": true
+      },
+      {
+        "name": "rivers-lookup-directory.json",
+        "bytes": 23785,
+        "sha256": "adc3856c1a9a44a0f716d043e005884b55da09eb2c38c7b499a4125e16cc64bc",
+        "etag": "\"16edb347780bbab4fd5d752df2c609fe\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 0,
+        "multipart_etag_verified": null
+      },
+      {
+        "name": "rivers-lookup.arrow",
+        "bytes": 357487578,
+        "sha256": "d905a19cecd79144814d448c639f0c1f273de80b647a8dd4fd415925bb35f58e",
+        "etag": "\"14899221479d58f0fc3a3b8d7d7d9f84-6\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 6,
+        "multipart_etag_verified": true
+      },
+      {
+        "name": "rivers-relationships-directory.json",
+        "bytes": 189818,
+        "sha256": "2f35a23561fcd3603eb116ee926634b1c0edb94ebab42eee389f513b1f7440da",
+        "etag": "\"7aaa3f9e78063f25723add86a18e8a5c\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 0,
+        "multipart_etag_verified": null
+      },
+      {
+        "name": "rivers-relationships.arrow",
+        "bytes": 2298473610,
+        "sha256": "8f481cc458e984952ec47eb771ddf8713731ec8112ffb9a8f10173ea967fec85",
+        "etag": "\"3cc8cd6a09a63b9716ba17b60ec6f858-35\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 35,
+        "multipart_etag_verified": true
+      },
+      {
+        "name": "rivers-spatial.json",
+        "bytes": 485165,
+        "sha256": "a76a5987f800f2e3c74395501154243d33edafb923980fc7c775d37725617259",
+        "etag": "\"75be76f52e3e55f913055a32fbfea842\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 0,
+        "multipart_etag_verified": null
+      },
+      {
+        "name": "rivers.arrow",
+        "bytes": 9347622370,
+        "sha256": "09e96ad6e101da2008c558028fb712530336485d1302b99a49889e6e0c3d6420",
+        "etag": "\"765f858f2aca758bb7f13c8a5050e33d-140\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 140,
+        "multipart_etag_verified": true
+      },
+      {
+        "name": "source-manifest.json",
+        "bytes": 12188,
+        "sha256": "b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db",
+        "etag": "\"7bda897cc248a01289b4ff84f85b7936\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 0,
+        "multipart_etag_verified": null
+      },
+      {
+        "name": "source-provenance.json",
+        "bytes": 139647,
+        "sha256": "84b2aeb4afb1d171ab9d791f813ffb951063d9cc061630ec91380797592895d7",
+        "etag": "\"b7841460cfebb0d26d8d69d31f51041b\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 0,
+        "multipart_etag_verified": null
+      },
+      {
+        "name": "manifest.json",
+        "bytes": 26168,
+        "sha256": "155535aea34d16e8369ec0db416d2f58058911553c28e9031148607bb7511049",
+        "etag": "\"7b76586cccb639176d50d0d5bff26612\"",
+        "head_verified": true,
+        "local_sha256_verified": true,
+        "multipart_parts": 0,
+        "multipart_etag_verified": null
+      }
+    ],
+    "integrity": "Local full SHA256 plus ContentMD5 and documented per-part/composite R2 ETag; all S3 HEAD identities; public small full SHA256 and large bounded checks separate. Not full public large SHA readback.",
+    "approval": "remote-approval.json",
+    "profile": "upstream-r2",
+    "ops_code": "r2-transfer-code-bindings.json",
+    "cleanup": "pending after remote measurements"
+  },
+  "public_identity": {
+    "manifest_sha256": "155535aea34d16e8369ec0db416d2f58058911553c28e9031148607bb7511049",
+    "elapsed_s": 16.775265917007346,
+    "artifacts": [
+      {
+        "name": "CITATION.txt",
+        "proof": "full public SHA256+size",
+        "bytes": 116,
+        "requests": 1
+      },
+      {
+        "name": "GRIT-original-LICENSE.md",
+        "proof": "full public SHA256+size",
+        "bytes": 14830,
+        "requests": 1
+      },
+      {
+        "name": "GRIT-original-README.pdf",
+        "proof": "full public SHA256+size",
+        "bytes": 150250,
+        "requests": 1
+      },
+      {
+        "name": "NOTICE",
+        "proof": "full public SHA256+size",
+        "bytes": 295,
+        "requests": 1
+      },
+      {
+        "name": "README.md",
+        "proof": "full public SHA256+size",
+        "bytes": 746,
+        "requests": 1
+      },
+      {
+        "name": "catchments-lookup-directory.json",
+        "proof": "full public SHA256+size",
+        "bytes": 23926,
+        "requests": 1
+      },
+      {
+        "name": "catchments-lookup.arrow",
+        "proof": "bounded public head/tail SHA256+size, strong pinned ETag; not full interior proof",
+        "bytes": 131072,
+        "requests": 2
+      },
+      {
+        "name": "catchments-relationships-directory.json",
+        "proof": "full public SHA256+size",
+        "bytes": 190528,
+        "requests": 1
+      },
+      {
+        "name": "catchments-relationships.arrow",
+        "proof": "bounded public head/tail SHA256+size, strong pinned ETag; not full interior proof",
+        "bytes": 131072,
+        "requests": 2
+      },
+      {
+        "name": "catchments-spatial.json",
+        "proof": "full public SHA256+size",
+        "bytes": 1014228,
+        "requests": 1
+      },
+      {
+        "name": "catchments.arrow",
+        "proof": "bounded public head/tail SHA256+size, strong pinned ETag; not full interior proof",
+        "bytes": 131072,
+        "requests": 2
+      },
+      {
+        "name": "river_nodes-lookup-directory.json",
+        "proof": "full public SHA256+size",
+        "bytes": 23714,
+        "requests": 1
+      },
+      {
+        "name": "river_nodes-lookup.arrow",
+        "proof": "bounded public head/tail SHA256+size, strong pinned ETag; not full interior proof",
+        "bytes": 131072,
+        "requests": 2
+      },
+      {
+        "name": "river_nodes-relationships-directory.json",
+        "proof": "full public SHA256+size",
+        "bytes": 189321,
+        "requests": 1
+      },
+      {
+        "name": "river_nodes-relationships.arrow",
+        "proof": "bounded public head/tail SHA256+size, strong pinned ETag; not full interior proof",
+        "bytes": 131072,
+        "requests": 2
+      },
+      {
+        "name": "river_nodes-spatial.json",
+        "proof": "full public SHA256+size",
+        "bytes": 411475,
+        "requests": 1
+      },
+      {
+        "name": "river_nodes.arrow",
+        "proof": "bounded public head/tail SHA256+size, strong pinned ETag; not full interior proof",
+        "bytes": 131072,
+        "requests": 2
+      },
+      {
+        "name": "rivers-lookup-directory.json",
+        "proof": "full public SHA256+size",
+        "bytes": 23785,
+        "requests": 1
+      },
+      {
+        "name": "rivers-lookup.arrow",
+        "proof": "bounded public head/tail SHA256+size, strong pinned ETag; not full interior proof",
+        "bytes": 131072,
+        "requests": 2
+      },
+      {
+        "name": "rivers-relationships-directory.json",
+        "proof": "full public SHA256+size",
+        "bytes": 189818,
+        "requests": 1
+      },
+      {
+        "name": "rivers-relationships.arrow",
+        "proof": "bounded public head/tail SHA256+size, strong pinned ETag; not full interior proof",
+        "bytes": 131072,
+        "requests": 2
+      },
+      {
+        "name": "rivers-spatial.json",
+        "proof": "full public SHA256+size",
+        "bytes": 485165,
+        "requests": 1
+      },
+      {
+        "name": "rivers.arrow",
+        "proof": "bounded public head/tail SHA256+size, strong pinned ETag; not full interior proof",
+        "bytes": 131072,
+        "requests": 2
+      },
+      {
+        "name": "source-provenance.json",
+        "proof": "full public SHA256+size",
+        "bytes": 139647,
+        "requests": 1
+      },
+      {
+        "name": "source-manifest.json",
+        "proof": "full public SHA256+size",
+        "bytes": 12188,
+        "requests": 1
+      }
+    ],
+    "request_count": 35,
+    "body_bytes": 4075848,
+    "scope": "Public small full SHA and large bounded range identity; upload transport MD5/local full SHA + S3 HEAD separately retained. Not full worldwide public readback SHA."
+  },
+  "cleanup": {
+    "bucket": "basin-delineations-public",
+    "prefix": "grit/experiments/hfx-data-interface-2026-10-16/",
+    "manifest_sha256": "155535aea34d16e8369ec0db416d2f58058911553c28e9031148607bb7511049",
+    "deleted_objects": 26,
+    "deleted_bytes": 37546154090,
+    "all_deleted_verified_404": true,
+    "prefix_empty_verified": true,
+    "production_before": {
+      "bytes": 12188,
+      "sha256": "b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db"
+    },
+    "production_after": {
+      "sha256": "b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db",
+      "bytes": 12188
+    },
+    "ledger_sha256": "b69315be472494ab2f0fac3fb6b1943ec16efc052c48a20197071071f9709d8c",
+    "objects": [
+      {
+        "name": "CITATION.txt",
+        "bytes": 116,
+        "sha256": "f8bcc5238aa31e04b347b267317ba74c8a69d7d40546235d14a116a5811274bc",
+        "etag": "\"1d317c5e7f794cbc23ab35a4792e909a-1\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "GRIT-original-LICENSE.md",
+        "bytes": 14830,
+        "sha256": "79921188c8de139804eb5d4d90dc53d16cd77fe1ef6bf8699d33fcf145d68480",
+        "etag": "\"59d7685d6efad25746c5a2952326ff3e\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "GRIT-original-README.pdf",
+        "bytes": 150250,
+        "sha256": "76ad38a03806b9b6e1a235241ed78c1eaea5fe81e751dbf70c187deb3e529c60",
+        "etag": "\"d31f56d7d0243f923db881ebfaa981d3\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "NOTICE",
+        "bytes": 295,
+        "sha256": "c2357b40c9bd3358d253e6d64a0b28c38699291d00b50996face66f848a09468",
+        "etag": "\"2db55288d64fa1611030adf485840fc7\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "README.md",
+        "bytes": 746,
+        "sha256": "8924c5cb0019c663cfd0aa6d0224d4438861c148733ac544e1b3e751762ebe3b",
+        "etag": "\"4ae2e2d0f8e75cb4957b3fd8bf2390ff\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "catchments-lookup-directory.json",
+        "bytes": 23926,
+        "sha256": "1bcc8b56bb4295dbc564392fc16cb44dd1b79c276d93e15f50de33389c710bb3",
+        "etag": "\"39a5860b7d8ff00ac7f43c6491972675\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "catchments-lookup.arrow",
+        "bytes": 358809026,
+        "sha256": "577c981a58f8b1cf42ecd7b29fed5ae7ee601a21f30e27bff1fe8a0e422e217f",
+        "etag": "\"bea87cacf85ac97e86661e7afaa1d059-6\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "catchments-relationships-directory.json",
+        "bytes": 190528,
+        "sha256": "5f26b50f43bddb472e120ad6a3497c6e0d409a94ec16fb01def1f5ed15819a2c",
+        "etag": "\"a94b109a4d06d44dc83b98cb97754dc1\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "catchments-relationships.arrow",
+        "bytes": 1792733506,
+        "sha256": "278435d86ac8275d77a7d1254bc75f35733284116e2d4e54545b354fdc41790f",
+        "etag": "\"d197aae53b11417111f908313941cd31-27\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "catchments-spatial.json",
+        "bytes": 1014228,
+        "sha256": "c4b00bd93b7e9c3827deb84d1017eaccc7d265710db3237c3d747f18fe091287",
+        "etag": "\"15beaab6fb3825e22fe14340b5fdc8b4\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "catchments.arrow",
+        "bytes": 20743073794,
+        "sha256": "6cf36189de7a0d8cb6d22077151678f6578c4d32840b0aa9e532303daea7c832",
+        "etag": "\"9bbc92277d5ffd4c572133bc888d59d1-310\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "river_nodes-lookup-directory.json",
+        "bytes": 23714,
+        "sha256": "683d358083d3dfb9168745519ebe81ff2cc62fc6275f24477a04270b8a1740cb",
+        "etag": "\"90d15430ac140285ebb58efb78ff419c\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "river_nodes-lookup.arrow",
+        "bytes": 356552242,
+        "sha256": "bd6d15e473fbeba3197df1f7b46df1b58dfc1fc1f2498503ca6a20e247178bdb",
+        "etag": "\"2143aa77972512ff9f517bab120de587-6\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "river_nodes-relationships-directory.json",
+        "bytes": 189321,
+        "sha256": "d154646aa0551d99f352f5304c6cbc42940ad012b03c0e85964f7cfb5e688747",
+        "etag": "\"92120d8223e3ed5a8999180ce860f522\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "river_nodes-relationships.arrow",
+        "bytes": 921484562,
+        "sha256": "cc8d4b8b81c1dfa34ccf7ea07f95f5b4961b95335af0ffa0fc9199aacaa597eb",
+        "etag": "\"f732a5a4ba20c47ff7aef40f8d1b1c22-14\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "river_nodes-spatial.json",
+        "bytes": 411475,
+        "sha256": "be640ec472191024c4e86c0a29f8065aacb2b67fb4ded3a1ae7df3d06bd790ac",
+        "etag": "\"cc8de4ffff966c5e05de03458f2d852e\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "river_nodes.arrow",
+        "bytes": 1367021202,
+        "sha256": "53390f0e3538e78d7f3598635fd11d77cac7b5d4be0f1f0dec07534d73175b80",
+        "etag": "\"a23ed6388fea1092c1b1391170fd2159-21\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "rivers-lookup-directory.json",
+        "bytes": 23785,
+        "sha256": "adc3856c1a9a44a0f716d043e005884b55da09eb2c38c7b499a4125e16cc64bc",
+        "etag": "\"16edb347780bbab4fd5d752df2c609fe\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "rivers-lookup.arrow",
+        "bytes": 357487578,
+        "sha256": "d905a19cecd79144814d448c639f0c1f273de80b647a8dd4fd415925bb35f58e",
+        "etag": "\"14899221479d58f0fc3a3b8d7d7d9f84-6\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "rivers-relationships-directory.json",
+        "bytes": 189818,
+        "sha256": "2f35a23561fcd3603eb116ee926634b1c0edb94ebab42eee389f513b1f7440da",
+        "etag": "\"7aaa3f9e78063f25723add86a18e8a5c\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "rivers-relationships.arrow",
+        "bytes": 2298473610,
+        "sha256": "8f481cc458e984952ec47eb771ddf8713731ec8112ffb9a8f10173ea967fec85",
+        "etag": "\"3cc8cd6a09a63b9716ba17b60ec6f858-35\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "rivers-spatial.json",
+        "bytes": 485165,
+        "sha256": "a76a5987f800f2e3c74395501154243d33edafb923980fc7c775d37725617259",
+        "etag": "\"75be76f52e3e55f913055a32fbfea842\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "rivers.arrow",
+        "bytes": 9347622370,
+        "sha256": "09e96ad6e101da2008c558028fb712530336485d1302b99a49889e6e0c3d6420",
+        "etag": "\"765f858f2aca758bb7f13c8a5050e33d-140\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "source-manifest.json",
+        "bytes": 12188,
+        "sha256": "b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db",
+        "etag": "\"7bda897cc248a01289b4ff84f85b7936\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "source-provenance.json",
+        "bytes": 139647,
+        "sha256": "84b2aeb4afb1d171ab9d791f813ffb951063d9cc061630ec91380797592895d7",
+        "etag": "\"b7841460cfebb0d26d8d69d31f51041b\"",
+        "state": "deleted_verified_404"
+      },
+      {
+        "name": "manifest.json",
+        "bytes": 26168,
+        "sha256": "155535aea34d16e8369ec0db416d2f58058911553c28e9031148607bb7511049",
+        "etag": "\"7b76586cccb639176d50d0d5bff26612\"",
+        "state": "deleted_verified_404"
+      }
+    ],
+    "scope": "Only exact receipt-owned keys deleted with matching ETag after all-head ownership preflight; all 404, no remaining objects or pending multipart uploads. Original publication manifest identical. No local source/candidate deletion."
+  }
+}

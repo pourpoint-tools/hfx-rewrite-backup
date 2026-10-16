@@ -1,0 +1,200 @@
+{
+  "rivers": {
+    "original_full": {
+      "scan_seconds": 38.071017874986865,
+      "scan_serialized_read_bytes": 9515228512,
+      "scan_serialized_read_calls": 87256,
+      "materialized_logical_bytes_total": 18591171328,
+      "requested_logical_bytes_total": 538666499,
+      "max_live_input_batch_logical_bytes": 1502964,
+      "null_counts": {
+        "id": 0,
+        "source_length": 0,
+        "source_is_mainstem": 20570235
+      },
+      "rows": 22337300,
+      "batches": 87256,
+      "process_peak_rss_bytes": 218972160
+    },
+    "original_projected": {
+      "scan_seconds": 4.691684500023257,
+      "scan_serialized_read_bytes": 418558819,
+      "scan_serialized_read_calls": 429378,
+      "materialized_logical_bytes_total": 538666499,
+      "requested_logical_bytes_total": 538666499,
+      "max_live_input_batch_logical_bytes": 6176,
+      "null_counts": {
+        "id": 0,
+        "source_length": 0,
+        "source_is_mainstem": 20570235
+      },
+      "rows": 22337300,
+      "batches": 87256,
+      "process_peak_rss_bytes": 66830336
+    },
+    "candidate_full": {
+      "scan_seconds": 9.38109262502985,
+      "scan_serialized_read_bytes": 9347539352,
+      "scan_serialized_read_calls": 3207,
+      "materialized_logical_bytes_total": 18594157792,
+      "requested_logical_bytes_total": 538666543,
+      "max_live_input_batch_logical_bytes": 8381010,
+      "null_counts": {
+        "id": 0,
+        "source_length": 0,
+        "source_is_mainstem": 20570235
+      },
+      "rows": 22337300,
+      "batches": 3207,
+      "process_peak_rss_bytes": 507936768
+    },
+    "candidate_projected": {
+      "scan_seconds": 0.32441841601394117,
+      "scan_serialized_read_bytes": 209602864,
+      "scan_serialized_read_calls": 15340,
+      "materialized_logical_bytes_total": 538666543,
+      "requested_logical_bytes_total": 538666543,
+      "max_live_input_batch_logical_bytes": 197632,
+      "null_counts": {
+        "id": 0,
+        "source_length": 0,
+        "source_is_mainstem": 20570235
+      },
+      "rows": 22337300,
+      "batches": 3207,
+      "process_peak_rss_bytes": 72941568
+    }
+  },
+  "nodes": {
+    "original_full": {
+      "scan_seconds": 23.624604084005114,
+      "scan_serialized_read_bytes": 1388706120,
+      "scan_serialized_read_calls": 87027,
+      "materialized_logical_bytes_total": 5634434136,
+      "requested_logical_bytes_total": 464363146,
+      "max_live_input_batch_logical_bytes": 71810,
+      "null_counts": {
+        "id": 0,
+        "source_node_type": 20541014,
+        "source_drainage_area": 20541016
+      },
+      "rows": 22278858,
+      "batches": 87027,
+      "process_peak_rss_bytes": 65191936
+    },
+    "original_projected": {
+      "scan_seconds": 4.6538327090092935,
+      "scan_serialized_read_bytes": 200763350,
+      "scan_serialized_read_calls": 514536,
+      "materialized_logical_bytes_total": 464363146,
+      "requested_logical_bytes_total": 464363146,
+      "max_live_input_batch_logical_bytes": 8256,
+      "null_counts": {
+        "id": 0,
+        "source_node_type": 20541014,
+        "source_drainage_area": 20541016
+      },
+      "rows": 22278858,
+      "batches": 87027,
+      "process_peak_rss_bytes": 59179008
+    },
+    "candidate_full": {
+      "scan_seconds": 0.9911670419969596,
+      "scan_serialized_read_bytes": 1366952192,
+      "scan_serialized_read_calls": 2720,
+      "materialized_logical_bytes_total": 5635147832,
+      "requested_logical_bytes_total": 464365386,
+      "max_live_input_batch_logical_bytes": 2199956,
+      "null_counts": {
+        "id": 0,
+        "source_node_type": 20541014,
+        "source_drainage_area": 20541016
+      },
+      "rows": 22278858,
+      "batches": 2720,
+      "process_peak_rss_bytes": 120225792
+    },
+    "candidate_projected": {
+      "scan_seconds": 0.30831491597928107,
+      "scan_serialized_read_bytes": 64332686,
+      "scan_serialized_read_calls": 16085,
+      "materialized_logical_bytes_total": 464365386,
+      "requested_logical_bytes_total": 464365386,
+      "max_live_input_batch_logical_bytes": 234304,
+      "null_counts": {
+        "id": 0,
+        "source_node_type": 20541014,
+        "source_drainage_area": 20541016
+      },
+      "rows": 22278858,
+      "batches": 2720,
+      "process_peak_rss_bytes": 57737216
+    }
+  },
+  "catchments": {
+    "original_full": {
+      "scan_seconds": 45.53802675002953,
+      "scan_serialized_read_bytes": 23814078536,
+      "scan_serialized_read_calls": 87613,
+      "materialized_logical_bytes_total": 47506835466,
+      "requested_logical_bytes_total": 448397140,
+      "max_live_input_batch_logical_bytes": 8386653,
+      "null_counts": {
+        "id": 0,
+        "area_km2": 0,
+        "source_area": 0
+      },
+      "rows": 22419857,
+      "batches": 87613,
+      "process_peak_rss_bytes": 436895744
+    },
+    "original_projected": {
+      "scan_seconds": 4.409902208019048,
+      "scan_serialized_read_bytes": 404221646,
+      "scan_serialized_read_calls": 350452,
+      "materialized_logical_bytes_total": 448397140,
+      "requested_logical_bytes_total": 448397140,
+      "max_live_input_batch_logical_bytes": 5120,
+      "null_counts": {
+        "id": 0,
+        "area_km2": 0,
+        "source_area": 0
+      },
+      "rows": 22419857,
+      "batches": 87613,
+      "process_peak_rss_bytes": 75448320
+    },
+    "candidate_full": {
+      "scan_seconds": 30.434775625006296,
+      "scan_serialized_read_bytes": 20742910032,
+      "scan_serialized_read_calls": 6706,
+      "materialized_logical_bytes_total": 47506845339,
+      "requested_logical_bytes_total": 448397140,
+      "max_live_input_batch_logical_bytes": 8387677,
+      "null_counts": {
+        "id": 0,
+        "area_km2": 0,
+        "source_area": 0
+      },
+      "rows": 22419857,
+      "batches": 6706,
+      "process_peak_rss_bytes": 1045151744
+    },
+    "candidate_projected": {
+      "scan_seconds": 0.5170162080321461,
+      "scan_serialized_read_bytes": 288125576,
+      "scan_serialized_read_calls": 26824,
+      "materialized_logical_bytes_total": 448397140,
+      "requested_logical_bytes_total": 448397140,
+      "max_live_input_batch_logical_bytes": 163840,
+      "null_counts": {
+        "id": 0,
+        "area_km2": 0,
+        "source_area": 0
+      },
+      "rows": 22419857,
+      "batches": 6706,
+      "process_peak_rss_bytes": 94879744
+    }
+  }
+}

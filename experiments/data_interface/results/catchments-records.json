@@ -1,0 +1,476 @@
+{
+  "scope": "bounded source-only complete-record witnesses; no global scan or benchmark",
+  "source_root": "$SOURCE/hfx-data-interface-2026-10-16",
+  "source_data": "catchments.arrow",
+  "source_rows": 22419857,
+  "source_sha256": "fd9519026faf6e3a9b44aea871c6ee383a7a26318a4bfae039d3e04986706d3b",
+  "source_sha_verification": "parent reported full verification; this bounded script does not rehash bulk file",
+  "manifest_sha256": "b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db",
+  "versions": {
+    "pyarrow": "25.0.1",
+    "numpy": "2.5.3"
+  },
+  "batch_count": 87613,
+  "selection": "first row, middle row of middle batch, last row; clustered first 16 stored rows, identities resolved again via original numeric lookup",
+  "row_addresses": [
+    {
+      "batch": 0,
+      "row": 0
+    },
+    {
+      "batch": 43806,
+      "row": 128
+    },
+    {
+      "batch": 87612,
+      "row": 144
+    }
+  ],
+  "scattered_ids": [
+    1,
+    11205505,
+    22419857
+  ],
+  "clustered_ids": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16
+  ],
+  "scattered_complete_records": {
+    "ids": [
+      1,
+      11205505,
+      22419857
+    ],
+    "levels": [
+      0,
+      2,
+      2
+    ],
+    "schema_sha256": "9ef5ce58520aaf5bf08c52c0d38d51d8b6ec9a77d6f576248fbb540a2d3e921a",
+    "complete_arrow_stream_sha256": "96c2a2d1cd75d7b9d9060b7d1db23726336dbbe6a1113641ccf3d7ba05d8d091",
+    "wkb_sha256_each": [
+      "332904994870986900f83018a75368846392c31598215085cbc4488c7dceecfb",
+      "f0b0d9ce5a8f5c1363d9b477fe563880dd200ba82ac3f8943b553764880eb46e",
+      "d707c1d5f80ae2044cfcf3f030d4f55651e24c1c34af4267bd7e38e7e2069af7"
+    ],
+    "bbox": [
+      {
+        "xmin": -79.61760711669922,
+        "ymin": -20.498323440551758,
+        "xmax": -45.822383880615234,
+        "ymax": 5.280751705169678
+      },
+      {
+        "xmin": 5.101977348327637,
+        "ymin": 51.78276824951172,
+        "xmax": 5.116366863250732,
+        "ymax": 51.79343032836914
+      },
+      {
+        "xmin": 129.65687561035156,
+        "ymin": -14.53844165802002,
+        "xmax": 129.70005798339844,
+        "ymax": -14.482906341552734
+      }
+    ],
+    "decoded_geometry_types": [
+      6,
+      6,
+      6
+    ],
+    "outlet_lon": [
+      null,
+      5.1023194883177805,
+      129.65923798037662
+    ],
+    "outlet_lat": [
+      null,
+      51.789317965065436,
+      -14.506519783083975
+    ],
+    "source_identity": [
+      {
+        "id": 1,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "109",
+        "parent_id": null
+      },
+      {
+        "id": 11205505,
+        "source_namespace": "grit:1.0:EU:reach_catchments:reach_catchments__1",
+        "source_id": "160455375",
+        "parent_id": 842003
+      },
+      {
+        "id": 22419857,
+        "source_namespace": "grit:1.0:SP:reach_catchments:reach_catchments__1",
+        "source_id": "560535493",
+        "parent_id": 1849622
+      }
+    ]
+  },
+  "clustered_complete_records": {
+    "ids": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "levels": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "schema_sha256": "9ef5ce58520aaf5bf08c52c0d38d51d8b6ec9a77d6f576248fbb540a2d3e921a",
+    "complete_arrow_stream_sha256": "9e633a60a3e91645be5f35636a0c9516003029a2658c477c1df6cfd49cba4816",
+    "wkb_sha256_each": [
+      "332904994870986900f83018a75368846392c31598215085cbc4488c7dceecfb",
+      "d5ddd1d81243d286461bf540c8ac345dc179af3e63a3d90d7541b1a98ef19d00",
+      "c1be90abb489dc9c6650ce18cfb7a960110665e1b447cbc70a80f855664c7e76",
+      "8f72e063c1e482b33425f9fefc184bf1225459d1293267aea4144a898a807b11",
+      "a082ead2ee897611313f009dcafae8abacbf704b3c47ed0b4750b75e2e8b16c1",
+      "56f3e3b511b86e8eda1160da99a61c27c842f02f207f8796614250e83573cef8",
+      "1f6a95d403f1ece1febb3a3268143a0d54e187b942daeab6fdcecd505df225b9",
+      "e2401fa736e3958452b518c4ee06147f8177e28f6bc41e8155c2361c4dd1e8cd",
+      "e7de0de6238dd270a9abbd46eae041cd8ef18af864803106be13b6c138b8b9f0",
+      "eab363e742c1d0e161786ef6f9f5136b34e2fe8a4395672a936a7fe3fedf2c99",
+      "1d9c31313ce4682097cd6c35d7eb42ebd5396a3d87ed3cdbc168ab08f8330861",
+      "471a85ea502306b1f071879b7868db20ab3b481d501b1f59aad42ff9f02be03c",
+      "d3e08f7a2b06b874245eca390b34a4d71fed3b5f51735bed5a8d21a7f717b1dd",
+      "7d06964219a954f7874fcaddb740b96f58ad9c9e8348257038909e37366c54f8",
+      "87ab9ea4fdd2d8850633dc89f50f63a547685f7be376bee8f0b5aa6a7a2c73cf",
+      "909d9d625a4854bf7891eb090245b19d16b34440d5eb8e2882390794d6800655"
+    ],
+    "bbox": [
+      {
+        "xmin": -79.61760711669922,
+        "ymin": -20.498323440551758,
+        "xmax": -45.822383880615234,
+        "ymax": 5.280751705169678
+      },
+      {
+        "xmin": -51.824649810791016,
+        "ymin": 3.114065647125244,
+        "xmax": -51.174922943115234,
+        "ymax": 4.442892551422119
+      },
+      {
+        "xmin": -51.55506134033203,
+        "ymin": 2.4355063438415527,
+        "xmax": -50.942562103271484,
+        "ymax": 2.934390068054199
+      },
+      {
+        "xmin": -51.91357421875,
+        "ymin": 2.284960985183716,
+        "xmax": -51.0804443359375,
+        "ymax": 3.9257314205169678
+      },
+      {
+        "xmin": -78.71025848388672,
+        "ymin": 0.6740811467170715,
+        "xmax": -76.55455017089844,
+        "ymax": 2.671327590942383
+      },
+      {
+        "xmin": -78.55665588378906,
+        "ymin": 2.2987420558929443,
+        "xmax": -78.38628387451172,
+        "ymax": 2.467625617980957
+      },
+      {
+        "xmin": -51.52159881591797,
+        "ymin": 1.5653859376907349,
+        "xmax": -50.554866790771484,
+        "ymax": 2.3620431423187256
+      },
+      {
+        "xmin": -78.59382629394531,
+        "ymin": 1.8709708452224731,
+        "xmax": -78.46603393554688,
+        "ymax": 2.0369110107421875
+      },
+      {
+        "xmin": -78.55038452148438,
+        "ymin": 1.4652029275894165,
+        "xmax": -78.37000274658203,
+        "ymax": 1.84983491897583
+      },
+      {
+        "xmin": -78.71851348876953,
+        "ymin": 1.3872066736221313,
+        "xmax": -78.33679962158203,
+        "ymax": 1.775100827217102
+      },
+      {
+        "xmin": -79.00469207763672,
+        "ymin": 0.12141264230012894,
+        "xmax": -77.64832305908203,
+        "ymax": 1.7157816886901855
+      },
+      {
+        "xmin": -53.12041473388672,
+        "ymin": 0.381050169467926,
+        "xmax": -49.880470275878906,
+        "ymax": 2.443098306655884
+      },
+      {
+        "xmin": -49.0699348449707,
+        "ymin": -0.7905954122543335,
+        "xmax": -48.38216781616211,
+        "ymax": -0.22461359202861786
+      },
+      {
+        "xmin": -48.86402130126953,
+        "ymin": -0.741094172000885,
+        "xmax": -48.606346130371094,
+        "ymax": -0.5951605439186096
+      },
+      {
+        "xmin": -78.64464569091797,
+        "ymin": -10.21786880493164,
+        "xmax": -77.17024993896484,
+        "ymax": -7.964315891265869
+      },
+      {
+        "xmin": -77.79460144042969,
+        "ymin": -10.735417366027832,
+        "xmax": -76.80011749267578,
+        "ymax": -9.826574325561523
+      }
+    ],
+    "decoded_geometry_types": [
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6
+    ],
+    "outlet_lon": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "outlet_lat": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "source_identity": [
+      {
+        "id": 1,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "109",
+        "parent_id": null
+      },
+      {
+        "id": 2,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "133",
+        "parent_id": null
+      },
+      {
+        "id": 3,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "250",
+        "parent_id": null
+      },
+      {
+        "id": 4,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "259",
+        "parent_id": null
+      },
+      {
+        "id": 5,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "279",
+        "parent_id": null
+      },
+      {
+        "id": 6,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "318",
+        "parent_id": null
+      },
+      {
+        "id": 7,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "332",
+        "parent_id": null
+      },
+      {
+        "id": 8,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "358",
+        "parent_id": null
+      },
+      {
+        "id": 9,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "379",
+        "parent_id": null
+      },
+      {
+        "id": 10,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "388",
+        "parent_id": null
+      },
+      {
+        "id": 11,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "391",
+        "parent_id": null
+      },
+      {
+        "id": 12,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "394",
+        "parent_id": null
+      },
+      {
+        "id": 13,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "598",
+        "parent_id": null
+      },
+      {
+        "id": 14,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "707",
+        "parent_id": null
+      },
+      {
+        "id": 15,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "2023",
+        "parent_id": null
+      },
+      {
+        "id": 16,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "2227",
+        "parent_id": null
+      }
+    ]
+  },
+  "paired_nullable_outlet_witness": {
+    "ids": [
+      1
+    ],
+    "levels": [
+      0
+    ],
+    "schema_sha256": "9ef5ce58520aaf5bf08c52c0d38d51d8b6ec9a77d6f576248fbb540a2d3e921a",
+    "complete_arrow_stream_sha256": "7bac3cc8d26cee27efd0e62655f2cc1a1d31064c462b1d248f77e270429ee679",
+    "wkb_sha256_each": [
+      "332904994870986900f83018a75368846392c31598215085cbc4488c7dceecfb"
+    ],
+    "bbox": [
+      {
+        "xmin": -79.61760711669922,
+        "ymin": -20.498323440551758,
+        "xmax": -45.822383880615234,
+        "ymax": 5.280751705169678
+      }
+    ],
+    "decoded_geometry_types": [
+      6
+    ],
+    "outlet_lon": [
+      null
+    ],
+    "outlet_lat": [
+      null
+    ],
+    "source_identity": [
+      {
+        "id": 1,
+        "source_namespace": "grit:1.0:GLOBAL:component_catchments:component_catchments__1",
+        "source_id": "109",
+        "parent_id": null
+      }
+    ]
+  },
+  "paired_nullable_outlet_search": "first original data batch only; no global search",
+  "hash_convention": "original full schema Arrow stream after combine_chunks; exact per-row WKB SHA256; source-schema serialized bytes SHA256",
+  "helper_sha256": "5f49f0846d9dc137d3595b4bb85c70dcfdf607266007ce859d3d7b77943f6b52",
+  "script_sha256": "526038d123403a1a0ef22bc80dcd48c5ea07222df9840f245c34523b661bea37"
+}

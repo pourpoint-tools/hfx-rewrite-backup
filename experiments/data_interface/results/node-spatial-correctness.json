@@ -1,0 +1,52 @@
+{
+  "source_oracle_row_equality": true,
+  "oracle_original_stream_hash": "8f7f35986263df68898a4bfecd14e1b8311aa1d62214ea9e1339b8dad1a8a56d",
+  "original_requested_projection_hash": "bd46c3ffc628dfb39f6e37b4b2d67ac5ee7447d764795f4b159fa3fb63e87f62",
+  "requested_columns": [
+    "id",
+    "level",
+    "bbox",
+    "coarser_node_id"
+  ],
+  "original_source_order_columns": [
+    "id",
+    "level",
+    "source_namespace",
+    "source_id",
+    "coarser_node_id",
+    "bbox",
+    "geometry",
+    "source_fid",
+    "source_cat",
+    "source_global_id",
+    "source_catchment_id",
+    "source_upstream_line_ids",
+    "source_downstream_line_ids",
+    "source_node_type",
+    "source_grwl_value",
+    "source_width",
+    "source_grwl_transition",
+    "source_cycle",
+    "source_continuity_violated",
+    "source_drainage_area",
+    "source_drainage_area_mainstem",
+    "source_downstream_width_share",
+    "source_n_bifurcations_upstream",
+    "source_domain",
+    "source_segment_node_id",
+    "source_n_segments"
+  ],
+  "layouts": {
+    "original": {
+      "independent_bbox_ids_match": true,
+      "exact_native_rows_schema_nulls_match": true,
+      "hash": "bd46c3ffc628dfb39f6e37b4b2d67ac5ee7447d764795f4b159fa3fb63e87f62"
+    },
+    "candidate": {
+      "independent_bbox_ids_match": true,
+      "exact_native_rows_schema_nulls_match": true,
+      "hash": "bd46c3ffc628dfb39f6e37b4b2d67ac5ee7447d764795f4b159fa3fb63e87f62"
+    }
+  },
+  "serialization_note": "Oracle serialized source field order while timed output uses caller projection order; source/candidate agree exactly after projecting to identical field order. No source values changed."
+}

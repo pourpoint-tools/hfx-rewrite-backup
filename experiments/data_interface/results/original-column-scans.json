@@ -1,0 +1,151 @@
+{
+  "status": "initial observations; later clean repetitions pending",
+  "cache": "fresh process, uncontrolled filesystem; no cold claim",
+  "limitations": "river full initial run overlapped tail input hashing; all times include Python census, no geometry decode",
+  "families": {
+    "rivers": {
+      "full": {
+        "mode": "full",
+        "columns": [
+          "id",
+          "source_length",
+          "source_is_mainstem"
+        ],
+        "scan_seconds": 39.87484312499873,
+        "batch_read_seconds": 30.838706600363366,
+        "column_select_and_census_seconds": 9.027614112594165,
+        "scan_serialized_read_calls": 87256,
+        "scan_serialized_read_bytes": 9515228512,
+        "rows": 22337300,
+        "batches": 87256,
+        "materialized_logical_bytes_total": 18591171328,
+        "requested_logical_bytes_total": 538666499,
+        "null_counts": {
+          "id": 0,
+          "source_length": 0,
+          "source_is_mainstem": 20570235
+        },
+        "process_peak_rss_bytes": 239386624
+      },
+      "projected": {
+        "mode": "projected",
+        "columns": [
+          "id",
+          "source_length",
+          "source_is_mainstem"
+        ],
+        "scan_seconds": 4.578604249982163,
+        "batch_read_seconds": 2.9133387484471314,
+        "column_select_and_census_seconds": 1.656432262272574,
+        "scan_serialized_read_calls": 429378,
+        "scan_serialized_read_bytes": 418558819,
+        "rows": 22337300,
+        "batches": 87256,
+        "materialized_logical_bytes_total": 538666499,
+        "requested_logical_bytes_total": 538666499,
+        "null_counts": {
+          "id": 0,
+          "source_length": 0,
+          "source_is_mainstem": 20570235
+        },
+        "process_peak_rss_bytes": 66207744
+      }
+    },
+    "nodes": {
+      "full": {
+        "mode": "full",
+        "columns": [
+          "id",
+          "source_node_type",
+          "source_drainage_area"
+        ],
+        "scan_seconds": 23.167920917039737,
+        "batch_read_seconds": 17.420089560502674,
+        "column_select_and_census_seconds": 5.738319891621359,
+        "scan_serialized_read_calls": 87027,
+        "scan_serialized_read_bytes": 1388706120,
+        "rows": 22278858,
+        "batches": 87027,
+        "materialized_logical_bytes_total": 5634434136,
+        "requested_logical_bytes_total": 464363146,
+        "null_counts": {
+          "id": 0,
+          "source_node_type": 20541014,
+          "source_drainage_area": 20541016
+        },
+        "process_peak_rss_bytes": 65372160
+      },
+      "projected": {
+        "mode": "projected",
+        "columns": [
+          "id",
+          "source_node_type",
+          "source_drainage_area"
+        ],
+        "scan_seconds": 4.557505999982823,
+        "batch_read_seconds": 2.7253178562386893,
+        "column_select_and_census_seconds": 1.823061614879407,
+        "scan_serialized_read_calls": 514536,
+        "scan_serialized_read_bytes": 200763350,
+        "rows": 22278858,
+        "batches": 87027,
+        "materialized_logical_bytes_total": 464363146,
+        "requested_logical_bytes_total": 464363146,
+        "null_counts": {
+          "id": 0,
+          "source_node_type": 20541014,
+          "source_drainage_area": 20541016
+        },
+        "process_peak_rss_bytes": 58327040
+      }
+    },
+    "catchments": {
+      "full": {
+        "mode": "full",
+        "columns": [
+          "id",
+          "area_km2",
+          "source_area"
+        ],
+        "scan_seconds": 43.27120970800752,
+        "batch_read_seconds": 38.64410637289984,
+        "column_select_and_census_seconds": 4.617554672178812,
+        "scan_serialized_read_calls": 87613,
+        "scan_serialized_read_bytes": 23814078536,
+        "rows": 22419857,
+        "batches": 87613,
+        "materialized_logical_bytes_total": 47506835466,
+        "requested_logical_bytes_total": 448397140,
+        "null_counts": {
+          "id": 0,
+          "area_km2": 0,
+          "source_area": 0
+        },
+        "process_peak_rss_bytes": 433274880
+      },
+      "projected": {
+        "mode": "projected",
+        "columns": [
+          "id",
+          "area_km2",
+          "source_area"
+        ],
+        "scan_seconds": 4.39200054196408,
+        "batch_read_seconds": 2.7155474043102004,
+        "column_select_and_census_seconds": 1.6675041650305502,
+        "scan_serialized_read_calls": 350452,
+        "scan_serialized_read_bytes": 404221646,
+        "rows": 22419857,
+        "batches": 87613,
+        "materialized_logical_bytes_total": 448397140,
+        "requested_logical_bytes_total": 448397140,
+        "null_counts": {
+          "id": 0,
+          "area_km2": 0,
+          "source_area": 0
+        },
+        "process_peak_rss_bytes": 75464704
+      }
+    }
+  }
+}

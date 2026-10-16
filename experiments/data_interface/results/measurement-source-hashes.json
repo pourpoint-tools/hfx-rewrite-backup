@@ -1,0 +1,22 @@
+{
+  "note": "Original measured external script hashes before package/import/CLI cleanup; measured numerical operations unchanged. Final source lives in this experiment.",
+  "sha256": {
+    "record_probe.py": "729141936b323dcf592b02f335a9e82373cf9009c334259eb49f7b11127eecd7",
+    "test_record_probe.py": "b543922925a94d8b77804cd4456ceb432b528dcae660228f09e0879d4e1493e1",
+    "traversal_probe.py": "d1b22bc60ff65598b80487213b045727f6914004eb9ebffbbb91f3e2b83d20ba",
+    "test_traversal_probe.py": "2aa789f0f9f4b2b6ab732d13a49d1c51e0d0fb355eaff50b000ca8aef653d6ee",
+    "baseline_column_scan.py": "502e29f014aaa88bbdd4ea20e4b48eae3b8f2ee96b839b9d797789e6a5dade38",
+    "relation_baseline.py": "36a407d57bf29405291825fe597194d0a218c9001f2f4a1fe8c3d91130fb46d5",
+    "test_relation_baseline.py": "6af09d46d1686a1a8ad918329e14b530be6b26d8fbe247215e40448b0cdbe040",
+    "establish_workloads.py": "5f49f0846d9dc137d3595b4bb85c70dcfdf607266007ce859d3d7b77943f6b52",
+    "catchment_flow_oracle.py": "fe213ff59d322b2775a3822a76d99e4b3b09260de50caf32761dd08896ba962a",
+    "source_node_spatial.py": "b6ea054f13042b1247a0e90e4f4ecc7df7c0449008f7cd464c3721f5054a6004",
+    "association_probe.py": "073b162fa230b7955b1705b8549b27c9ffc9eccb7c720acc18a2b47c5c7e085b",
+    "test_association_probe.py": "35633e1e124b33f1faf5264ad30b7ac3bb2f7a483117362329cdf66b7edbbff4",
+    "test_catchment_flow_oracle.py": "c8b9664a091d86c6418186a86708c87f8c4c1b2bd4dc93393c7eb928904b3de3",
+    "test_source_node_spatial.py": "c3ce94d8f2e0d2b257dc2d1ede29bedf8879dfacaf42409d53dc0ecd3880cc94",
+    "establish_catchment_records.py": "526038d123403a1a0ef22bc80dcd48c5ea07222df9840f245c34523b661bea37",
+    "baseline_graph_spatial.py": "2571b5a7e7925b6d8205220d08aa6da2711aae799d3e0440e55c7be26f199fbd",
+    "test_baseline_graph_spatial.py": "14b3ce1942a2990d26d5bbac4f811cda48cdfc4ba8b8848129b372b2a2cd0070"
+  }
+}
