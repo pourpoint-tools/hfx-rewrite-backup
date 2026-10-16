@@ -88,7 +88,7 @@ Four trials are excluded from elapsed comparisons: all three catchment elongated
 variants and original catchment source-boundary. An accidental duplicate command
 had overlapping process lifetimes; exact timed-phase overlap is unknown. Its
 exclusive-create failure did not overwrite a successful receipt. The compact data
-retains raw timings with `elapsed_claim_eligible=false` and null comparison times.
+retains raw timings with `elapsed_claim_eligible=false`; the table omits them.
 Their correctness and serialized-byte evidence remains, but their elapsed values
 must not support a layout claim.
 
@@ -108,7 +108,9 @@ or a read-ahead bound. No exact compressed-WKB overread ratio is inferred.
 Use the [current reproduction commands](REPRODUCE.md#current-workload-and-workflow-probes)
 with the same columns, source witnesses and reader options across layouts. The
 measured reader commit is `528a58865f6992cf57af1771fbea13afff976519`; per-trial code,
-wrapper, workload and receipt hashes are in the local JSON. The current source-only
+wrapper, workload and receipt hashes are in the local JSON. Its audit binding
+identifies the full immutable external aggregation; duplicated cumulative snapshots
+and comparison tables are omitted from the committed projection. The current source-only
 generator reproduces all old and added witness entries exactly, excluding intentional
 extension timing/provenance fields. New generated-file hashes do not replace the
 original workload hashes bound to measured receipts. Full request logs, bulk data
