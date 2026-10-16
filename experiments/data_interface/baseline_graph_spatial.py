@@ -102,14 +102,20 @@ def candidate_groups(file: pq.ParquetFile, bbox: Bounds, levels: tuple[int, ...]
     return groups
 
 
-def select_graph(file: pq.ParquetFile, envelope: Bounds, levels: tuple[int, ...] | None) -> dict[str, Any]:
+def select_graph(
+    file: pq.ParquetFile, envelope: Bounds, levels: tuple[int, ...] | None, *, grouped: bool = False
+) -> dict[str, Any]:
     groups = candidate_groups(file, envelope, levels)
     pieces: list[npt.NDArray[np.int64]] = []
     materialized = 0
     materialized_bytes = 0
     largest_materialized_buffer = 0
-    for group in groups:
-        table = file.read_row_group(group, columns=COLUMNS, use_threads=False)
+    tables = (
+        file.iter_batches(row_groups=groups, columns=COLUMNS, use_threads=False)
+        if grouped
+        else (file.read_row_group(group, columns=COLUMNS, use_threads=False) for group in groups)
+    )
+    for table in tables:
         if any(table[column].null_count for column in COLUMNS):
             raise ValueError("Null consumed graph fields")
         materialized += table.num_rows
