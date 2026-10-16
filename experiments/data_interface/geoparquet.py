@@ -387,6 +387,8 @@ def main() -> None:
     parser.add_argument("output", type=Path)
     parser.add_argument("--receipt", type=Path, required=True)
     args = parser.parse_args()
+    if args.receipt.resolve() == args.output.resolve():
+        raise ValueError("receipt must differ from output artifact")
     if args.receipt.exists():
         raise FileExistsError(args.receipt)
     if args.receipt.resolve().is_relative_to(args.source.parent.resolve()):

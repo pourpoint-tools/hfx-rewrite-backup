@@ -1,5 +1,6 @@
 import json
 import struct
+import sys
 from pathlib import Path
 
 import pyarrow as pa
@@ -10,6 +11,7 @@ import pytest
 from experiments.data_interface.geoparquet import (
     GeoParquetAccess,
     exact_array,
+    main,
     verify_geoparquet,
     wkb_type,
     write_geoparquet,
@@ -185,3 +187,14 @@ def test_retained_parquet_reader_spatial_and_known_ids(tmp_path: Path) -> None:
         assert access.reader is reader
     finally:
         access.close()
+
+
+def test_cli_rejects_receipt_output_collision_before_write(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    source = source_file(tmp_path)
+    output = tmp_path / "rivers.parquet"
+    monkeypatch.setattr(
+        sys, "argv", ["geoparquet", str(source), str(output), "--receipt", str(output.parent / "." / output.name)]
+    )
+    with pytest.raises(ValueError, match="receipt.*output"):
+        main()
+    assert not output.exists()
