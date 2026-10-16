@@ -7,7 +7,13 @@ import pyarrow.ipc as ipc
 import pyarrow.parquet as pq
 import pytest
 
-from experiments.data_interface.geoparquet import exact_array, verify_geoparquet, wkb_type, write_geoparquet
+from experiments.data_interface.geoparquet import (
+    GeoParquetAccess,
+    exact_array,
+    verify_geoparquet,
+    wkb_type,
+    write_geoparquet,
+)
 from hfx.candidates import fingerprint
 
 
@@ -130,3 +136,52 @@ def test_output_cannot_mutate_input_bundle(tmp_path: Path) -> None:
     source = source_file(tmp_path)
     with pytest.raises(ValueError, match="source bundle"):
         write_geoparquet(source, source.parent / "new.parquet")
+
+
+def test_retained_parquet_reader_spatial_and_known_ids(tmp_path: Path) -> None:
+    source = source_file(tmp_path)
+    lookup_schema = pa.schema(
+        [pa.field("id", pa.int64(), False), pa.field("block", pa.int32(), False), pa.field("row", pa.int32(), False)],
+        metadata={b"hfx:data_sha256": fingerprint(source)["sha256"].encode()},
+    )
+    with ipc.new_file(str(source.parent / "lookup.arrow"), lookup_schema) as writer:
+        writer.write_batch(
+            pa.RecordBatch.from_arrays(
+                [pa.array([1, 2, 3]), pa.array([0, 0, 1], type=pa.int32()), pa.array([0, 1, 0], type=pa.int32())],
+                schema=lookup_schema,
+            )
+        )
+    (source.parent / "directory.json").write_text(
+        json.dumps({"batches": [{"batch": 0, "min_id": 1, "max_id": 3, "rows": 3}]})
+    )
+    manifest = {
+        "families": {"rivers": {"data": source.name, "lookup": "lookup.arrow", "directory": "directory.json"}},
+        "artifacts": {p.name: fingerprint(p) for p in source.parent.iterdir() if p.name != "manifest.json"},
+    }
+    (source.parent / "manifest.json").write_text(json.dumps(manifest))
+    output = tmp_path / "rivers.parquet"
+    receipt = write_geoparquet(source, output)
+    with pytest.raises(ValueError, match="candidate source binding"):
+        GeoParquetAccess(str(output), str(source.parent), {**receipt, "source_artifact_sha256": "0" * 64})
+    access = GeoParquetAccess(str(output), str(source.parent), receipt)
+    try:
+        selected = access.spatial((1.5, -1.0, 2.5, 1.0), ["geometry", "id"])
+        assert selected.column("id").to_pylist() == [2]
+        assert selected.column_names == ["geometry", "id"]
+        assert access.last_groups == [0]
+        table, absent = access.ids([3, 4, 1, 3], ["id", "geometry"])
+        assert table.column("id").to_pylist() == [3, 1, 3]
+        assert absent == [4]
+        missing, absent = access.ids([40], ["geometry", "id"])
+        assert missing.num_rows == 0 and absent == [40]
+        with pytest.raises(ValueError, match="selected ID"):
+            access.records({0: [(0, 3)]}, ["id"])
+        with pytest.raises(ValueError, match="out of bounds"):
+            access.records({0: [(2, 1)]}, ["id"])
+        assert access.stats()["local_read_calls"] > 0
+        reader = access.reader
+        empty = access.spatial((20.0, 0.0, 21.0, 1.0), ["id"])
+        assert empty.num_rows == 0
+        assert access.reader is reader
+    finally:
+        access.close()

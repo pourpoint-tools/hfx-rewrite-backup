@@ -6,18 +6,24 @@ import argparse
 import hashlib
 import json
 import struct
+from bisect import bisect_left
 from collections import Counter
 from pathlib import Path
 from time import perf_counter
 from typing import Any, cast
+from urllib.parse import urljoin
 
+import numpy as np
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.ipc as ipc
 import pyarrow.parquet as pq
 
+from experiments.data_interface.baseline_graph_spatial import conservative
 from experiments.data_interface.build import peak_rss
+from experiments.data_interface.probe import CountFile
 from hfx.candidates import fingerprint
+from scripts.check_vector_access import HTTP, Fingerprint, RangeFile
 
 BBOX_LEAVES = [f"bbox.{name}" for name in ("xmin", "ymin", "xmax", "ymax")]
 GEO = {
@@ -187,6 +193,192 @@ def verify_geoparquet(source: Path, output: Path, receipt: dict[str, Any]) -> di
             "elapsed_including_fingerprints_s": perf_counter() - started,
             "process_lifetime_peak_rss_bytes": peak_rss(),
         }
+
+
+class GeoParquetAccess:
+    """Retained experiment reader; candidate locators address unchanged groups/rows."""
+
+    def __init__(self, artifact: str, candidate: str, binding: dict[str, Any]) -> None:
+        self.http = HTTP()
+        self.files: list[CountFile | RangeFile] = []
+        self.pafiles: list[pa.PythonFile] = []
+        self.candidate = candidate.rstrip("/") + "/"
+        self.binding = binding
+        manifest_bytes = (
+            self.http.get(urljoin(self.candidate, "manifest.json"))
+            if candidate.startswith("http")
+            else (Path(candidate) / "manifest.json").read_bytes()
+        )
+        if hashlib.sha256(manifest_bytes).hexdigest() != binding["source_manifest_sha256"]:
+            raise ValueError("candidate manifest binding differs")
+        self.manifest = json.loads(manifest_bytes)
+        self.declaration = self.manifest["families"]["rivers"]
+        identity = self.manifest["artifacts"][self.declaration["data"]]
+        if (
+            identity["sha256"] != binding["source_artifact_sha256"]
+            or self.declaration["data"] != binding["source_artifact"]
+        ):
+            raise ValueError("candidate source binding differs")
+        self.reader = pq.ParquetFile(self.open(artifact, binding["artifact"]), pre_buffer=True)
+        if [self.reader.metadata.row_group(i).num_rows for i in range(self.reader.num_row_groups)] != binding[
+            "row_group_rows"
+        ]:
+            raise ValueError("locator row group mapping differs")
+        self.lookup: ipc.RecordBatchFileReader | None = None
+        self.directory: list[dict[str, Any]] = []
+        self.last_groups: list[int] = []
+        self.materialized_rows = self.materialized_bytes = self.materialized_geometry_bytes = 0
+        self.discovery_groups: list[int] = []
+
+    def open(self, location: str, identity: dict[str, Any]) -> pa.PythonFile:
+        if location.startswith("http"):
+            raw: CountFile | RangeFile = RangeFile(self.http, location, cast(Fingerprint, identity))
+        else:
+            path = Path(location)
+            if path.stat().st_size != identity["size_bytes"]:
+                raise ValueError("local artifact size differs")
+            local = CountFile(path)
+            width = min(65536, identity["size_bytes"])
+            for offset, key in [(0, "head_sha256"), (identity["size_bytes"] - width, "tail_sha256")]:
+                local.seek(offset)
+                if hashlib.sha256(local.read(width)).hexdigest() != identity[key]:
+                    raise ValueError("local bounded fingerprint differs")
+            local.seek(0)
+            raw = local
+        self.files.append(raw)
+        stream = pa.PythonFile(raw, mode="r")
+        self.pafiles.append(stream)
+        return stream
+
+    def read_groups(self, groups: list[int], columns: list[str]) -> pa.Table:
+        table = self.reader.read_row_groups(groups, columns=columns).select(columns)
+        self.materialized_rows += table.num_rows
+        self.materialized_bytes += table.nbytes
+        if "geometry" in columns:
+            self.materialized_geometry_bytes += table.column("geometry").nbytes
+        return table
+
+    def records(self, addresses: dict[int, list[tuple[int, int]]], columns: list[str]) -> pa.Table:
+        groups = sorted(addresses)
+        names = list(dict.fromkeys([*columns, "id"]))
+        table = self.read_groups(groups, names)
+        positions: list[int] = []
+        expected_ids: list[int] = []
+        offset = 0
+        for group in groups:
+            size = self.reader.metadata.row_group(group).num_rows
+            for row, identity in addresses[group]:
+                if row < 0 or row >= size:
+                    raise ValueError("locator row out of bounds")
+                positions.append(offset + row)
+                expected_ids.append(identity)
+            offset += size
+        selected = table.take(pa.array(positions, type=pa.int64()))
+        if selected.column("id").to_pylist() != expected_ids:
+            raise ValueError("locator selected ID differs")
+        self.last_groups = groups
+        return selected.select(columns)
+
+    def ids(self, requested: list[int], columns: list[str]) -> tuple[pa.Table, list[int]]:
+        if any(value <= 0 for value in requested):
+            raise ValueError("IDs must be positive")
+        if self.lookup is None:
+            name = self.declaration["lookup"]
+            self.lookup = ipc.open_file(self.open(urljoin(self.candidate, name), self.manifest["artifacts"][name]))
+            if (self.lookup.schema.metadata or {}).get(b"hfx:data_sha256") != self.binding[
+                "source_artifact_sha256"
+            ].encode():
+                raise ValueError("candidate lookup binding differs")
+            name = self.declaration["directory"]
+            data = self.open(urljoin(self.candidate, name), self.manifest["artifacts"][name]).read()
+            if hashlib.sha256(data).hexdigest() != self.manifest["artifacts"][name]["sha256"]:
+                raise ValueError("directory binding differs")
+            self.directory = json.loads(data)["batches"]
+        maxima = [entry["max_id"] for entry in self.directory]
+        # The candidate lookup remains authoritative for its original IPC SHA;
+        # this receipt independently binds the unchanged (group,row) mapping.
+        lookup_groups: dict[int, list[int]] = {}
+        for value in sorted(set(requested)):
+            index = bisect_left(maxima, value)
+            if index < len(maxima) and self.directory[index]["min_id"] <= value:
+                lookup_groups.setdefault(index, []).append(value)
+        addresses: dict[int, list[tuple[int, int]]] = {}
+        for index, wanted in lookup_groups.items():
+            batch = self.lookup.get_batch(index)
+            values = batch.column("id").to_numpy()
+            for value in wanted:
+                row = int(np.searchsorted(values, value))
+                if row < len(values) and values[row] == value:
+                    addresses.setdefault(batch.column("block")[row].as_py(), []).append(
+                        (batch.column("row")[row].as_py(), value)
+                    )
+        names = list(dict.fromkeys([*columns, "id"]))
+        table = self.records(addresses, names)
+        positions = {value: row for row, value in enumerate(table.column("id").to_pylist())}
+        absent = sorted(set(requested) - positions.keys())
+        return table.take(
+            pa.array([positions[value] for value in requested if value in positions], type=pa.int64())
+        ).select(columns), absent
+
+    def spatial(
+        self, window: tuple[float, float, float, float], columns: list[str], level: int | None = None
+    ) -> pa.Table:
+        bbox = conservative(window)
+        indices = {self.reader.metadata.schema.column(i).path: i for i in range(self.reader.metadata.num_columns)}
+        groups = []
+        for index in range(self.reader.num_row_groups):
+            group = self.reader.metadata.row_group(index)
+            stats = [group.column(indices[name]).statistics for name in BBOX_LEAVES]
+            if any(stat is None or not stat.has_min_max for stat in stats):
+                groups.append(index)
+                continue
+            numeric = cast(list[pq.Statistics], stats)
+            lo_x, lo_y, hi_x, hi_y = [cast(float, stat.min if i < 2 else stat.max) for i, stat in enumerate(numeric)]
+            if lo_x <= bbox[2] and lo_y <= bbox[3] and hi_x >= bbox[0] and hi_y >= bbox[1]:
+                groups.append(index)
+        self.discovery_groups = groups
+        bounds = self.read_groups(groups, ["id", "level", "bbox"])
+        addresses: dict[int, list[tuple[int, int]]] = {}
+        offset = 0
+        for group in groups:
+            size = self.reader.metadata.row_group(group).num_rows
+            piece = bounds.slice(offset, size)
+            limits = cast(pa.StructArray, piece.column("bbox").combine_chunks())
+            lo_x, lo_y, hi_x, hi_y = [limits.field(name).to_numpy() for name in ("xmin", "ymin", "xmax", "ymax")]
+            mask = (lo_x <= bbox[2]) & (lo_y <= bbox[3]) & (hi_x >= bbox[0]) & (hi_y >= bbox[1])
+            if level is not None:
+                mask &= piece.column("level").to_numpy() == level
+            ids = cast(list[int], piece.column("id").to_pylist())
+            for row in np.flatnonzero(mask).tolist():
+                addresses.setdefault(group, []).append((row, ids[row]))
+            offset += size
+        return self.records(addresses, columns)
+
+    def stats(self) -> dict[str, Any]:
+        return {
+            "http_requests": len(self.http.requests),
+            "http_body_bytes": sum(item["bytes"] for item in self.http.requests),
+            "local_read_calls": sum(file.reads for file in self.files if isinstance(file, CountFile)),
+            "local_read_bytes": sum(file.bytes for file in self.files if isinstance(file, CountFile)),
+            "materialized_rows": self.materialized_rows,
+            "materialized_bytes": self.materialized_bytes,
+            "materialized_geometry_bytes": self.materialized_geometry_bytes,
+            "discovery_groups": self.discovery_groups,
+            "record_groups": self.last_groups,
+            "retained_bounded_range_bytes": sum(
+                sum(len(data) for _, data in raw.regions) for raw in self.files if isinstance(raw, RangeFile)
+            ),
+            "footer_bytes": self.reader.metadata.serialized_size,
+        }
+
+    def close(self) -> None:
+        self.reader.close()
+        for stream in self.pafiles:
+            stream.close()
+        for raw in self.files:
+            if isinstance(raw, CountFile):
+                raw.stream.close()
+            raw.close()
 
 
 def main() -> None:
