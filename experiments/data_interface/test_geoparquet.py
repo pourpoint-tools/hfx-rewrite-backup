@@ -160,6 +160,15 @@ def test_retained_parquet_reader_spatial_and_known_ids(tmp_path: Path) -> None:
         "families": {"rivers": {"data": source.name, "lookup": "lookup.arrow", "directory": "directory.json"}},
         "artifacts": {p.name: fingerprint(p) for p in source.parent.iterdir() if p.name != "manifest.json"},
     }
+    original = tmp_path / "original"
+    original.mkdir()
+    for name in (source.name, "lookup.arrow", "directory.json"):
+        (original / name).write_bytes((source.parent / name).read_bytes())
+    original_manifest = {"rivers": manifest["families"]["rivers"]}
+    (original / "manifest.json").write_text(json.dumps(original_manifest))
+    import hashlib
+
+    manifest["input_manifest_sha256"] = hashlib.sha256((original / "manifest.json").read_bytes()).hexdigest()
     (source.parent / "manifest.json").write_text(json.dumps(manifest))
     output = tmp_path / "rivers.parquet"
     receipt = write_geoparquet(source, output)
@@ -187,6 +196,27 @@ def test_retained_parquet_reader_spatial_and_known_ids(tmp_path: Path) -> None:
         assert access.reader is reader
     finally:
         access.close()
+    from experiments.data_interface.geoparquet_probe import measure
+
+    bundle = tmp_path / "derived"
+    bundle.mkdir()
+    (bundle / output.name).write_bytes(output.read_bytes())
+    (bundle / "manifest.json").write_text(
+        json.dumps({"artifact": output.name, "binding": receipt, "verification": {"status": "passed"}})
+    )
+    result = measure(str(bundle), str(source.parent), original, ["geometry", "id", "native"], [2, 1, 2], 2)
+    assert [item["output_rows"] for item in result["repeats"]] == [3, 3]
+    assert all(item["validation"]["semantic_equal"] for item in result["repeats"])
+    assert result["opening"]["local_read_calls"] > 0
+    from experiments.data_interface.record_probe import id_hash
+
+    window = {
+        "bounds_epsg4326": [1.5, -1.0, 2.5, 1.0],
+        "all_tiers": {"count": 1, "sorted_ids_sha256_le_i64": id_hash([2])},
+    }
+    spatial = measure(str(bundle), str(source.parent), original, ["geometry", "id", "native"], [], 2, window)
+    assert spatial["phase"] == "spatial_discovery_and_fetch"
+    assert all(item["output_rows"] == 1 for item in spatial["repeats"])
 
 
 def test_cli_rejects_receipt_output_collision_before_write(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -198,3 +228,23 @@ def test_cli_rejects_receipt_output_collision_before_write(tmp_path: Path, monke
     with pytest.raises(ValueError, match="receipt.*output"):
         main()
     assert not output.exists()
+
+
+def test_probe_removes_only_exact_additive_geo_metadata(tmp_path: Path) -> None:
+    from experiments.data_interface.geoparquet_probe import source_schema_table
+
+    source = source_file(tmp_path)
+    output = tmp_path / "rivers.parquet"
+    write_geoparquet(source, output)
+    actual = pq.ParquetFile(output).read().select(["geometry", "id", "native"])
+    expected = ipc.open_file(str(source)).read_all().select(["geometry", "id", "native"])
+    restored = source_schema_table(actual)
+    assert restored.schema.equals(expected.schema, check_metadata=True)
+    assert all(
+        exact_array(restored.column(name).combine_chunks(), expected.column(name).combine_chunks())
+        for name in expected.column_names
+    )
+    changed = actual.replace_schema_metadata({**actual.schema.metadata, b"source": b"changed"})
+    assert not source_schema_table(changed).schema.equals(expected.schema, check_metadata=True)
+    with pytest.raises(ValueError, match="geo metadata"):
+        source_schema_table(actual.replace_schema_metadata({**actual.schema.metadata, b"geo": b"{}"}))

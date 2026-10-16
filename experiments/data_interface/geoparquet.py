@@ -251,7 +251,7 @@ class GeoParquetAccess:
         return stream
 
     def read_groups(self, groups: list[int], columns: list[str]) -> pa.Table:
-        table = self.reader.read_row_groups(groups, columns=columns).select(columns)
+        table = self.reader.read_row_groups(groups, columns=columns, use_threads=False).select(columns)
         self.materialized_rows += table.num_rows
         self.materialized_bytes += table.nbytes
         if "geometry" in columns:
