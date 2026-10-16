@@ -1,0 +1,1570 @@
+{
+  "scope": "source-only correctness inventory; no timing or candidate",
+  "versions": {
+    "pyarrow": "25.0.1",
+    "numpy": "2.5.3",
+    "shapely": "2.2.0"
+  },
+  "manifest_sha256": "b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db",
+  "hash_convention": "ID hashes SHA256 contiguous little-endian signed int64; Arrow stream hashes combine chunks with original projected/full schema; exact WKB hashes per row",
+  "limitations": [
+    "bbox overlap oracle is not exact geometry selection",
+    "small selected geometry witnesses do not certify global intersections",
+    "source order/batch-boundary windows are not candidate block boundaries",
+    "catchment IPC remains outside this run while acquisition proceeds"
+  ],
+  "rivers_records": {
+    "data": "$SOURCE/rivers.arrow",
+    "batch_count": 87256,
+    "row_based_selection": "first row; middle row of middle batch; last row (not arithmetic IDs)",
+    "scattered_ids": [
+      1,
+      11168897,
+      22337300
+    ],
+    "clustered_ids": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "scattered_complete_records": {
+      "ids": [
+        1,
+        11168897,
+        22337300
+      ],
+      "levels": [
+        0,
+        1,
+        1
+      ],
+      "schema_sha256": "a01a9a77f66c9353f1913f2b11a97b61ab64dd915452f47896f80b2720050f6e",
+      "complete_arrow_stream_sha256": "99061a8d2dc792bf244062e8464a1b570cec4b443207ebc78e9d62f94ac43343",
+      "wkb_sha256_each": [
+        "a1305d2a81dd8910d7c10f6e91adc614b7e46235a40182dd0fd3270fa8bbd962",
+        "1fa0262e5b2b0bf24b85154147659c97613efd4e4f9098cfd4216a219e781c91",
+        "3165f4820808edb8c811b00c5b92d257b39d3c1eba503e104a1213277f1b1a1e"
+      ],
+      "bbox": [
+        {
+          "xmin": -1.1532237529754639,
+          "ymin": 17.067869186401367,
+          "xmax": -1.1317814588546753,
+          "ymax": 17.07240867614746
+        },
+        {
+          "xmin": 1.857858419418335,
+          "ymin": 41.64094543457031,
+          "xmax": 1.8670655488967896,
+          "ymax": 41.643524169921875
+        },
+        {
+          "xmin": 129.6592254638672,
+          "ymin": -14.50652027130127,
+          "xmax": 129.66566467285156,
+          "ymax": -14.503992080688477
+        }
+      ],
+      "decoded_geometry_types": [
+        1,
+        1,
+        1
+      ]
+    },
+    "clustered_complete_records": {
+      "ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "levels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "schema_sha256": "a01a9a77f66c9353f1913f2b11a97b61ab64dd915452f47896f80b2720050f6e",
+      "complete_arrow_stream_sha256": "738a8e043c66d002c5b268db7c636c620952965cf80bef40ef0a0e727b50b46c",
+      "wkb_sha256_each": [
+        "a1305d2a81dd8910d7c10f6e91adc614b7e46235a40182dd0fd3270fa8bbd962",
+        "ffe170a24e21bb21cd98ecc59938406e4f5941bb0be8a1d654c5b28043550601",
+        "b703d5c254b668df7dca4b810714d1527b21a0ad5aa9c274736ec2f5493e8bdb",
+        "4e3d6e8914e5c95816a53bd667b5c54d1ed154e1b959d9c49f05e9ed840352cb",
+        "9de558ab2e6fd6bd3a533998642c5666759631f5b3b5f6f33bb5437282b6bd1a",
+        "3139acdd2edeeffa58ecebe3cbfa460681fd9079e318204c987d95ff1a03993a",
+        "35f314087a4e47d1952113ae4971bb77bfc430cbd7f53ddc8a18ea768876ac9c",
+        "930e132875072152657b916517d49ed8e531a6b901e45daeae5a962663732867",
+        "90b963245d4e089a483f85d1a76448e0c9413f82f9d7b30cdd580b6791f70121",
+        "0ed7076aaaa84a1020cceafa0a000b6203696c470208b000a494afe424ec08f1",
+        "aecb99483796e8487c841fed3e1f60e91b20a0220759590ea184d299d2b75e3a",
+        "8d20c5f2950498a6c18030a314383566beb65ee088d3a589a9c1b0351a6e3445",
+        "b4622599162c74dffafb40ac5392478524194de2870580218f564afe3de09853",
+        "87bebd1b43a6bb67ea5cc174a567cdb6a56c12054e2ba1af4a098fd44272da90",
+        "043bbc2e429a923e33dd5012dcc595eb9439343199d0d9b395c1c28a9d129f31",
+        "4e7f30851b709498893f5f8c13c92abe39ba7b09b7fb4fa006f0308d45ea1731"
+      ],
+      "bbox": [
+        {
+          "xmin": -1.1532237529754639,
+          "ymin": 17.067869186401367,
+          "xmax": -1.1317814588546753,
+          "ymax": 17.07240867614746
+        },
+        {
+          "xmin": -1.1609008312225342,
+          "ymin": 17.07168960571289,
+          "xmax": -1.1532236337661743,
+          "ymax": 17.07431983947754
+        },
+        {
+          "xmin": -1.160578966140747,
+          "ymin": 17.07145118713379,
+          "xmax": -1.1532236337661743,
+          "ymax": 17.072647094726562
+        },
+        {
+          "xmin": -1.1864641904830933,
+          "ymin": 17.063568115234375,
+          "xmax": -1.1605788469314575,
+          "ymax": 17.071691513061523
+        },
+        {
+          "xmin": -1.1736215353012085,
+          "ymin": 17.047327041625977,
+          "xmax": -1.1557321548461914,
+          "ymax": 17.05712127685547
+        },
+        {
+          "xmin": -1.195696234703064,
+          "ymin": 17.046850204467773,
+          "xmax": -1.173621416091919,
+          "ymax": 17.050195693969727
+        },
+        {
+          "xmin": -1.2090940475463867,
+          "ymin": 17.034908294677734,
+          "xmax": -1.173619270324707,
+          "ymax": 17.04732894897461
+        },
+        {
+          "xmin": -1.0875790119171143,
+          "ymin": 17.024877548217773,
+          "xmax": -1.0622669458389282,
+          "ymax": 17.046852111816406
+        },
+        {
+          "xmin": -1.4930078983306885,
+          "ymin": 17.013652801513672,
+          "xmax": -1.4195235967636108,
+          "ymax": 17.035865783691406
+        },
+        {
+          "xmin": -1.4195237159729004,
+          "ymin": 17.017473220825195,
+          "xmax": -1.3938815593719482,
+          "ymax": 17.033716201782227
+        },
+        {
+          "xmin": -1.4303916692733765,
+          "ymin": 17.031564712524414,
+          "xmax": -1.4195235967636108,
+          "ymax": 17.033716201782227
+        },
+        {
+          "xmin": -1.3938816785812378,
+          "ymin": 17.016996383666992,
+          "xmax": -1.39228093624115,
+          "ymax": 17.017475128173828
+        },
+        {
+          "xmin": -1.2416414022445679,
+          "ymin": 17.003860473632812,
+          "xmax": -1.219566822052002,
+          "ymax": 17.02081871032715
+        },
+        {
+          "xmin": -1.3085108995437622,
+          "ymin": 17.01460838317871,
+          "xmax": -1.2995684146881104,
+          "ymax": 17.02750587463379
+        },
+        {
+          "xmin": -1.4050424098968506,
+          "ymin": 17.00792121887207,
+          "xmax": -1.3938815593719482,
+          "ymax": 17.017475128173828
+        },
+        {
+          "xmin": -1.5377787351608276,
+          "ymin": 17.012218475341797,
+          "xmax": -1.5285052061080933,
+          "ymax": 17.013654708862305
+        }
+      ],
+      "decoded_geometry_types": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  "nodes_records": {
+    "data": "$SOURCE/river-nodes.arrow",
+    "batch_count": 87027,
+    "row_based_selection": "first row; middle row of middle batch; last row (not arithmetic IDs)",
+    "scattered_ids": [
+      1,
+      11139457,
+      22278858
+    ],
+    "clustered_ids": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "scattered_complete_records": {
+      "ids": [
+        1,
+        11139457,
+        22278858
+      ],
+      "levels": [
+        0,
+        1,
+        1
+      ],
+      "schema_sha256": "568d272051397963dc7348d535e5b54fdc347c4c2ceda2d2e9da6b06f0fe2bca",
+      "complete_arrow_stream_sha256": "7f2121c717a045d659f6e5c2cb70b06bce0c5046159e8852668b501fd4329ead",
+      "wkb_sha256_each": [
+        "961ab2451d237e368c3cc85b321618cbddc3d3e7abd963b466333c98df4e7e8f",
+        "792ce35797fe59dc3c32f1de1350a02b0704376cb2481e1036c06e9c46e2c18a",
+        "76e4a92f6e746c9cbcb93e8dd56ec46ea68bfb5fed2a3aedf2693e769eb90a1b"
+      ],
+      "bbox": [
+        {
+          "xmin": -1.1317815780639648,
+          "ymin": 17.067869186401367,
+          "xmax": -1.1317814588546753,
+          "ymax": 17.06787109375
+        },
+        {
+          "xmin": 14.764314651489258,
+          "ymin": 41.13936996459961,
+          "xmax": 14.764315605163574,
+          "ymax": 41.139373779296875
+        },
+        {
+          "xmin": 129.6656494140625,
+          "ymin": -14.503993034362793,
+          "xmax": 129.66566467285156,
+          "ymax": -14.503992080688477
+        }
+      ],
+      "decoded_geometry_types": [
+        0,
+        0,
+        0
+      ]
+    },
+    "clustered_complete_records": {
+      "ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "levels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "schema_sha256": "568d272051397963dc7348d535e5b54fdc347c4c2ceda2d2e9da6b06f0fe2bca",
+      "complete_arrow_stream_sha256": "2f7a5a90f3c23bad5647eb163afbbe190add9137a868e9bdb34134109b6185fd",
+      "wkb_sha256_each": [
+        "961ab2451d237e368c3cc85b321618cbddc3d3e7abd963b466333c98df4e7e8f",
+        "c04b6b0975662a2aa4af482f672e17e5cd9116c3a4cc46b542351af5d94c12a9",
+        "26a504ebbef08a83d515b3cba6ab19e0d911b9cf6ee0f1b797ebaf7009aee17d",
+        "95c445a92be65a181972b0f04a2efe5e1236ecc06e6474ff867247824459c541",
+        "76d09e05f03c53cd1024852636c6f46da58edac54884c90e74ccd240807f98b7",
+        "e1b54f0d0a52456a3792617478ee1919711af49429c9d6abccc2bc25939f9bad",
+        "804abce325ee58c0352a84e4dc5ff6e98294b707928f227e44142dc399c539bc",
+        "bb8dc65c6cb307e4ba2e42e8ef02751ad9ce761e8ee8e65ae292cb77cb46a5b9",
+        "290d1dba1557ac69c839f573e8d1a19a7bb3f1d5dbb7ace82c5f8468f47fcd77",
+        "3311856013208037a32594c1bb0d3c0b914521a3ea61180f84111c406285fd6c",
+        "0d5e632e4d0e5ec205cc5bd2f5c16ce1e4723186d40da382a07b8cd256444c95",
+        "62a5c25157875a36597a2aea72b7fb59ec627d6ddc1ec32254da294d7ebcef55",
+        "55c90118b63076fe8070f120ff0215316627cb1aac0bb2167b8e3777ea7c4e48",
+        "4c02dbb7f63a1901b56e5a61059153cd1c3ca6b141766fde8324ebe93c0d7e51",
+        "7808bb09e291a0ce3968a196666fb2b3267a8f2eaa6d29137fd206692972a8b2",
+        "6ca2c7468b30decfb5f6df7256747c73aa11aa9e363ed2c1ccfd79180dbc39be"
+      ],
+      "bbox": [
+        {
+          "xmin": -1.1317815780639648,
+          "ymin": 17.067869186401367,
+          "xmax": -1.1317814588546753,
+          "ymax": 17.06787109375
+        },
+        {
+          "xmin": -1.1532237529754639,
+          "ymin": 17.072168350219727,
+          "xmax": -1.1532236337661743,
+          "ymax": 17.07217025756836
+        },
+        {
+          "xmin": -1.160578966140747,
+          "ymin": 17.07168960571289,
+          "xmax": -1.1605788469314575,
+          "ymax": 17.071691513061523
+        },
+        {
+          "xmin": -1.1864627599716187,
+          "ymin": 17.063568115234375,
+          "xmax": -1.186462640762329,
+          "ymax": 17.063570022583008
+        },
+        {
+          "xmin": -1.1736215353012085,
+          "ymin": 17.047327041625977,
+          "xmax": -1.173621416091919,
+          "ymax": 17.04732894897461
+        },
+        {
+          "xmin": -1.1563788652420044,
+          "ymin": 17.057119369506836,
+          "xmax": -1.1563787460327148,
+          "ymax": 17.05712127685547
+        },
+        {
+          "xmin": -1.195696234703064,
+          "ymin": 17.049476623535156,
+          "xmax": -1.1956961154937744,
+          "ymax": 17.04947853088379
+        },
+        {
+          "xmin": -1.2090940475463867,
+          "ymin": 17.03777313232422,
+          "xmax": -1.2090939283370972,
+          "ymax": 17.03777503967285
+        },
+        {
+          "xmin": -1.0875790119171143,
+          "ymin": 17.04446029663086,
+          "xmax": -1.0875788927078247,
+          "ymax": 17.044462203979492
+        },
+        {
+          "xmin": -1.0651390552520752,
+          "ymin": 17.024877548217773,
+          "xmax": -1.0651389360427856,
+          "ymax": 17.024879455566406
+        },
+        {
+          "xmin": -1.4930078983306885,
+          "ymin": 17.013652801513672,
+          "xmax": -1.493007779121399,
+          "ymax": 17.013654708862305
+        },
+        {
+          "xmin": -1.4195237159729004,
+          "ymin": 17.033714294433594,
+          "xmax": -1.4195235967636108,
+          "ymax": 17.033716201782227
+        },
+        {
+          "xmin": -1.3938816785812378,
+          "ymin": 17.017473220825195,
+          "xmax": -1.3938815593719482,
+          "ymax": 17.017475128173828
+        },
+        {
+          "xmin": -1.4303916692733765,
+          "ymin": 17.032041549682617,
+          "xmax": -1.430391550064087,
+          "ymax": 17.03204345703125
+        },
+        {
+          "xmin": -1.3922810554504395,
+          "ymin": 17.016996383666992,
+          "xmax": -1.39228093624115,
+          "ymax": 17.016998291015625
+        },
+        {
+          "xmin": -1.2416414022445679,
+          "ymin": 17.013652801513672,
+          "xmax": -1.2416412830352783,
+          "ymax": 17.013654708862305
+        }
+      ],
+      "decoded_geometry_types": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "rivers_graph": {
+    "source_graph": "$SOURCE/river-graph.parquet",
+    "rows": 22337300,
+    "first_middle_last_graph_rows": [
+      {
+        "row": 0,
+        "id": 1,
+        "level": 0,
+        "bbox": [
+          -1.1532237529754639,
+          17.067869186401367,
+          -1.1317814588546753,
+          17.07240867614746
+        ]
+      },
+      {
+        "row": 11168650,
+        "id": 11168651,
+        "level": 1,
+        "bbox": [
+          19.9829158782959,
+          41.72407531738281,
+          19.988933563232422,
+          41.72598648071289
+        ]
+      },
+      {
+        "row": 22337299,
+        "id": 22337300,
+        "level": 1,
+        "bbox": [
+          129.6592254638672,
+          -14.50652027130127,
+          129.66566467285156,
+          -14.503992080688477
+        ]
+      }
+    ],
+    "windows": {
+      "small": {
+        "bounds_epsg4326": [
+          -1.1525025367736816,
+          17.060138702392578,
+          -1.132502555847168,
+          17.08013916015625
+        ],
+        "expanded_float32_bounds": [
+          -1.1525026559829712,
+          17.060136795043945,
+          -1.1325024366378784,
+          17.080141067504883
+        ],
+        "all_tiers": {
+          "count": 7,
+          "ordered_ids_sha256_le_i64": "54f1db8d5712644750b778cfcb34cc604d3d5ea0da2348441df6d904526a9945",
+          "sorted_ids_sha256_le_i64": "54f1db8d5712644750b778cfcb34cc604d3d5ea0da2348441df6d904526a9945",
+          "first_ids": [
+            1,
+            68197,
+            1767066,
+            1767067,
+            1767068,
+            2679215,
+            2679216
+          ],
+          "last_ids": [
+            1,
+            68197,
+            1767066,
+            1767067,
+            1767068,
+            2679215,
+            2679216
+          ]
+        },
+        "by_independent_domain_tier": {
+          "0": {
+            "count": 2,
+            "ordered_ids_sha256_le_i64": "fbb2878d2a2d04842c5b072f3d7f45bf58cecb94b32c4b76c83d476dd91cdfdb",
+            "sorted_ids_sha256_le_i64": "fbb2878d2a2d04842c5b072f3d7f45bf58cecb94b32c4b76c83d476dd91cdfdb",
+            "first_ids": [
+              1,
+              68197
+            ],
+            "last_ids": [
+              1,
+              68197
+            ]
+          },
+          "1": {
+            "count": 5,
+            "ordered_ids_sha256_le_i64": "41a3556d4f5dec86a4b4aae61ff9e898ca476eafc8810243e5864a69350ced28",
+            "sorted_ids_sha256_le_i64": "41a3556d4f5dec86a4b4aae61ff9e898ca476eafc8810243e5864a69350ced28",
+            "first_ids": [
+              1767066,
+              1767067,
+              1767068,
+              2679215,
+              2679216
+            ],
+            "last_ids": [
+              1767066,
+              1767067,
+              1767068,
+              2679215,
+              2679216
+            ]
+          }
+        }
+      },
+      "elongated": {
+        "bounds_epsg4326": [
+          -2.142502546310425,
+          17.060138702392578,
+          -0.1425025463104248,
+          17.08013916015625
+        ],
+        "expanded_float32_bounds": [
+          -2.142502784729004,
+          17.060136795043945,
+          -0.1425025314092636,
+          17.080141067504883
+        ],
+        "all_tiers": {
+          "count": 159,
+          "ordered_ids_sha256_le_i64": "e852493b6ab9ec31b2cf6541d15718c4c5e3d9de13f3102971346691d245857b",
+          "sorted_ids_sha256_le_i64": "e852493b6ab9ec31b2cf6541d15718c4c5e3d9de13f3102971346691d245857b",
+          "first_ids": [
+            1,
+            2,
+            3,
+            4,
+            20839,
+            20896,
+            20962,
+            20976
+          ],
+          "last_ids": [
+            2623522,
+            2623523,
+            2623524,
+            2679208,
+            2679209,
+            2679210,
+            2679215,
+            2679216
+          ]
+        },
+        "by_independent_domain_tier": {
+          "0": {
+            "count": 37,
+            "ordered_ids_sha256_le_i64": "1032b2ef7fd708af508a549014d409b36dc4fc900cf07a7a267730296bd48059",
+            "sorted_ids_sha256_le_i64": "1032b2ef7fd708af508a549014d409b36dc4fc900cf07a7a267730296bd48059",
+            "first_ids": [
+              1,
+              2,
+              3,
+              4,
+              20839,
+              20896,
+              20962,
+              20976
+            ],
+            "last_ids": [
+              21512,
+              21542,
+              21543,
+              21602,
+              21634,
+              63002,
+              68196,
+              68197
+            ]
+          },
+          "1": {
+            "count": 122,
+            "ordered_ids_sha256_le_i64": "dd0218db201d1c272f2b25293da9ea0af6d8f682a7c35b02564718bf6c5e6746",
+            "sorted_ids_sha256_le_i64": "dd0218db201d1c272f2b25293da9ea0af6d8f682a7c35b02564718bf6c5e6746",
+            "first_ids": [
+              1767066,
+              1767067,
+              1767068,
+              1767069,
+              1767070,
+              1767071,
+              1767072,
+              1767073
+            ],
+            "last_ids": [
+              2623522,
+              2623523,
+              2623524,
+              2679208,
+              2679209,
+              2679210,
+              2679215,
+              2679216
+            ]
+          }
+        }
+      },
+      "large_amazon": {
+        "bounds_epsg4326": [
+          -53.5,
+          -4.0,
+          -47.5,
+          2.0
+        ],
+        "expanded_float32_bounds": [
+          -53.500003814697266,
+          -4.000000476837158,
+          -47.499996185302734,
+          2.000000238418579
+        ],
+        "all_tiers": {
+          "count": 75495,
+          "ordered_ids_sha256_le_i64": "0d5dc4cf6d28661f2e89067fe7f0ebf9f08ba6e589183a8d338cd78655b9e6be",
+          "sorted_ids_sha256_le_i64": "0d5dc4cf6d28661f2e89067fe7f0ebf9f08ba6e589183a8d338cd78655b9e6be",
+          "first_ids": [
+            1159898,
+            1159904,
+            1159905,
+            1159920,
+            1159930,
+            1159935,
+            1159955,
+            1159958
+          ],
+          "last_ids": [
+            18423663,
+            18423664,
+            18423665,
+            18423666,
+            18423667,
+            18423668,
+            18423669,
+            18423670
+          ]
+        },
+        "by_independent_domain_tier": {
+          "0": {
+            "count": 9564,
+            "ordered_ids_sha256_le_i64": "65e36d14240f639ec4f00b457c03ad32a7168530af2be0ae5c15f32cec800773",
+            "sorted_ids_sha256_le_i64": "65e36d14240f639ec4f00b457c03ad32a7168530af2be0ae5c15f32cec800773",
+            "first_ids": [
+              1159898,
+              1159904,
+              1159905,
+              1159920,
+              1159930,
+              1159935,
+              1159955,
+              1159958
+            ],
+            "last_ids": [
+              1392614,
+              1392615,
+              1394055,
+              1394056,
+              1394059,
+              1394060,
+              1394061,
+              1394062
+            ]
+          },
+          "1": {
+            "count": 65931,
+            "ordered_ids_sha256_le_i64": "2fd8439bbab67d9c5cca665317ab5e157e01619299bbcc6b5769a57fc4f4aad4",
+            "sorted_ids_sha256_le_i64": "2fd8439bbab67d9c5cca665317ab5e157e01619299bbcc6b5769a57fc4f4aad4",
+            "first_ids": [
+              15716544,
+              15716561,
+              15716562,
+              15716563,
+              15716564,
+              15716565,
+              15716566,
+              15716567
+            ],
+            "last_ids": [
+              18423663,
+              18423664,
+              18423665,
+              18423666,
+              18423667,
+              18423668,
+              18423669,
+              18423670
+            ]
+          }
+        }
+      },
+      "empty_ocean": {
+        "bounds_epsg4326": [
+          0.0,
+          -50.0,
+          0.01,
+          -49.99
+        ],
+        "expanded_float32_bounds": [
+          -1.401298464324817e-45,
+          -50.000003814697266,
+          0.010000000707805157,
+          -49.98999786376953
+        ],
+        "all_tiers": {
+          "count": 0,
+          "ordered_ids_sha256_le_i64": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "sorted_ids_sha256_le_i64": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "first_ids": [],
+          "last_ids": []
+        },
+        "by_independent_domain_tier": {
+          "0": {
+            "count": 0,
+            "ordered_ids_sha256_le_i64": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "sorted_ids_sha256_le_i64": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "first_ids": [],
+            "last_ids": []
+          },
+          "1": {
+            "count": 0,
+            "ordered_ids_sha256_le_i64": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "sorted_ids_sha256_le_i64": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "first_ids": [],
+            "last_ids": []
+          }
+        }
+      },
+      "source_batch_boundary": {
+        "bounds_epsg4326": [
+          -4.045597553253174,
+          15.741218566894531,
+          -3.2967259883880615,
+          15.76192855834961
+        ],
+        "expanded_float32_bounds": [
+          -4.045598030090332,
+          15.741217613220215,
+          -3.2967257499694824,
+          15.761929512023926
+        ],
+        "all_tiers": {
+          "count": 102,
+          "ordered_ids_sha256_le_i64": "9babc20a61c13db5cbc32d34a7448a073e71f32962b4a4f55e8c331cd4f03336",
+          "sorted_ids_sha256_le_i64": "9babc20a61c13db5cbc32d34a7448a073e71f32962b4a4f55e8c331cd4f03336",
+          "first_ids": [
+            253,
+            254,
+            256,
+            257,
+            25707,
+            63144,
+            63146,
+            63147
+          ],
+          "last_ids": [
+            2625068,
+            2679833,
+            2679834,
+            2679835,
+            2679836,
+            2679837,
+            2679838,
+            2679844
+          ]
+        },
+        "by_independent_domain_tier": {
+          "0": {
+            "count": 15,
+            "ordered_ids_sha256_le_i64": "372e8aaad1c3da7981de1362b953fd90dd45a707e98423366bede777d4b01f02",
+            "sorted_ids_sha256_le_i64": "372e8aaad1c3da7981de1362b953fd90dd45a707e98423366bede777d4b01f02",
+            "first_ids": [
+              253,
+              254,
+              256,
+              257,
+              25707,
+              63144,
+              63146,
+              63147
+            ],
+            "last_ids": [
+              63147,
+              63148,
+              63150,
+              63152,
+              63154,
+              63157,
+              68392,
+              68395
+            ]
+          },
+          "1": {
+            "count": 87,
+            "ordered_ids_sha256_le_i64": "a5350463abc9c05e0ccaf9ced2bf730af09098e263ab44e320a41c53be4cec0a",
+            "sorted_ids_sha256_le_i64": "a5350463abc9c05e0ccaf9ced2bf730af09098e263ab44e320a41c53be4cec0a",
+            "first_ids": [
+              1767929,
+              1767930,
+              1767931,
+              1767932,
+              1767935,
+              1767936,
+              1767937,
+              1767938
+            ],
+            "last_ids": [
+              2625068,
+              2679833,
+              2679834,
+              2679835,
+              2679836,
+              2679837,
+              2679838,
+              2679844
+            ]
+          }
+        }
+      }
+    },
+    "window_derivation": {
+      "small_elongated": "center of original first graph row bbox",
+      "large_amazon": "archived geographic discovery box, not certified watershed",
+      "empty_ocean": "fixed southern Atlantic ocean box; emptiness checked from original bboxes",
+      "source_batch_boundary": "union of original graph rows 255 and 256 bboxes; these straddle published 256-source-row organization, not candidate blocks"
+    },
+    "flow": {
+      "downstream_inclusive_4": {
+        "count": 1292,
+        "ordered_ids_sha256_le_i64": "5fb738c5a64d2124695c5d8ddbc303815f072b4fce502e88aae15f6f790fed4f",
+        "sorted_ids_sha256_le_i64": "5fb738c5a64d2124695c5d8ddbc303815f072b4fce502e88aae15f6f790fed4f",
+        "first_ids": [
+          1,
+          2,
+          3,
+          4,
+          8,
+          17,
+          26,
+          28
+        ],
+        "last_ids": [
+          71476,
+          71477,
+          71550,
+          71551,
+          71556,
+          71557,
+          71558,
+          71559
+        ]
+      },
+      "upstream_inclusive_1233924": {
+        "count": 88513,
+        "ordered_ids_sha256_le_i64": "f019291d28c4279c8e9c05d29e0c9594e89da191b58808253194b2fee8f8dab4",
+        "sorted_ids_sha256_le_i64": "f019291d28c4279c8e9c05d29e0c9594e89da191b58808253194b2fee8f8dab4",
+        "first_ids": [
+          1159381,
+          1159382,
+          1159384,
+          1159390,
+          1159391,
+          1159392,
+          1159393,
+          1159394
+        ],
+        "last_ids": [
+          1266708,
+          1266709,
+          1266710,
+          1266711,
+          1266712,
+          1266713,
+          1266714,
+          1266715
+        ]
+      },
+      "oracle": "original incoming graph; independent Python queue, reverse key sort; no candidate/prototype imports"
+    },
+    "geometry_witnesses": {
+      "ids": [
+        1,
+        4,
+        1233924
+      ],
+      "levels": [
+        0,
+        0,
+        0
+      ],
+      "schema_sha256": "a01a9a77f66c9353f1913f2b11a97b61ab64dd915452f47896f80b2720050f6e",
+      "complete_arrow_stream_sha256": "a3a8e6803f2b9ad7e304c4425ca2756630c02afbd4b96cd6c7f38a8acc7309a2",
+      "wkb_sha256_each": [
+        "a1305d2a81dd8910d7c10f6e91adc614b7e46235a40182dd0fd3270fa8bbd962",
+        "4e3d6e8914e5c95816a53bd667b5c54d1ed154e1b959d9c49f05e9ed840352cb",
+        "4db9e748562805af43c00417b2c814830d592ba806d36d7e50b1148161a3372e"
+      ],
+      "bbox": [
+        {
+          "xmin": -1.1532237529754639,
+          "ymin": 17.067869186401367,
+          "xmax": -1.1317814588546753,
+          "ymax": 17.07240867614746
+        },
+        {
+          "xmin": -1.1864641904830933,
+          "ymin": 17.063568115234375,
+          "xmax": -1.1605788469314575,
+          "ymax": 17.071691513061523
+        },
+        {
+          "xmin": -49.282344818115234,
+          "ymin": -0.13974131643772125,
+          "xmax": -49.20597839355469,
+          "ymax": -0.08323768526315689
+        }
+      ],
+      "decoded_geometry_types": [
+        1,
+        1,
+        1
+      ],
+      "exact_intersects_windows": {
+        "small": [
+          true,
+          false,
+          false
+        ],
+        "elongated": [
+          true,
+          true,
+          false
+        ],
+        "large_amazon": [
+          false,
+          false,
+          true
+        ],
+        "empty_ocean": [
+          false,
+          false,
+          false
+        ],
+        "source_batch_boundary": [
+          false,
+          false,
+          false
+        ]
+      }
+    }
+  },
+  "catchments_graph": {
+    "source_graph": "$SOURCE/graph.parquet",
+    "rows": 22419857,
+    "first_middle_last_graph_rows": [
+      {
+        "row": 0,
+        "id": 1,
+        "level": 0,
+        "bbox": [
+          -79.61760711669922,
+          -20.498323440551758,
+          -45.822383880615234,
+          5.280751705169678
+        ]
+      },
+      {
+        "row": 11209928,
+        "id": 11209929,
+        "level": 2,
+        "bbox": [
+          12.938166618347168,
+          50.21903991699219,
+          12.958578109741211,
+          50.23963928222656
+        ]
+      },
+      {
+        "row": 22419856,
+        "id": 22419857,
+        "level": 2,
+        "bbox": [
+          129.65687561035156,
+          -14.53844165802002,
+          129.70005798339844,
+          -14.482906341552734
+        ]
+      }
+    ],
+    "windows": {
+      "small": {
+        "bounds_epsg4326": [
+          -62.7299919128418,
+          -7.618785858154297,
+          -62.70999526977539,
+          -7.598785400390625
+        ],
+        "expanded_float32_bounds": [
+          -62.72999572753906,
+          -7.618786334991455,
+          -62.709991455078125,
+          -7.598784923553467
+        ],
+        "all_tiers": {
+          "count": 8,
+          "ordered_ids_sha256_le_i64": "e10d77be3d89860a8de2f0246179bc2a0f7e79886a84df8cf430189c3a97f2ab",
+          "sorted_ids_sha256_le_i64": "e10d77be3d89860a8de2f0246179bc2a0f7e79886a84df8cf430189c3a97f2ab",
+          "first_ids": [
+            1,
+            1284709,
+            1284710,
+            1285133,
+            16199417,
+            16199427,
+            16199450,
+            16199451
+          ],
+          "last_ids": [
+            1,
+            1284709,
+            1284710,
+            1285133,
+            16199417,
+            16199427,
+            16199450,
+            16199451
+          ]
+        },
+        "by_independent_domain_tier": {
+          "0": {
+            "count": 1,
+            "ordered_ids_sha256_le_i64": "7c9fa136d4413fa6173637e883b6998d32e1d675f88cddff9dcbcf331820f4b8",
+            "sorted_ids_sha256_le_i64": "7c9fa136d4413fa6173637e883b6998d32e1d675f88cddff9dcbcf331820f4b8",
+            "first_ids": [
+              1
+            ],
+            "last_ids": [
+              1
+            ]
+          },
+          "1": {
+            "count": 3,
+            "ordered_ids_sha256_le_i64": "73f86e475a88f4ed38b60b690fc31e0d665d7c9e17454556de6c025d9dbbb7cd",
+            "sorted_ids_sha256_le_i64": "73f86e475a88f4ed38b60b690fc31e0d665d7c9e17454556de6c025d9dbbb7cd",
+            "first_ids": [
+              1284709,
+              1284710,
+              1285133
+            ],
+            "last_ids": [
+              1284709,
+              1284710,
+              1285133
+            ]
+          },
+          "2": {
+            "count": 4,
+            "ordered_ids_sha256_le_i64": "2499c880461a6d4a682c3a6401ca80dac630d16d4e2caaddece3d67cc8d5107e",
+            "sorted_ids_sha256_le_i64": "2499c880461a6d4a682c3a6401ca80dac630d16d4e2caaddece3d67cc8d5107e",
+            "first_ids": [
+              16199417,
+              16199427,
+              16199450,
+              16199451
+            ],
+            "last_ids": [
+              16199417,
+              16199427,
+              16199450,
+              16199451
+            ]
+          }
+        }
+      },
+      "elongated": {
+        "bounds_epsg4326": [
+          -63.719993591308594,
+          -7.618785858154297,
+          -61.719993591308594,
+          -7.598785400390625
+        ],
+        "expanded_float32_bounds": [
+          -63.71999740600586,
+          -7.618786334991455,
+          -61.71998977661133,
+          -7.598784923553467
+        ],
+        "all_tiers": {
+          "count": 262,
+          "ordered_ids_sha256_le_i64": "d173c488ceb021bc9fbff547ee825aa4bb35901c9580bacd4f7b3aa34e95bb81",
+          "sorted_ids_sha256_le_i64": "d173c488ceb021bc9fbff547ee825aa4bb35901c9580bacd4f7b3aa34e95bb81",
+          "first_ids": [
+            1,
+            1252450,
+            1252471,
+            1284474,
+            1284488,
+            1284512,
+            1284514,
+            1284532
+          ],
+          "last_ids": [
+            16908598,
+            16908601,
+            16909352,
+            16909353,
+            16909354,
+            16909355,
+            16909372,
+            16909373
+          ]
+        },
+        "by_independent_domain_tier": {
+          "0": {
+            "count": 1,
+            "ordered_ids_sha256_le_i64": "7c9fa136d4413fa6173637e883b6998d32e1d675f88cddff9dcbcf331820f4b8",
+            "sorted_ids_sha256_le_i64": "7c9fa136d4413fa6173637e883b6998d32e1d675f88cddff9dcbcf331820f4b8",
+            "first_ids": [
+              1
+            ],
+            "last_ids": [
+              1
+            ]
+          },
+          "1": {
+            "count": 53,
+            "ordered_ids_sha256_le_i64": "cfc3550c61330fc940378c758d6d4f7233c5f7150787c8e0b9efe74b578893cd",
+            "sorted_ids_sha256_le_i64": "cfc3550c61330fc940378c758d6d4f7233c5f7150787c8e0b9efe74b578893cd",
+            "first_ids": [
+              1252450,
+              1252471,
+              1284474,
+              1284488,
+              1284512,
+              1284514,
+              1284532,
+              1284537
+            ],
+            "last_ids": [
+              1326026,
+              1326050,
+              1326105,
+              1326111,
+              1326116,
+              1344799,
+              1344925,
+              1344928
+            ]
+          },
+          "2": {
+            "count": 208,
+            "ordered_ids_sha256_le_i64": "0357a79ecdd40e7b364c8335a35aef96b490cc31c3a392519b7f038cf05d1a31",
+            "sorted_ids_sha256_le_i64": "0357a79ecdd40e7b364c8335a35aef96b490cc31c3a392519b7f038cf05d1a31",
+            "first_ids": [
+              15835952,
+              15835953,
+              15835954,
+              15835955,
+              15836003,
+              16196424,
+              16196425,
+              16196426
+            ],
+            "last_ids": [
+              16908598,
+              16908601,
+              16909352,
+              16909353,
+              16909354,
+              16909355,
+              16909372,
+              16909373
+            ]
+          }
+        }
+      },
+      "large_amazon": {
+        "bounds_epsg4326": [
+          -53.5,
+          -4.0,
+          -47.5,
+          2.0
+        ],
+        "expanded_float32_bounds": [
+          -53.500003814697266,
+          -4.000000476837158,
+          -47.499996185302734,
+          2.000000238418579
+        ],
+        "all_tiers": {
+          "count": 75929,
+          "ordered_ids_sha256_le_i64": "970593f8205c2d403fb4777b16cdd7e050dba2a5438533b9492ae66a4bb416b5",
+          "sorted_ids_sha256_le_i64": "970593f8205c2d403fb4777b16cdd7e050dba2a5438533b9492ae66a4bb416b5",
+          "first_ids": [
+            1,
+            7,
+            12,
+            13,
+            14,
+            46,
+            49,
+            367
+          ],
+          "last_ids": [
+            18506220,
+            18506221,
+            18506222,
+            18506223,
+            18506224,
+            18506225,
+            18506226,
+            18506227
+          ]
+        },
+        "by_independent_domain_tier": {
+          "0": {
+            "count": 57,
+            "ordered_ids_sha256_le_i64": "3709d291e662946d9883948167e6ef083470430a7a17dd4dfb86d80298e9d510",
+            "sorted_ids_sha256_le_i64": "3709d291e662946d9883948167e6ef083470430a7a17dd4dfb86d80298e9d510",
+            "first_ids": [
+              1,
+              7,
+              12,
+              13,
+              14,
+              46,
+              49,
+              367
+            ],
+            "last_ids": [
+              66557,
+              66558,
+              66560,
+              66561,
+              66562,
+              66565,
+              66566,
+              66567
+            ]
+          },
+          "1": {
+            "count": 9630,
+            "ordered_ids_sha256_le_i64": "6368189d304c6ab6d0beb11189386d824d0f09ba5eafd28749c30c29d83bfba6",
+            "sorted_ids_sha256_le_i64": "6368189d304c6ab6d0beb11189386d824d0f09ba5eafd28749c30c29d83bfba6",
+            "first_ids": [
+              1242455,
+              1242461,
+              1242462,
+              1242477,
+              1242487,
+              1242492,
+              1242512,
+              1242515
+            ],
+            "last_ids": [
+              1475171,
+              1475172,
+              1476612,
+              1476613,
+              1476616,
+              1476617,
+              1476618,
+              1476619
+            ]
+          },
+          "2": {
+            "count": 66242,
+            "ordered_ids_sha256_le_i64": "91bed433aa69404fa0236bce37de81430e1c897a69c2aef1a9a7c9837a693bb3",
+            "sorted_ids_sha256_le_i64": "91bed433aa69404fa0236bce37de81430e1c897a69c2aef1a9a7c9837a693bb3",
+            "first_ids": [
+              15799101,
+              15799118,
+              15799119,
+              15799120,
+              15799121,
+              15799122,
+              15799123,
+              15799124
+            ],
+            "last_ids": [
+              18506220,
+              18506221,
+              18506222,
+              18506223,
+              18506224,
+              18506225,
+              18506226,
+              18506227
+            ]
+          }
+        }
+      },
+      "empty_ocean": {
+        "bounds_epsg4326": [
+          0.0,
+          -50.0,
+          0.01,
+          -49.99
+        ],
+        "expanded_float32_bounds": [
+          -1.401298464324817e-45,
+          -50.000003814697266,
+          0.010000000707805157,
+          -49.98999786376953
+        ],
+        "all_tiers": {
+          "count": 0,
+          "ordered_ids_sha256_le_i64": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "sorted_ids_sha256_le_i64": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "first_ids": [],
+          "last_ids": []
+        },
+        "by_independent_domain_tier": {
+          "0": {
+            "count": 0,
+            "ordered_ids_sha256_le_i64": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "sorted_ids_sha256_le_i64": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "first_ids": [],
+            "last_ids": []
+          },
+          "1": {
+            "count": 0,
+            "ordered_ids_sha256_le_i64": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "sorted_ids_sha256_le_i64": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "first_ids": [],
+            "last_ids": []
+          },
+          "2": {
+            "count": 0,
+            "ordered_ids_sha256_le_i64": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "sorted_ids_sha256_le_i64": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "first_ids": [],
+            "last_ids": []
+          }
+        }
+      },
+      "source_batch_boundary": {
+        "bounds_epsg4326": [
+          -66.94341278076172,
+          -18.952268600463867,
+          -66.70946502685547,
+          -18.833717346191406
+        ],
+        "expanded_float32_bounds": [
+          -66.94342041015625,
+          -18.9522705078125,
+          -66.70945739746094,
+          -18.833715438842773
+        ],
+        "all_tiers": {
+          "count": 85,
+          "ordered_ids_sha256_le_i64": "cc68566e9acecfe353fb7005023b49adcac3b0e9ac5e1c06ddd1bc9f563ca748",
+          "sorted_ids_sha256_le_i64": "cc68566e9acecfe353fb7005023b49adcac3b0e9ac5e1c06ddd1bc9f563ca748",
+          "first_ids": [
+            1,
+            209,
+            213,
+            252,
+            253,
+            254,
+            255,
+            256
+          ],
+          "last_ids": [
+            16929593,
+            16929594,
+            16929595,
+            16929596,
+            16929597,
+            16929598,
+            16929633,
+            16929634
+          ]
+        },
+        "by_independent_domain_tier": {
+          "0": {
+            "count": 14,
+            "ordered_ids_sha256_le_i64": "986bdc6162b6f8add6d2d0ea779543aefa981441675a7aa8a3c5e5351630554a",
+            "sorted_ids_sha256_le_i64": "986bdc6162b6f8add6d2d0ea779543aefa981441675a7aa8a3c5e5351630554a",
+            "first_ids": [
+              1,
+              209,
+              213,
+              252,
+              253,
+              254,
+              255,
+              256
+            ],
+            "last_ids": [
+              255,
+              256,
+              257,
+              258,
+              269,
+              64408,
+              64522,
+              65400
+            ]
+          },
+          "1": {
+            "count": 14,
+            "ordered_ids_sha256_le_i64": "cb5186c9e441d10bbb957b2012052e527f20d7a999c01f1f0c550b204e5fcb5e",
+            "sorted_ids_sha256_le_i64": "cb5186c9e441d10bbb957b2012052e527f20d7a999c01f1f0c550b204e5fcb5e",
+            "first_ids": [
+              1313991,
+              1314027,
+              1314121,
+              1333611,
+              1333612,
+              1348706,
+              1348707,
+              1348708
+            ],
+            "last_ids": [
+              1348707,
+              1348708,
+              1348709,
+              1348710,
+              1348711,
+              1348712,
+              1348713,
+              1348726
+            ]
+          },
+          "2": {
+            "count": 57,
+            "ordered_ids_sha256_le_i64": "f32a9db362810f4bfe02221c8361744ea73adafa23780740f7fedd1d90a20aac",
+            "sorted_ids_sha256_le_i64": "f32a9db362810f4bfe02221c8361744ea73adafa23780740f7fedd1d90a20aac",
+            "first_ids": [
+              16593073,
+              16593627,
+              16593628,
+              16593629,
+              16593630,
+              16593631,
+              16593632,
+              16593633
+            ],
+            "last_ids": [
+              16929593,
+              16929594,
+              16929595,
+              16929596,
+              16929597,
+              16929598,
+              16929633,
+              16929634
+            ]
+          }
+        }
+      }
+    },
+    "window_derivation": {
+      "small_elongated": "center of original first graph row bbox",
+      "large_amazon": "archived geographic discovery box, not certified watershed",
+      "empty_ocean": "fixed southern Atlantic ocean box; emptiness checked from original bboxes",
+      "source_batch_boundary": "union of original graph rows 255 and 256 bboxes; these straddle published 256-source-row organization, not candidate blocks"
+    }
+  },
+  "script_sha256": "5f49f0846d9dc137d3595b4bb85c70dcfdf607266007ce859d3d7b77943f6b52"
+}

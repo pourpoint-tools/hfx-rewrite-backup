@@ -1,6 +1,7 @@
 # Data interface experiment
 
 Proposed contract sketch, not a normative HFX revision or supported reader.
+See [measured findings](REPORT.md) and [portable reproduction commands](REPRODUCE.md).
 Input is the immutable GRIT river delivery pinned by manifest SHA256
 `b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db`.
 
@@ -54,12 +55,13 @@ Run from the repository root with the committed lock:
 ```sh
 uv run --group data-interface python -m experiments.data_interface.build   /path/to/verified-input /path/to/unused-candidate --report /path/outside-candidate/build.json
 uv run --group data-interface python -m experiments.data_interface.verify   /path/to/verified-input /path/to/candidate --report /path/outside-candidate/verification.json
-uv run --group data-interface python -m experiments.data_interface.probe   /path/to/candidate --family rivers --ids 1 11168897 22337300   --columns id source_global_id --report /path/outside-candidate/records.json
+uv run --group data-interface python -m experiments.data_interface.record_probe   "$CANDIDATE" --source "$SOURCE" --family rivers --workloads "$WORKLOADS"   --columns id source_global_id --report "$REPORT/records.json"
 uv run --group data-interface python -m experiments.data_interface.probe   /path/to/candidate --family rivers --ids 4 --relation downstream_ids   --report /path/outside-candidate/neighbors.json
 ```
 
-The probe also accepts a public immutable HTTP bundle URL and `--bbox W S E N`
-with optional `--level`. HTTP requires explicit approval for any experimental
+The record probe also accepts a public immutable HTTP bundle URL and
+`--operation spatial --spatial-window small` with optional `--level`.
+Immediate relationships use the smaller `probe --relation` command. HTTP requires explicit approval for any experimental
 upload destination; building locally does not grant that approval. The full
 producer build hashes needed source files against the pinned manifest before
 reading them. It refuses an existing output directory. Failures remain visible;
@@ -67,7 +69,7 @@ never silently resume or overwrite them.
 
 The build uses DuckDB 8 GB memory limit/one thread (insertion-order preservation disabled) and external spill beside the
 candidate. This is not a bound on total process memory. Scratch bytes sampled
-before output and after emitted batches are an observed maximum, not a precise
+before output, every 1,024 emitted batches and after output are an observed maximum, not a precise
 peak trace. The verifier uses the same bounds and temporary directories beside
 the candidate, never repository build directories. Full row sorting compares
 original/candidate Arrow rows after restoring the original schema.

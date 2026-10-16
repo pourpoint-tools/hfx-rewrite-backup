@@ -75,6 +75,13 @@ def test_absent_relationship_id_still_counts_decoded_batch(tmp_path: Path) -> No
         assert access.stats()["materialized_rows"] == 2
         assert access.stats()["materialized_bytes"] == table.nbytes
         assert access.stats()["data_blocks"] == [0]
+        assert access.stats()["lookup_blocks"] == []
+        access.reset()
+        selected, absent = access.ids([10])
+        assert selected.to_pylist() == [{"id": 10, "downstream_ids": [20]}]
+        assert absent == []
+        assert access.stats()["data_blocks"] == [0]
+        assert access.stats()["lookup_blocks"] == []
 
 
 def test_local_mutated_artifact_rejects_before_selected_values(tmp_path: Path) -> None:

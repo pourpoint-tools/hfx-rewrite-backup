@@ -1,0 +1,340 @@
+{
+  "original-reverse-rivers-parent_id-isolated.json": {
+    "column": "parent_id",
+    "prepare_s": 8.59963141696062,
+    "prepare_phases": {
+      "original_projected_scan_s": 8.505027875013184,
+      "reverse_prepare_s": 0.09390108403749764
+    },
+    "source_rows": 22337300,
+    "retained_arrow_bytes": 360188963,
+    "retained_reverse_numeric_bytes": 329123760,
+    "process_peak_rss_bytes": 1759477760,
+    "queries": [
+      {
+        "target": 1,
+        "repeat": 0,
+        "seconds": 3.054196713492274e-05,
+        "count": 3,
+        "output_bytes": 24,
+        "sorted_ids_sha256": "4deba09c63e53af65d24a753e312cb7d9f50dddc3c52e7631045638bc988364e"
+      },
+      {
+        "target": 1,
+        "repeat": 1,
+        "seconds": 4.499976057559252e-06,
+        "count": 3,
+        "output_bytes": 24,
+        "sorted_ids_sha256": "4deba09c63e53af65d24a753e312cb7d9f50dddc3c52e7631045638bc988364e"
+      },
+      {
+        "target": 1,
+        "repeat": 2,
+        "seconds": 2.00001522898674e-06,
+        "count": 3,
+        "output_bytes": 24,
+        "sorted_ids_sha256": "4deba09c63e53af65d24a753e312cb7d9f50dddc3c52e7631045638bc988364e"
+      },
+      {
+        "target": 3,
+        "repeat": 0,
+        "seconds": 2.04198295250535e-06,
+        "count": 1,
+        "output_bytes": 8,
+        "sorted_ids_sha256": "a663c95267b3842b78e074e2c1e0b7bdad73092fae83b9152f33d369170bad6f"
+      },
+      {
+        "target": 3,
+        "repeat": 1,
+        "seconds": 1.6249832697212696e-06,
+        "count": 1,
+        "output_bytes": 8,
+        "sorted_ids_sha256": "a663c95267b3842b78e074e2c1e0b7bdad73092fae83b9152f33d369170bad6f"
+      },
+      {
+        "target": 3,
+        "repeat": 2,
+        "seconds": 1.5830155462026596e-06,
+        "count": 1,
+        "output_bytes": 8,
+        "sorted_ids_sha256": "a663c95267b3842b78e074e2c1e0b7bdad73092fae83b9152f33d369170bad6f"
+      }
+    ]
+  },
+  "original-reverse-rivers-upstream_node_id-isolated.json": {
+    "column": "upstream_node_id",
+    "prepare_s": 2.690916625026148,
+    "prepare_phases": {
+      "original_projected_scan_s": 2.136106167046819,
+      "reverse_prepare_s": 0.5540379589656368
+    },
+    "source_rows": 22337300,
+    "retained_arrow_bytes": 357396800,
+    "retained_reverse_numeric_bytes": 357396800,
+    "process_peak_rss_bytes": 1825177600,
+    "queries": [
+      {
+        "target": 2,
+        "repeat": 0,
+        "seconds": 3.545801155269146e-05,
+        "count": 1,
+        "output_bytes": 8,
+        "sorted_ids_sha256": "7c9fa136d4413fa6173637e883b6998d32e1d675f88cddff9dcbcf331820f4b8"
+      },
+      {
+        "target": 2,
+        "repeat": 1,
+        "seconds": 4.749977961182594e-06,
+        "count": 1,
+        "output_bytes": 8,
+        "sorted_ids_sha256": "7c9fa136d4413fa6173637e883b6998d32e1d675f88cddff9dcbcf331820f4b8"
+      },
+      {
+        "target": 2,
+        "repeat": 2,
+        "seconds": 2.00001522898674e-06,
+        "count": 1,
+        "output_bytes": 8,
+        "sorted_ids_sha256": "7c9fa136d4413fa6173637e883b6998d32e1d675f88cddff9dcbcf331820f4b8"
+      },
+      {
+        "target": 200,
+        "repeat": 0,
+        "seconds": 1.8749851733446121e-06,
+        "count": 1,
+        "output_bytes": 8,
+        "sorted_ids_sha256": "22950c1440bdaf5f1df96a5c616d62b165959c174b7941f06f44c4bec2666966"
+      },
+      {
+        "target": 200,
+        "repeat": 1,
+        "seconds": 1.5830155462026596e-06,
+        "count": 1,
+        "output_bytes": 8,
+        "sorted_ids_sha256": "22950c1440bdaf5f1df96a5c616d62b165959c174b7941f06f44c4bec2666966"
+      },
+      {
+        "target": 200,
+        "repeat": 2,
+        "seconds": 1.5409896150231361e-06,
+        "count": 1,
+        "output_bytes": 8,
+        "sorted_ids_sha256": "22950c1440bdaf5f1df96a5c616d62b165959c174b7941f06f44c4bec2666966"
+      }
+    ]
+  },
+  "original-reverse-rivers-downstream_node_id-isolated.json": {
+    "column": "downstream_node_id",
+    "prepare_s": 2.4284001250052825,
+    "prepare_phases": {
+      "original_projected_scan_s": 1.840308292012196,
+      "reverse_prepare_s": 0.5873200830537826
+    },
+    "source_rows": 22337300,
+    "retained_arrow_bytes": 357396800,
+    "retained_reverse_numeric_bytes": 357396800,
+    "process_peak_rss_bytes": 1825046528,
+    "queries": [
+      {
+        "target": 2,
+        "repeat": 0,
+        "seconds": 3.558304160833359e-05,
+        "count": 2,
+        "output_bytes": 16,
+        "sorted_ids_sha256": "fe6d3d3bb5dd778af1128cc7b2b33668d51b9a52dfc8f2342be37ddc06a0072d"
+      },
+      {
+        "target": 2,
+        "repeat": 1,
+        "seconds": 4.957953933626413e-06,
+        "count": 2,
+        "output_bytes": 16,
+        "sorted_ids_sha256": "fe6d3d3bb5dd778af1128cc7b2b33668d51b9a52dfc8f2342be37ddc06a0072d"
+      },
+      {
+        "target": 2,
+        "repeat": 2,
+        "seconds": 2.082961145788431e-06,
+        "count": 2,
+        "output_bytes": 16,
+        "sorted_ids_sha256": "fe6d3d3bb5dd778af1128cc7b2b33668d51b9a52dfc8f2342be37ddc06a0072d"
+      },
+      {
+        "target": 200,
+        "repeat": 0,
+        "seconds": 2.4579931050539017e-06,
+        "count": 0,
+        "output_bytes": 0,
+        "sorted_ids_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "target": 200,
+        "repeat": 1,
+        "seconds": 1.667009200900793e-06,
+        "count": 0,
+        "output_bytes": 0,
+        "sorted_ids_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "target": 200,
+        "repeat": 2,
+        "seconds": 1.5830155462026596e-06,
+        "count": 0,
+        "output_bytes": 0,
+        "sorted_ids_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "original-reverse-river-nodes-coarser_node_id-isolated.json": {
+    "column": "coarser_node_id",
+    "prepare_s": 4.021897958009504,
+    "prepare_phases": {
+      "original_projected_scan_s": 4.014364500006195,
+      "reverse_prepare_s": 0.007509750023018569
+    },
+    "source_rows": 22278858,
+    "retained_arrow_bytes": 359246586,
+    "retained_reverse_numeric_bytes": 27805504,
+    "process_peak_rss_bytes": 991248384,
+    "queries": [
+      {
+        "target": 1,
+        "repeat": 0,
+        "seconds": 2.462498378008604e-05,
+        "count": 1,
+        "output_bytes": 8,
+        "sorted_ids_sha256": "8d108e6ef51ad5798fae96838e6728a04bc613d056628ca59ccada67ebe1a736"
+      },
+      {
+        "target": 1,
+        "repeat": 1,
+        "seconds": 4.499976057559252e-06,
+        "count": 1,
+        "output_bytes": 8,
+        "sorted_ids_sha256": "8d108e6ef51ad5798fae96838e6728a04bc613d056628ca59ccada67ebe1a736"
+      },
+      {
+        "target": 1,
+        "repeat": 2,
+        "seconds": 2.0420411601662636e-06,
+        "count": 1,
+        "output_bytes": 8,
+        "sorted_ids_sha256": "8d108e6ef51ad5798fae96838e6728a04bc613d056628ca59ccada67ebe1a736"
+      }
+    ]
+  },
+  "original-reverse-rivers-local_catchment_id-isolated.json": {
+    "column": "local_catchment_id",
+    "prepare_s": 2.1556393750361167,
+    "prepare_phases": {
+      "original_projected_scan_s": 2.0759165420313366,
+      "reverse_prepare_s": 0.07897187501657754
+    },
+    "source_rows": 22337300,
+    "retained_arrow_bytes": 357396800,
+    "retained_reverse_numeric_bytes": 357396800,
+    "process_peak_rss_bytes": 1819820032,
+    "queries": [
+      {
+        "target": 82558,
+        "repeat": 0,
+        "seconds": 3.3958000130951405e-05,
+        "count": 1,
+        "output_bytes": 8,
+        "sorted_ids_sha256": "7c9fa136d4413fa6173637e883b6998d32e1d675f88cddff9dcbcf331820f4b8"
+      },
+      {
+        "target": 82558,
+        "repeat": 1,
+        "seconds": 4.458008334040642e-06,
+        "count": 1,
+        "output_bytes": 8,
+        "sorted_ids_sha256": "7c9fa136d4413fa6173637e883b6998d32e1d675f88cddff9dcbcf331820f4b8"
+      },
+      {
+        "target": 82558,
+        "repeat": 2,
+        "seconds": 2.125045284628868e-06,
+        "count": 1,
+        "output_bytes": 8,
+        "sorted_ids_sha256": "7c9fa136d4413fa6173637e883b6998d32e1d675f88cddff9dcbcf331820f4b8"
+      }
+    ]
+  },
+  "original-reverse-rivers-component_catchment_id-isolated.json": {
+    "column": "component_catchment_id",
+    "prepare_s": 2.666598583047744,
+    "prepare_phases": {
+      "original_projected_scan_s": 2.0567647499847226,
+      "reverse_prepare_s": 0.6090440829866566
+    },
+    "source_rows": 22337300,
+    "retained_arrow_bytes": 357396800,
+    "retained_reverse_numeric_bytes": 357396800,
+    "process_peak_rss_bytes": 1982939136,
+    "queries": [
+      {
+        "target": 8720,
+        "repeat": 0,
+        "seconds": 0.00021858297986909747,
+        "count": 393725,
+        "output_bytes": 3149800,
+        "sorted_ids_sha256": "84917b2d04d20e86a0933ae82dd4f2b20d7c0f80596e4a764a205fd2ec31d01a"
+      },
+      {
+        "target": 8720,
+        "repeat": 1,
+        "seconds": 0.00015516701387241483,
+        "count": 393725,
+        "output_bytes": 3149800,
+        "sorted_ids_sha256": "84917b2d04d20e86a0933ae82dd4f2b20d7c0f80596e4a764a205fd2ec31d01a"
+      },
+      {
+        "target": 8720,
+        "repeat": 2,
+        "seconds": 0.00012387498281896114,
+        "count": 393725,
+        "output_bytes": 3149800,
+        "sorted_ids_sha256": "84917b2d04d20e86a0933ae82dd4f2b20d7c0f80596e4a764a205fd2ec31d01a"
+      }
+    ]
+  },
+  "original-reverse-catchments-parent_id-isolated.json": {
+    "column": "parent_id",
+    "prepare_s": 12.22233637503814,
+    "prepare_phases": {
+      "original_projected_scan_s": 12.077114832994994,
+      "reverse_prepare_s": 0.1444158749654889
+    },
+    "source_rows": 22419857,
+    "retained_arrow_bytes": 361520195,
+    "retained_reverse_numeric_bytes": 357396800,
+    "process_peak_rss_bytes": 1673330688,
+    "queries": [
+      {
+        "target": 1,
+        "repeat": 0,
+        "seconds": 8.487503509968519e-05,
+        "count": 101634,
+        "output_bytes": 813072,
+        "sorted_ids_sha256": "dec89ef14dd9c557452f992855b87f015a82ecf8370e637e732f68367affbcb3"
+      },
+      {
+        "target": 1,
+        "repeat": 1,
+        "seconds": 1.679197885096073e-05,
+        "count": 101634,
+        "output_bytes": 813072,
+        "sorted_ids_sha256": "dec89ef14dd9c557452f992855b87f015a82ecf8370e637e732f68367affbcb3"
+      },
+      {
+        "target": 1,
+        "repeat": 2,
+        "seconds": 1.2375006917864084e-05,
+        "count": 101634,
+        "output_bytes": 813072,
+        "sorted_ids_sha256": "dec89ef14dd9c557452f992855b87f015a82ecf8370e637e732f68367affbcb3"
+      }
+    ]
+  }
+}

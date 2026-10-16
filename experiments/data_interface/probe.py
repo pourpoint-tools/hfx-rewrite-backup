@@ -208,7 +208,7 @@ class Access:
             else:
                 assert self.lookup is not None
                 batch = self.lookup.get_batch(index)
-            self.lookup_blocks.add(index)
+                self.lookup_blocks.add(index)
             if self.relationship:
                 loaded[index] = batch
                 self.data_blocks.add(index)
@@ -292,60 +292,15 @@ class Access:
         return sorted(found)
 
     def graph_spatial(self, window: tuple[float, ...], *, level: int | None = None) -> list[int]:
-        """Fair isolated baseline: use supplied Parquet bounds, row-group statistics."""
+        """As-used baseline; isolated comparator retains its Parquet reader separately."""
+        from experiments.data_interface.baseline_graph_spatial import Bounds, conservative, select_graph
+
         graph = pq.ParquetFile(self.open(self.declaration["graph"]), pre_buffer=False)
-        columns = ["id", "level", "bbox_minx", "bbox_miny", "bbox_maxx", "bbox_maxy"]
-        window = tuple(
-            float(np.nextafter(np.float32(value), np.float32(-np.inf if i < 2 else np.inf)))
-            for i, value in enumerate(window)
-        )
-        selected = []
-        for index in range(graph.num_row_groups):
-            metadata = graph.metadata.row_group(index)
-            stats = {
-                metadata.column(i).path_in_schema: metadata.column(i).statistics for i in range(metadata.num_columns)
-            }
-            skip = False
-            for name, value, less in [
-                ("bbox_minx", window[2], True),
-                ("bbox_maxx", window[0], False),
-                ("bbox_miny", window[3], True),
-                ("bbox_maxy", window[1], False),
-            ]:
-                stat = stats.get(name)
-                if (
-                    stat is not None
-                    and stat.has_min_max
-                    and ((cast(float, stat.min) > value) if less else (cast(float, stat.max) < value))
-                ):
-                    skip = True
-            stat = stats.get("level")
-            if (
-                level is not None
-                and stat is not None
-                and stat.has_min_max
-                and not cast(float, stat.min) <= level <= cast(float, stat.max)
-            ):
-                skip = True
-            if skip:
-                continue
-            table = graph.read_row_group(index, columns=columns)
-            self.graph_blocks.add(index)
-            self.materialized_rows += table.num_rows
-            self.materialized_bytes += table.nbytes
-            mask = np.ones(table.num_rows, dtype=np.bool_)
-            for name, value, less in [
-                ("bbox_minx", window[2], True),
-                ("bbox_maxx", window[0], False),
-                ("bbox_miny", window[3], True),
-                ("bbox_maxy", window[1], False),
-            ]:
-                values = table[name].to_numpy()
-                mask &= values <= value if less else values >= value
-            if level is not None:
-                mask &= table["level"].to_numpy() == level
-            selected.extend(table["id"].to_numpy()[mask].tolist())
-        return sorted(selected)
+        selected = select_graph(graph, conservative(cast(Bounds, window)), None if level is None else (level,))
+        self.graph_blocks.update(selected["groups"])
+        self.materialized_rows += selected["rows"]
+        self.materialized_bytes += selected["logical_bytes"]
+        return sorted(selected["ids"].tolist())
 
 
 def table_identity(table: pa.Table) -> str:
@@ -356,14 +311,11 @@ def table_identity(table: pa.Table) -> str:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description="Measure published immediate relationship access")
     parser.add_argument("bundle")
     parser.add_argument("--family", choices=["catchments", "rivers", "river_nodes"], default="rivers")
-    parser.add_argument("--ids", type=int, nargs="+")
-    parser.add_argument("--columns", nargs="+")
-    parser.add_argument("--bbox", type=float, nargs=4)
-    parser.add_argument("--level", type=int)
-    parser.add_argument("--relation")
+    parser.add_argument("--ids", type=int, nargs="+", required=True)
+    parser.add_argument("--relation", required=True)
     parser.add_argument("--repeats", type=int, default=3)
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
@@ -374,52 +326,34 @@ def main() -> None:
     ):
         raise ValueError("report must be outside input bundle")
     started = perf_counter()
-    access = Access(
-        args.bundle,
-        args.family,
-        ["id", args.relation] if args.relation else args.columns,
-        relationship=bool(args.relation),
-    )
-    report: dict[str, Any] = {
-        "manifest_sha256": access.manifest_sha256,
-        "opening_s": perf_counter() - started,
-        "opening": access.stats(),
-        "cache_policy": "metadata and bounded head/tail only; no selected-batch cache",
-        "filesystem_cache": "uncontrolled",
-        "phases": [],
-    }
-    for index in range(args.repeats):
-        access.reset()
-        before = access.stats()
-        started = perf_counter()
-        ids = access.spatial(tuple(args.bbox), level=args.level) if args.bbox else args.ids
-        table, absent = access.ids(ids) if ids is not None else (None, [])
-        elapsed = perf_counter() - started
-        current = access.stats()
-        phase = {
-            "phase": "first" if index == 0 else "repeated",
-            "elapsed_s": elapsed,
-            "absent": absent,
-            "output_rows": 0 if table is None else table.num_rows,
-            "output_logical_bytes": 0 if table is None else table.nbytes,
-            "arrow_stream_sha256": None if table is None else table_identity(table),
-            **current,
+    with Access(args.bundle, args.family, ["id", args.relation], relationship=True) as access:
+        report: dict[str, Any] = {
+            "manifest_sha256": access.manifest_sha256,
+            "opening_s": perf_counter() - started,
+            "opening": access.stats(),
+            "cache_policy": "metadata and bounded head/tail only; no selected-batch cache",
+            "filesystem_cache": "uncontrolled",
+            "phases": [],
         }
-        for key in ("http_requests", "http_body_bytes", "local_read_calls", "local_read_bytes"):
-            phase[key] -= before[key]
-        if table is not None and "geometry" in table.column_names:
-            try:
-                import shapely
-            except ImportError:
-                phase["geometry_decode"] = "not available; use --group vector-production"
-            else:
-                decode_started = perf_counter()
-                geometries = shapely.from_wkb(table["geometry"].to_numpy())
-                phase["geometry_decode_s"] = perf_counter() - decode_started
-                phase["decoded_geometries"] = len(geometries)
-        report["phases"].append(phase)
-    report["requests"] = access.http.requests
-    access.close()
+        for index in range(args.repeats):
+            access.reset()
+            before = access.stats()
+            started = perf_counter()
+            table, absent = access.ids(args.ids)
+            elapsed = perf_counter() - started
+            phase = {
+                "phase": "first" if index == 0 else "repeated",
+                "elapsed_s": elapsed,
+                "absent": absent,
+                "output_rows": table.num_rows,
+                "output_logical_bytes": table.nbytes,
+                "arrow_stream_sha256": table_identity(table),
+                **access.stats(),
+            }
+            for key in ("http_requests", "http_body_bytes", "local_read_calls", "local_read_bytes"):
+                phase[key] -= before[key]
+            report["phases"].append(phase)
+        report["requests"] = access.http.requests
     with args.report.open("x") as stream:
         stream.write(json.dumps(report, indent=2) + "\n")
 

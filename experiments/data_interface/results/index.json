@@ -1,0 +1,121 @@
+{
+  "status": "interim; local matrix complete, remote blocked",
+  "source_manifest_sha256": "b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db",
+  "candidate_manifest_sha256": "155535aea34d16e8369ec0db416d2f58058911553c28e9031148607bb7511049",
+  "scope": "original/candidate8192 plus focused candidate256;134 local runs, no remote candidate evidence",
+  "reports": {
+    "build-8192-v2.json": {
+      "source_receipt": "build-8192-v2.json",
+      "sha256": "24a4edc3b9f73afc6e7991c56f4cb0abdd0f76597b4e0af4ca130b658f5f8758"
+    },
+    "verification-8192-v2.json": {
+      "source_receipt": "verification-8192-v2.json",
+      "sha256": "e29187cd3b30a86c4b8e6dacf71fb62bc854d044b39e6054953300609f47dffd"
+    },
+    "candidate-publication-breakdown.json": {
+      "source_receipt": "candidate-publication-breakdown.json",
+      "sha256": "8fb4e531a2ca35c5ea5f7626c8c2af55f185128013a704538fda3af7520f65bc"
+    },
+    "source-revisions.json": {
+      "source_receipt": "source-revisions.json",
+      "sha256": "2276374b6dd3d8f351317ee9a85052d8c52d875f8257536ade629f932dfc43d3"
+    },
+    "traversal-summary.json": {
+      "source_receipt": "traversal-summary.json",
+      "sha256": "e08e39bb86d163c6d1bccd76c9dc48cb21f5682aa35e38798c977167872d4714"
+    },
+    "workflow-summary.json": {
+      "source_receipt": "workflow-summary.json",
+      "sha256": "833d0eca5cf389da23aa1ef5126b06b9b5d9cebbcb3c82326ab8a70820a2814d"
+    },
+    "global-column-scans.json": {
+      "source_receipt": "global-scan-comparison.json",
+      "sha256": "043e561254ae9b49a62e54e0609d9034e70d66df2131f5f31df64e7d40a8b8a1"
+    },
+    "archived-oracles.json": {
+      "source_receipt": "archived-oracles.json",
+      "sha256": "c0e2d0d4a3817e7bd9494e50a5262f9caec3319bd5023473731535c13238d789"
+    },
+    "catchments-records.json": {
+      "source_receipt": "catchments-records.json",
+      "sha256": "ea795a5ffda97e1b092f9620a15e6506e9562adcc4b40fb3bdcab7eab0eeb7d8"
+    },
+    "full-attributes-tiers-summary.json": {
+      "source_receipt": "full-attributes-tiers-summary.json",
+      "sha256": "55e139322c04f813317ab25e2ddfec8c2d34e80a0484d0d9fcc968d979597180"
+    },
+    "measurement-source-hashes.json": {
+      "source_receipt": "measurement-source-hashes.json",
+      "sha256": "571cd5fd1291f936a300cfeb61febd651f70657a2ec474d417886c3a783a28f8"
+    },
+    "node-spatial-correctness.json": {
+      "source_receipt": "node-spatial-correctness.json",
+      "sha256": "6d0e1a8a1907297d110a59a3e8a38d3935083e32fd3d04fcad236512087a1c53"
+    },
+    "original-column-scans.json": {
+      "source_receipt": "original-column-scans.json",
+      "sha256": "88e7e639389874276f1ac0de8aa0d3e03232bc3a98190b5b20042d21e6b5a760"
+    },
+    "source-node-spatial.json": {
+      "source_receipt": "source-node-spatial.json",
+      "sha256": "62b1b851f722fdb6871a25d39ffff6f1902e98d290672a84f64646328daebe31"
+    },
+    "workflow-oracles.json": {
+      "source_receipt": "workflow-oracles.json",
+      "sha256": "a1cb9419234b5cd5884db67525a0daccc629190ecc29990b4d55881eebb7a164"
+    },
+    "workloads.json": {
+      "source_receipt": "workloads.json",
+      "sha256": "720503f5b37b1abcbeda1afa62f3631a3b1ecd3df9661b28978cc6aa56d13611"
+    },
+    "association-summary.json": {
+      "source_receipt": "association-summary.json",
+      "sha256": "1e4c86a421e49fd0815f6548ac9ab67d12e17ad9cdf8c016533c57945199a83b"
+    },
+    "build-256.json": {
+      "source_receipt": "build-256.json",
+      "sha256": "2d496da8b400d80bd67535a5332a53b88f2fcd8bea86757e50ee3740f09f746c"
+    },
+    "manifest-semantic-audit.json": {
+      "source_receipt": "manifest-semantic-audit.json",
+      "sha256": "f489f648a7031a698da3077a1f5f6087de3f1a354440b265a82c8f77466f97a6"
+    },
+    "measured-receipt-hashes.json": {
+      "source_receipt": "measured-receipt-hashes.json",
+      "sha256": "49df070862583ce7a217fdc13f4c2ac5dfebe39e1226e644a89ceb9903c02074"
+    },
+    "patched-source-claims-audit.json": {
+      "source_receipt": "patched-source-claims-audit.json",
+      "sha256": "21d6a103268f433c4c4b562de67118be16a9c37b69e320a3fdfb7a98131d73bf"
+    },
+    "reverse-isolated-summary.json": {
+      "source_receipt": "reverse-isolated-summary.json",
+      "sha256": "f842922ea868c6a42d42db0474b08e1e7b6bfbf8952129a39fb3e4014ffd47e3"
+    },
+    "rowcap256-column-scans.json": {
+      "source_receipt": "rowcap256-column-scans.json",
+      "sha256": "3b86387cb668a236e05d284ba2e19e77d2cfcc15ffb3ae5e2e2d882885a3154e"
+    },
+    "rowcap256-record-summary.json": {
+      "source_receipt": "rowcap256-record-summary.json",
+      "sha256": "ba30e3bf5c0d7126d70d3c86a577caf0fa766e3a9e58e4b2cc6597c6332bb6ac"
+    },
+    "verification-256.json": {
+      "source_receipt": "verification-256.json",
+      "sha256": "40c1a89fab5e5a450dfb459148a56a3f2a9241b976dcbb3f1f50b8d870eaa024"
+    },
+    "verification-8192-v2-code-hashes.json": {
+      "source_receipt": "verification-8192-v2-code-hashes.json",
+      "sha256": "c1a3e16e224d4c895dd5d8e343c82c74d4e96be6c312853e0a54ad272b720576"
+    },
+    "isolated-graph-spatial.json": {
+      "source_receipt": "isolated-graph-spatial.json",
+      "sha256": "fadae97fdf475ed6cae75eca1dc14c83527d0fc207dab918fae53f0889131774"
+    }
+  },
+  "units": "decimal bytes/GB; elapsed seconds; process lifetime peakRSS not retained buffers",
+  "cache": "fresh process, uncontrolled filesystem; repeated instances retain bounded transport metadata, no selected feature cache",
+  "concurrency": "source-only diagnostics and first full river scan disclosed; isolated matrix serialized; tiny native tests occasionally concurrent",
+  "large_requests": "excluded from compact copies; raw external immutable receipts retained",
+  "candidate256_manifest_sha256": "5633d6798795d2c34886676fb85d9f1ec8c62fb85a419b27308403ea0a5e4a8a"
+}
