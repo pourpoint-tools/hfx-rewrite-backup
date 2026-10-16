@@ -144,6 +144,11 @@ def test_consumer_cli_timed_preparation_and_report(tmp_path: Path, monkeypatch: 
         == hashlib.sha256(bytes.fromhex("0a0000000000000014000000000000001e000000000000002800000000000000")).hexdigest()
     )
     assert receipt["after_preparation"]["local_read_bytes"] > receipt["opening"]["local_read_bytes"]
+    assert (
+        receipt["phases"][0]["total_transport"]["local_read_bytes"] == receipt["after_preparation"]["local_read_bytes"]
+    )
+    assert receipt["phases"][1]["total_transport"]["local_read_bytes"] == 0
+    assert receipt["total_transport"]["local_read_bytes"] == receipt["after_preparation"]["local_read_bytes"]
     assert receipt["requests"] == []
 
 
@@ -276,6 +281,8 @@ def test_workflow_discovery_closure_records(tmp_path: Path, monkeypatch: pytest.
         str(source),
         "--strategy",
         mode,
+        "--source",
+        str(source),
         "--window",
         "small",
         "--level",
@@ -319,3 +326,135 @@ def test_workflow_discovery_closure_records(tmp_path: Path, monkeypatch: pytest.
     with pytest.raises(ValueError, match="oracle mismatch"):
         main()
     assert "oracle mismatch" in json.loads((tmp_path / "mismatch.json").read_text())["error"]
+
+
+@pytest.mark.parametrize("tamper", [False, True])
+def test_workflow_validates_source_records_and_totals_distinct_accesses(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, tamper: bool
+) -> None:
+    import sys
+
+    from experiments.data_interface import traversal_probe
+    from experiments.data_interface.features import build_features
+    from experiments.data_interface.probe import Access
+    from experiments.data_interface.test_record_probe import original_bundle
+    from hfx.candidates import fingerprint
+
+    source, candidate = tmp_path / "source", tmp_path / "candidate"
+    original_bundle(source)
+    source_sha = hashlib.sha256((source / "manifest.json").read_bytes()).hexdigest()
+    candidate.mkdir()
+    declaration = build_features(source / "rivers.arrow", candidate, "rivers", rows=2)
+    relation = pa.table({"id": [2, 90, 700], "downstream_ids": [[90], [700], []]})
+    with pa.ipc.new_file(str(candidate / "flow.arrow"), relation.schema) as writer:
+        writer.write_table(relation)
+    (candidate / "flow-directory.json").write_text(
+        json.dumps({"batches": [{"batch": 0, "min_id": 2, "max_id": 700, "rows": 3}]})
+    )
+    (candidate / "manifest.json").write_text(
+        json.dumps(
+            {
+                "experimental": True,
+                "input_manifest_sha256": source_sha,
+                "families": {"rivers": declaration},
+                "relationships": {"rivers": {"data": "flow.arrow", "directory": "flow-directory.json"}},
+                "artifacts": {path.name: fingerprint(path) for path in candidate.iterdir()},
+            }
+        )
+    )
+    workloads = tmp_path / "workloads.json"
+    workloads.write_text(
+        json.dumps(
+            {
+                "manifest_sha256": source_sha,
+                "rivers_graph": {"windows": {"small": {"bounds_epsg4326": [4.0, 0.0, 6.0, 1.0]}}},
+            }
+        )
+    )
+    report = tmp_path / "report.json"
+    original_ids = Access.ids
+    if tamper:
+
+        def changed_ids(access: Access, requested: list[int]) -> tuple[pa.Table, list[int]]:
+            table, absent = original_ids(access, requested)
+            if "source_value" in table.column_names:
+                position = table.schema.get_field_index("source_value")
+                table = table.set_column(
+                    position, table.schema.field(position), pa.array([99] * table.num_rows, type=pa.int32())
+                )
+            return table, absent
+
+        monkeypatch.setattr(Access, "ids", changed_ids)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "traverse",
+            "--bundle",
+            str(candidate),
+            "--source",
+            str(source),
+            "--strategy",
+            "batch-cache",
+            "--window",
+            "small",
+            "--level",
+            "0",
+            "--workloads",
+            str(workloads),
+            "--record-columns",
+            "source_value",
+            "--repeats",
+            "2",
+            "--report",
+            str(report),
+        ],
+    )
+    if tamper:
+        with pytest.raises(ValueError, match="source records differ"):
+            traversal_probe.main()
+        return
+    traversal_probe.main()
+    receipt = json.loads(report.read_text())
+    first, repeated = receipt["phases"]
+    assert first["record_validation"]["semantic_equal"]
+    assert first["records"]["rows"] == 3
+    assert first["total_transport"]["local_read_bytes"] == sum(
+        phase["local_read_bytes"]
+        for phase in [receipt["opening"], receipt["feature_opening"], first["discovery"], first["records"], first]
+    )
+    assert repeated["total_transport"]["local_read_bytes"] == sum(
+        phase["local_read_bytes"] for phase in [repeated["discovery"], repeated["records"], repeated]
+    )
+    assert receipt["total_transport"]["local_read_bytes"] == sum(
+        phase["total_transport"]["local_read_bytes"] for phase in receipt["phases"]
+    )
+
+
+def test_transport_totals_include_optional_connectivity_access(tmp_path: Path) -> None:
+    from experiments.data_interface.probe import Access
+    from experiments.data_interface.record_probe import TRANSPORT
+    from experiments.data_interface.test_record_probe import original_bundle
+    from experiments.data_interface.traversal_probe import transport_stats
+    from hfx.candidates import fingerprint
+
+    source = tmp_path / "source"
+    original_bundle(source)
+    manifest_path = source / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["artifacts"] = {path.name: fingerprint(path) for path in source.iterdir() if path != manifest_path}
+    manifest_path.write_text(json.dumps(manifest))
+    # This source helper's lookup metadata is not publication-bound; use relationship mode
+    # solely to exercise three independently counted file streams here.
+    manifest["experimental"] = True
+    manifest["relationships"] = {"rivers": {"data": "rivers.arrow", "directory": "directory.json"}}
+    manifest_path.write_text(json.dumps(manifest))
+    with (
+        Access(str(source), "rivers", ["id"], relationship=True) as adjacency,
+        Access(str(source), "rivers", ["id"], relationship=True) as features,
+        Access(str(source), "rivers", ["id"], relationship=True) as connectivity,
+    ):
+        accesses = [adjacency, features, connectivity]
+        expected = {key: sum(int(access.stats()[key]) for access in accesses) for key in TRANSPORT}
+        assert transport_stats(accesses) == expected
+        assert expected["local_read_bytes"] > adjacency.stats()["local_read_bytes"]

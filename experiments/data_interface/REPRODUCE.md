@@ -186,3 +186,29 @@ original Amazon partials wrap `experiments.data_interface.record_probe` with
 --columns id level bbox --repeats 1 --report "$REPORT/unfinished-records.json"`.
 Always choose fresh wrapper and driver report names. Keep capped receipts separate
 from completed results; partial response bodies do not imply equal progress.
+
+## Current workload and workflow probes
+
+These commands use the current reader, not the historical receipt revision.
+Generate the new witness file outside the source bundle and repository; the
+original witness entries remain unchanged. The medium square has radius 0.1°;
+the two many-record selections use 4,096 actual source row ordinals. These are
+investigation settings, not production layout constants.
+
+```sh
+uv run --group data-interface python -m experiments.data_interface.oracles.extend_workloads "$SOURCE" --workloads "$WORKLOADS" --catchment-records experiments/data_interface/results/catchments-records.json --report "$REPORT/extended-workloads.json"
+uv run --group data-interface python -m experiments.data_interface.record_probe "$CANDIDATE" --source "$SOURCE" --family rivers --workloads "$REPORT/extended-workloads.json" --operation spatial --spatial-window medium --columns id source_global_id --report "$REPORT/medium-records.json"
+uv run --group data-interface python -m experiments.data_interface.record_probe "$CANDIDATE" --source "$SOURCE" --family rivers --workloads "$REPORT/extended-workloads.json" --selection many-scattered --columns id source_global_id --report "$REPORT/many-records.json"
+uv run --group data-interface --group vector-production python -m experiments.data_interface.traversal_probe --bundle "$CANDIDATE" --source "$SOURCE" --strategy batch-cache --window small --level 0 --workloads "$WORKLOADS" --workflow-oracles experiments/data_interface/results/workflow-oracles.json --record-columns id source_global_id geometry --decode-geometry --repeats 2 --report "$REPORT/workflow-records.json"
+```
+
+Workflow `--source` is required for independent exact projected-record equality.
+Validation runs after timed fetch/decode, can warm local source files before
+repeats, and contributes to lifetime peak RSS. Each phase's `total_transport`
+includes all distinct adjacency, feature and connectivity-check Access instances:
+first-use counters include opening/preparation; repeats report deltas. The final
+`total_transport` is cumulative. Existing namespaced phase metrics remain separate.
+Use the same optional `--read-ahead-bytes N` on compared workflow commands; the
+default is zero. Original `consumer` now enables Parquet pre-buffering, with all
+projected graph acquisition and numeric preparation still inside first use.
+These drivers do not establish a remote performance or physical-layout result.
