@@ -4,7 +4,9 @@ import pyarrow as pa
 import pyarrow.ipc as ipc
 import pytest
 
-from experiments.data_interface.features import build_features, select_ids, spatial_ids, verify_features
+from experiments.data_interface.features import build_features, verify_features
+from experiments.data_interface.probe import Access
+from hfx.candidates import fingerprint
 
 
 def source_file(path: Path) -> pa.Table:
@@ -56,7 +58,14 @@ def test_spatial_build_preserves_native_rows_and_selects_sparse_ids(tmp_path: Pa
     output.mkdir()
     declaration = build_features(tmp_path / "source.arrow", output, "rivers", rows=2)
     verify_features(tmp_path / "source.arrow", output, declaration)
-    selected, absent = select_ids(output, declaration, [700, 3, 2, 700], ["geometry", "id", "source_value"])
+    import json
+
+    artifacts = {p.name: fingerprint(p) for p in output.iterdir()}
+    (output / "manifest.json").write_text(
+        json.dumps({"experimental": True, "families": {"rivers": declaration}, "artifacts": artifacts})
+    )
+    access = Access(str(output), "rivers", ["geometry", "id", "source_value"])
+    selected, absent = access.ids([700, 3, 2, 700])
     assert absent == [3]
     assert selected.column_names == ["geometry", "id", "source_value"]
     assert selected.to_pylist() == [
@@ -65,8 +74,9 @@ def test_spatial_build_preserves_native_rows_and_selects_sparse_ids(tmp_path: Pa
         {"geometry": b"exact700", "id": 700, "source_value": -7},
     ]
     assert selected.schema.metadata == original.schema.metadata
-    assert spatial_ids(output, declaration, (4.0, 0.0, 6.0, 1.0), level=0) == [2]
-    assert spatial_ids(output, declaration, (40.0, 0.0, 50.0, 1.0)) == []
+    assert access.spatial((4.0, 0.0, 6.0, 1.0), level=0) == [2]
+    assert access.spatial((40.0, 0.0, 50.0, 1.0)) == []
+    access.close()
     with pytest.raises(FileExistsError):
         build_features(tmp_path / "source.arrow", output, "rivers", rows=2)
 
