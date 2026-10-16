@@ -83,6 +83,14 @@ def measure(
                     "record_groups": access.last_groups,
                 }
             )
+            decode_s = 0.0
+            if decode and "geometry" in columns:
+                import shapely
+
+                started = perf_counter()
+                geometries = shapely.from_wkb(table.column("geometry").to_numpy())
+                decode_s = perf_counter() - started
+                del geometries
             actual_ids = cast(list[int], table.column("id").to_pylist())
             if window:
                 requested = sorted(actual_ids)
@@ -93,14 +101,6 @@ def measure(
                 requested = actual_ids
             expected, missing = source_records(source, "rivers", requested, columns)
             validation = validate_records(source_schema_table(table), absent, expected, missing)
-            decode_s = 0.0
-            if decode and "geometry" in columns:
-                import shapely
-
-                started = perf_counter()
-                geometries = shapely.from_wkb(table.column("geometry").to_numpy())
-                decode_s = perf_counter() - started
-                del geometries
             report["repeats"].append(
                 {
                     "repeat": repeat,
