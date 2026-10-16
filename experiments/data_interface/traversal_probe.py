@@ -8,9 +8,11 @@ import json
 from bisect import bisect_left
 from collections.abc import Callable
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from time import perf_counter
 from typing import Any, cast
 from urllib.parse import urljoin
+from urllib.request import Request, urlopen
 
 import numpy as np
 import numpy.typing as npt
@@ -80,9 +82,75 @@ class Published:
         self.access, self.column, self.strategy = access, column, strategy
         self.cache: dict[int, pa.RecordBatch] = {}
         self.graph: NumericGraph | None = None
+        self.scratch: TemporaryDirectory[str] | None = None
+        self.download: dict[str, Any] = {}
+
+    def close(self) -> None:
+        if self.scratch is not None:
+            self.scratch.cleanup()
 
     def prepare(self) -> None:
-        if self.strategy == "bulk":
+        if self.strategy == "bulk-file":
+            if not self.access.remote:
+                raise ValueError("bulk-file requires an HTTP bundle")
+            self.scratch = TemporaryDirectory(prefix="hfx-adjacency-")
+            path = Path(self.scratch.name) / "adjacency.arrow"
+            self.download["temporary_directory"] = self.scratch.name
+            name = self.access.declaration["data"]
+            identity = self.access.manifest["artifacts"][name]
+            url = urljoin(self.access.root, name)
+            etag = self.access.http.etags[url]
+            request = Request(url, headers={"Accept-Encoding": "identity", "If-Match": etag})
+            digest = hashlib.sha256()
+            received = 0
+            started = perf_counter()
+            with urlopen(request) as response:
+                try:
+                    if response.status != 200:
+                        raise ValueError("full artifact download requires HTTP 200")
+                    if response.headers.get("ETag") != etag:
+                        raise ValueError("ETag changed during full download")
+                    if response.headers.get("Content-Encoding", "identity") != "identity":
+                        raise ValueError("full download encoding must preserve bytes")
+                    if response.headers.get("Content-Length") != str(identity["size_bytes"]):
+                        raise ValueError("full download length differs")
+                    with path.open("xb") as output:
+                        while chunk := response.read(8 * 1024 * 1024):
+                            received += len(chunk)
+                            if received > identity["size_bytes"]:
+                                raise ValueError("full download exceeds declared length")
+                            digest.update(chunk)
+                            output.write(chunk)
+                finally:
+                    self.access.http.requests.append(
+                        {
+                            "url": url,
+                            "start": None,
+                            "end": None,
+                            "bytes": received,
+                            "etag": response.headers.get("ETag", ""),
+                        }
+                    )
+                    self.download.update(
+                        {
+                            "http_body_bytes": received,
+                            "disk_bytes": path.stat().st_size if path.exists() else 0,
+                            "sha256": digest.hexdigest(),
+                            "download_s": perf_counter() - started,
+                        }
+                    )
+            if received != identity["size_bytes"] or digest.hexdigest() != identity["sha256"]:
+                raise ValueError("full download size or digest differs")
+            fields = [self.access.schema.get_field_index(name) for name in ["id", self.column]]
+            with pa.OSFile(str(path), "rb") as source:
+                reader = pa.ipc.open_file(source, options=pa.ipc.IpcReadOptions(included_fields=fields))
+                batches = []
+                for index in range(reader.num_record_batches):
+                    batch = reader.get_batch(index)
+                    self.loaded(index, batch)
+                    batches.append(batch)
+                self.graph = NumericGraph(pa.Table.from_batches(batches), self.column)
+        elif self.strategy == "bulk":
             batches = []
             for index in range(self.access.reader.num_record_batches):
                 batch = self.access.reader.get_batch(index)
@@ -208,7 +276,9 @@ def main() -> None:
     parser.add_argument("--family", choices=["rivers", "catchments"], default="rivers")
     parser.add_argument("--seed", type=int, default=4)
     parser.add_argument("--direction", choices=["upstream", "downstream"], default="downstream")
-    parser.add_argument("--strategy", choices=["selective", "batch-cache", "bulk", "consumer"], required=True)
+    parser.add_argument(
+        "--strategy", choices=["selective", "batch-cache", "bulk", "bulk-file", "consumer"], required=True
+    )
     parser.add_argument("--repeats", type=int, default=3)
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--oracles", type=Path, default=Path(__file__).with_name("results") / "archived-oracles.json")
@@ -218,6 +288,7 @@ def main() -> None:
     parser.add_argument("--record-columns", nargs="+")
     parser.add_argument("--workflow-oracles", type=Path)
     parser.add_argument("--decode-geometry", action="store_true")
+    parser.add_argument("--source-manifest-sha256", help="expected original manifest identity, checked after opening")
     args = parser.parse_args()
     if args.window and (
         args.workloads is None
@@ -251,8 +322,6 @@ def main() -> None:
     if args.repeats < 1 or args.seed <= 0:
         parser.error("positive seed and repeats required")
     remote = args.bundle.startswith(("http://", "https://"))
-    if args.strategy == "consumer" and remote:
-        parser.error("remote consumer baseline unsupported; use an explicitly acquired local original bundle")
     if not remote and args.report.resolve().is_relative_to(Path(args.bundle).resolve()):
         parser.error("report must be outside the source/candidate bundle")
     oracle: dict[str, Any] | None = None
@@ -311,11 +380,12 @@ def main() -> None:
         "versions": {"numpy": np.__version__, "pyarrow": pa.__version__},
         "code_sha256": code_sha256,
         "timer_boundary": "opening + preparation (includes connectivity validation) + first query; excludes imports, CLI parsing, oracle load and report bookkeeping",
-        "consumer_remote": "unsupported; measured consumer baseline is local projected original Parquet",
+        "consumer_remote": "original projected Parquet; acquisition and numeric preparation inside first-result time",
         "cache_policy": "query-owned batch cache cleared before every traversal; bounded transport head/tail retained",
         "scope": "inclusive unique membership over supplied edges; not delineation or terminal classification",
     }
     validation: Access | None = None
+    provider: Published | NumericGraph | None = None
 
     def discover() -> tuple[IntArray, dict[str, Any]]:
         assert features is not None and window is not None
@@ -343,6 +413,9 @@ def main() -> None:
             if isinstance(access, Access)
             else access.manifest_sha256
         )
+        if args.source_manifest_sha256 is not None and args.source_manifest_sha256 != source_sha:
+            raise ValueError("expected source manifest differs")
+        report["source_manifest_sha256"] = source_sha
         if workloads is not None and workloads["manifest_sha256"] != source_sha:
             raise ValueError("workload source manifest differs")
         if workflow_oracles is not None and workflow_oracles["source_manifest_sha256"] != source_sha:
@@ -370,7 +443,7 @@ def main() -> None:
                 check_connectivity(access.manifest["catchment_connectivity"], cast(int, row["level"].to_pylist()[0]))
             graph = NumericGraph.from_incoming(table.select(["id", "upstream_ids"]), args.direction)
             del table
-            provider: Published | NumericGraph = graph
+            provider = graph
         else:
             if args.family == "catchments" and not args.window:
                 validation = Access(args.bundle, "catchments", ["id", "level"])
@@ -483,6 +556,10 @@ def main() -> None:
         report["requests"] = access.http.requests
         raise
     finally:
+        if isinstance(provider, Published):
+            if provider.download:
+                report["bulk_file"] = provider.download
+            provider.close()
         if validation is not None:
             validation.close()
         if features is not None:

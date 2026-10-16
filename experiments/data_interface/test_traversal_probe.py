@@ -147,7 +147,7 @@ def test_consumer_cli_timed_preparation_and_report(tmp_path: Path, monkeypatch: 
     assert receipt["requests"] == []
 
 
-@pytest.mark.parametrize("unsafe", ["overwrite", "source", "remote-consumer"])
+@pytest.mark.parametrize("unsafe", ["overwrite", "source"])
 def test_cli_refuses_unsafe_measurements(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, unsafe: str) -> None:
     import sys
 
@@ -158,7 +158,7 @@ def test_cli_refuses_unsafe_measurements(tmp_path: Path, monkeypatch: pytest.Mon
     report = source / "receipt.json" if unsafe == "source" else tmp_path / "receipt.json"
     if unsafe == "overwrite":
         report.write_text("preserved")
-    bundle = "https://example.invalid/bundle" if unsafe == "remote-consumer" else str(source)
+    bundle = str(source)
     monkeypatch.setattr(sys, "argv", ["probe", "--bundle", bundle, "--strategy", "consumer", "--report", str(report)])
     with pytest.raises((SystemExit, FileExistsError)):
         main()
