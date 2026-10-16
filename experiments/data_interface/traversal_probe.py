@@ -100,7 +100,14 @@ class Published:
             identity = self.access.manifest["artifacts"][name]
             url = urljoin(self.access.root, name)
             etag = self.access.http.etags[url]
-            request = Request(url, headers={"Accept-Encoding": "identity", "If-Match": etag})
+            request = Request(
+                url,
+                headers={
+                    "Accept-Encoding": "identity",
+                    "If-Match": etag,
+                    "User-Agent": "hfx-vector-verification/0.4.0",
+                },
+            )
             digest = hashlib.sha256()
             received = 0
             started = perf_counter()

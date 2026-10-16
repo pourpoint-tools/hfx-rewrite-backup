@@ -84,7 +84,13 @@ def remote_bundle(tmp_path: Path) -> Iterator[tuple[str, Path, dict[str, str], l
             self.end_headers()
             self.wfile.write(body)
             calls.append(
-                {"path": self.path, "range": span, "if_match": self.headers.get("If-Match"), "bytes": len(body)}
+                {
+                    "path": self.path,
+                    "range": span,
+                    "if_match": self.headers.get("If-Match"),
+                    "user_agent": self.headers.get("User-Agent"),
+                    "bytes": len(body),
+                }
             )
 
         def log_message(self, format: str, *args: object) -> None:
@@ -143,6 +149,7 @@ def test_remote_cli_includes_preparation_and_actual_transfers(
         full = [call for call in calls if call["path"] == "/candidate/flow.arrow" and not call["range"]]
         assert len(full) == 1
         assert full[0]["if_match"] == '"fixed-artifact"'
+        assert full[0]["user_agent"] == "hfx-vector-verification/0.4.0"
         download = receipt["bulk_file"]
         assert download["sha256"] == fingerprint(candidate / "flow.arrow")["sha256"]
         assert download["disk_bytes"] == (candidate / "flow.arrow").stat().st_size
