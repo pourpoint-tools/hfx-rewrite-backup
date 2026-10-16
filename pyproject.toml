@@ -19,6 +19,10 @@ source-exclude = ["/planning/**", "/scratchpad/**", "/.worktrees/**", "/credenti
 wheel-exclude = ["/src/**/.env", "/src/**/.env.*", "/src/**/*.env", "/src/**/*.pem", "/src/**/*.key", "/src/**/credentials/**", "/src/**/.worktrees/**"]
 
 [dependency-groups]
+data-interface = [
+    "duckdb>=1.4",
+    "numpy>=2.5",
+]
 dev = [
     "pyarrow-stubs>=20.0.0.20260819",
     "pytest>=8.3",
