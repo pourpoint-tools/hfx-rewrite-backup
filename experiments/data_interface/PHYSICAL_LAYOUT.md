@@ -1,8 +1,9 @@
 # GRIT physical-layout investigation
 
 **In progress. No layout or production contract is selected.** Local corrected-
-reader and river GeoParquet evidence is available; remote trials and the final
-recommendation remain pending.
+reader and river GeoParquet evidence plus original-public remote baselines are
+available. Candidate/GeoParquet remote comparisons and the final recommendation
+remain pending.
 Related: [HFX #35](https://github.com/pourpoint-tools/hfx/issues/35).
 The [previous findings](REPORT.md) remain historical evidence, not revised results.
 
@@ -296,6 +297,80 @@ including preparation, validation and allocator lifetime. These distinct memory
 measures must not be summed or treated as query-only peaks. Local counters expose
 read-policy concerns but establish neither HTTP request counts nor remote benefit.
 
+## Original publication: corrected remote baseline
+
+**Original only; candidate and GeoParquet remote comparisons remain pending.**
+[Remote evidence](results/physical-layout-remote-original.json) preserves eight
+spatial workloads / 16 operations and five known-ID cases / 10 operations on the
+unchanged public GRIT publication. Trials ran serially with uploads stopped.
+Each starts a fresh process, then reuses the same reader. CDN/network cache state
+is unknown; this is not a cold-cache or provider-general result.
+
+First includes opening, discovery, requested-record retrieval and WKB decode when
+requested; reuse excludes opening. Independent source validation, imports, hashing
+and JSON are outside timers. Readers retain metadata/head-tail ranges, use
+65,536-byte IPC read-ahead and grouped native Parquet pre-buffering, without an
+application selected-batch cache. Lazy graph opening can occur in discovery;
+constructor time is not all startup. Concurrent HTTP fetching is not established.
+
+Small/medium spatial windows request ID, tier, bbox, source length/area and exact
+WKB with decode; other rows request those attributes without geometry. Seconds,
+requests and decimal MB are **first / reuse**; requests/body bytes include opening
+once, not headers, TLS or provider costs.
+
+| Family / window | Rows | First / reuse s | HTTP requests | HTTP MB |
+| --- | ---: | ---: | ---: | ---: |
+| rivers / small | 7 | 18.652 / 13.001 | 58 / 48 | 70.763 / 5.795 |
+| rivers / medium | 164 | 30.827 / 25.041 | 88 / 78 | 75.586 / 10.618 |
+| rivers / elongated | 159 | 31.027 / 24.953 | 91 / 81 | 73.987 / 9.019 |
+| rivers / Amazon | 75,495 | 702.391 / 715.583 | 1,723 / 1,713 | 201.188 / 136.220 |
+| catchments / small | 8 | 23.328 / 19.966 | 80 / 70 | 79.578 / 14.395 |
+| catchments / medium | 115 | 39.851 / 34.176 | 119 / 109 | 89.265 / 24.082 |
+| catchments / source boundary | 85 | 29.994 / 24.460 | 91 / 81 | 73.413 / 8.230 |
+| catchments / Amazon | 75,929 | 749.974 / 743.634 | 1,787 / 1,777 | 207.520 / 142.337 |
+
+All spatial operations match independent original-source records exactly and
+local original witnesses on selected ID, count and projected Arrow-stream hash.
+Local timings are not compared. Both large attribute selections now complete;
+first record fetch alone takes 685.939 s for rivers and 726.991 s for catchments.
+Reuse is not uniformly faster. Medium catchment reuse discovery still needs 50
+requests / 1.210 MB, followed by 59 / 22.872 MB for records: retaining metadata
+reduces transfer but does not remove every round trip. Its 115 output records
+contain 3.620 MB WKB; fetch materializes 4,269 rows / 24.618 MB. This is projected
+Arrow materialization, not isolated compressed-WKB overread. Conservative bbox
+selection is not exact geometry intersection.
+
+Known-ID requests below use `id, level, source_length` (rivers) or `source_area`
+(catchments), with no spatial discovery, WKB or decode. Dispersed **128** is a
+source-row subset, not the local 4,096 dispersed workload; no linear extrapolation.
+
+| Family / known IDs | Rows | First / reuse s | HTTP requests | HTTP MB |
+| --- | ---: | ---: | ---: | ---: |
+| rivers / clustered 4,096 | 4,096 | 10.640 / 7.028 | 26 / 19 | 4.635 / 2.228 |
+| rivers / dispersed 128, retry | 128 | 205.265 / 189.611 | 513 / 506 | 161.201 / 158.794 |
+| rivers / absent max + 1 | 0 | 2.503 / 0.000045 | 7 / 0 | 2.407 / 0.000 |
+| catchments / clustered 4,096 | 4,096 | 14.691 / 9.472 | 31 / 24 | 4.963 / 2.556 |
+| catchments / absent max + 1 | 0 | 2.621 / 0.000064 | 7 / 0 | 2.407 / 0.000 |
+
+Absent means one above each source maximum, not absence inside an indexed range.
+The river dispersed retry materializes 32,532 rows / 0.586 MB for 128 outputs /
+2,304 logical bytes, while fetch transfers 158.794 MB. Useful Arrow output and
+lookup/read-ahead transfer are different measures. The initial river attempt
+failed HTTP 500; only its explicit fresh-process retry supplies completed timing.
+**Catchment dispersed 128 remains missing after HTTP 503.** Neither failed attempt
+has a result receipt, equality check or useful-result elapsed claim; both failures
+remain hash-bound outside Git. No retry is included for catchments.
+
+Read-only audits report 331 original spatial/river checks and 33 added catchment
+checks, with zero failures. Every successful operation asserts semantic and exact
+projected-source stream equality; selected checks do not authenticate full global
+artifacts. Measured scripts/workloads, raw receipts and execution hashes are bound
+in the JSON at code `8b2fac6d928c493187a97928c06b4749b6f50f1f`. Imported reader/build
+hashes observed at aggregation are not retroactive per-trial measurements.
+Spatial lifetime RSS is 659–805 MB and known-ID RSS 101–146 MB, including validation;
+native serialized cache retention is unmeasured, not a query-memory bound.
+Single first/reuse pairs provide no confidence interval or layout recommendation.
+
 ## Reproduction and remaining decisions
 
 Use the [current reproduction commands](REPRODUCE.md#current-workload-and-workflow-probes)
@@ -312,6 +387,7 @@ their tiny tests are [historical source archives](REPRODUCE.md#historical-census
 not maintained APIs. The archive binding records hashes and native checks;
 GeoParquet producer/probe source remains pinned to its measured commit.
 
-Remote behavior and a final layout recommendation remain unfinished. Local
-first-use gains do not settle them. Keep #35 open and return the
+Remote candidate/GeoParquet comparisons, remaining remote relationship/bulk cases,
+publication cleanup and a final layout recommendation remain unfinished. Original-only
+remote results and local gains do not settle them. Keep #35 open and return the
 complete findings to maintainers and Pourpoint #36 before production adoption.

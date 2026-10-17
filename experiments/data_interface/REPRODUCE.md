@@ -187,11 +187,72 @@ original Amazon partials wrap `experiments.data_interface.record_probe` with
 Always choose fresh wrapper and driver report names. Keep capped receipts separate
 from completed results; partial response bodies do not imply equal progress.
 
+
+## Corrected original-public remote baseline
+
+The [current original-only findings](PHYSICAL_LAYOUT.md#original-publication-corrected-remote-baseline)
+and [compact evidence](results/physical-layout-remote-original.json) bind eight
+spatial and five successful known-ID cases. Candidate/GeoParquet remote comparison,
+remote relationship/bulk completion and final recommendation remain pending.
+These completed original-public runs do not use the historical capped wrapper.
+Use the measured code checkout **`8b2fac6d928c493187a97928c06b4749b6f50f1f`**,
+the source manifest pin above and its native uv environment. The GP local reader
+remains separately pinned to `44f1346ce298ee241841c890a557750346c3f122`; no GP remote
+result is supplied here. Do not relabel preserved receipts as current-code runs.
+
+Regenerate source witnesses outside timed runs using the source-only extension
+command in [Current workload and workflow probes](#current-workload-and-workflow-probes)
+below. Equivalent spatial witness entries reproduce selected
+IDs/values; generated file hashes do not replace the exact measured workload SHA.
+Set `REMOTE_WORKLOADS` to that extended file. The remote spatial receipts bind
+`372f0188462b15944b26089dbc491405808264a70d215072d895efe6f155bedc`.
+
+```sh
+uv run --group data-interface --group vector-production python -m experiments.data_interface.record_probe "$SOURCE_HTTP" --source "$SOURCE" --family rivers --workloads "$REMOTE_WORKLOADS" --operation spatial --spatial-window medium --columns id level bbox source_length geometry --read-ahead-bytes 65536 --repeats 2 --report "$REPORT/original-rivers-medium.json"
+uv run --group data-interface python -m experiments.data_interface.record_probe "$SOURCE_HTTP" --source "$SOURCE" --family catchments --workloads "$REMOTE_WORKLOADS" --operation spatial --spatial-window source_batch_boundary --columns id level bbox source_area --read-ahead-bytes 65536 --repeats 2 --report "$REPORT/original-catchments-boundary.json"
+```
+
+Use the first command for river `small`/`medium`; use attributes only (omit geometry
+and the vector group) for river `elongated`/`large_amazon`. Catchments use
+`source_area`, small/medium plus geometry, and `source_batch_boundary`/`large_amazon`
+attributes only. These are the eight completed spatial cases, not a full matrix.
+Choose fresh report names and run one command at a time only in an authorized quiet
+period, with upload/build/witness generation stopped. Fresh process does not mean
+cold CDN; repeat keeps native metadata and allowed buffers.
+
+Known-ID replay uses the [compact source-row witness](results/physical-layout-remote-known-ids.json),
+not a hidden private driver. Save `ARCHIVE_ROOT` as the checkout containing this
+file before switching to the measured checkout. Materialize its recorded clustered
+range and exact dispersed lists into a minimal CLI workload outside Git:
+
+```sh
+uv run python -c 'import json,pathlib,sys; w=json.loads(pathlib.Path(sys.argv[1]).read_text()); out={"manifest_sha256":w["manifest_sha256"]}; out.update({f+"_records":{"clustered_ids":list(range(v["clustered_delivered_ids"]["start"],v["clustered_delivered_ids"]["stop_exclusive"])),"scattered_ids":v["dispersed128_ids"]} for f,v in w["families"].items()}); pathlib.Path(sys.argv[2]).write_text(json.dumps(out)+"\n")' "$ARCHIVE_ROOT/experiments/data_interface/results/physical-layout-remote-known-ids.json" "$REPORT/remote-known-ids.json"
+uv run --group data-interface python -m experiments.data_interface.record_probe "$SOURCE_HTTP" --source "$SOURCE" --family rivers --workloads "$REPORT/remote-known-ids.json" --operation records --selection clustered --columns id level source_length --read-ahead-bytes 65536 --repeats 2 --report "$REPORT/original-rivers-clustered.json"
+```
+
+Repeat with river selections `scattered` (128 IDs) and `absent`; catchments use
+`--family catchments --columns id level source_area` with `clustered` and `absent`.
+Absent is the recorded source maximum + 1. Hash the generated sorted little-endian
+int64 IDs against the witness, and preserve its new file SHA alongside results;
+the measured larger CLI file SHA was
+`6a1615abe095644cce50042d202bb9b56a58a63c373a81641c0907cd97172b72`.
+This minimal projection selects identical IDs but is not byte-identical to that
+historical file. No timing is claimed for regenerated workloads.
+
+The initial river dispersed HTTP 500 failure and catchment dispersed HTTP 503
+failure have no result receipts. Preserve failed execution evidence; do not use
+process duration as result latency or silently retry. The one completed river
+retry is a separate fresh process with its own receipt. Catchment dispersed replay
+is not a completed baseline here and needs separate authorization. Full HTTP logs,
+failure tracebacks and private machine paths stay outside Git; compact raw/execution
+SHA bindings preserve their identities without copying those logs.
+
 ## Current workload and workflow probes
 
 See the [current physical-layout findings](PHYSICAL_LAYOUT.md) and
-[local receipt summary](results/physical-layout-local.json). Remote conclusions
-and the final recommendation are still pending.
+[local receipt summary](results/physical-layout-local.json). Original-public remote
+baselines are available above; candidate/GeoParquet remote comparisons and the
+final recommendation remain pending.
 
 These commands use the current reader, not the historical receipt revision.
 Generate the new witness file outside the source bundle and repository; the
