@@ -6,7 +6,7 @@ import argparse
 import hashlib
 import json
 from bisect import bisect_left
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import perf_counter
@@ -22,6 +22,7 @@ import pyarrow.parquet as pq
 
 from experiments.data_interface.build import peak_rss
 from experiments.data_interface.probe import Access, CountFile
+from experiments.data_interface.record_probe import TRANSPORT, source_records, validate_records
 from scripts.check_vector_access import HTTP, RangeFile
 
 IntArray = npt.NDArray[np.int64]
@@ -249,7 +250,7 @@ class Original:
                     raise ValueError("local bounded fingerprint differs")
             self.file.seek(0)
         self.stream = pa.PythonFile(self.file, mode="r")
-        self.reader = pq.ParquetFile(self.stream, pre_buffer=False)
+        self.reader = pq.ParquetFile(self.stream, pre_buffer=True)
 
     def acquire_file(self) -> pq.ParquetFile:
         if not self.remote:
@@ -260,7 +261,7 @@ class Original:
         download_artifact(
             self.http, urljoin(self.root, self.name), self.manifest["artifacts"][self.name], path, self.download
         )
-        self.download_reader = pq.ParquetFile(path, pre_buffer=False)
+        self.download_reader = pq.ParquetFile(path, pre_buffer=True)
         return self.download_reader
 
     def stats(self) -> dict[str, Any]:
@@ -287,6 +288,11 @@ class Original:
             self.scratch.cleanup()
 
 
+def transport_stats(accesses: Sequence[Access | Original]) -> dict[str, int]:
+    snapshots = [access.stats() for access in accesses]
+    return {key: sum(int(snapshot[key]) for snapshot in snapshots) for key in TRANSPORT}
+
+
 def id_identity(values: IntArray) -> dict[str, Any]:
     return {
         "count": len(values),
@@ -304,6 +310,7 @@ def main() -> None:
         description=__doc__, epilog="Run each strategy in a fresh process. Filesystem cache is uncontrolled."
     )
     parser.add_argument("--bundle", required=True)
+    parser.add_argument("--source", type=Path, help="original bundle for independent workflow record equality")
     parser.add_argument("--family", choices=["rivers", "catchments"], default="rivers")
     parser.add_argument("--seed", type=int, default=4)
     parser.add_argument("--direction", choices=["upstream", "downstream"], default="downstream")
@@ -321,6 +328,7 @@ def main() -> None:
     parser.add_argument("--record-columns", nargs="+")
     parser.add_argument("--workflow-oracles", type=Path)
     parser.add_argument("--decode-geometry", action="store_true")
+    parser.add_argument("--read-ahead-bytes", type=int, default=0)
     parser.add_argument("--source-manifest-sha256", help="expected original manifest identity, checked after opening")
     args = parser.parse_args()
     if args.window and (
@@ -333,6 +341,8 @@ def main() -> None:
         parser.error("--record-columns requires workflow --window")
     if args.decode_geometry and (not args.record_columns or "geometry" not in args.record_columns):
         parser.error("--decode-geometry requires geometry in --record-columns")
+    if args.window and args.source is None:
+        parser.error("--source is required for workflow record validation")
     workloads = json.loads(args.workloads.read_text()) if args.window else None
     window = tuple(workloads[f"{args.family}_graph"]["windows"][args.window]["bounds_epsg4326"]) if workloads else None
     workflow_oracles = json.loads(args.workflow_oracles.read_text()) if args.workflow_oracles else None
@@ -357,6 +367,11 @@ def main() -> None:
     remote = args.bundle.startswith(("http://", "https://"))
     if not remote and args.report.resolve().is_relative_to(Path(args.bundle).resolve()):
         parser.error("report must be outside the source/candidate bundle")
+    if args.source is not None and args.report.resolve().is_relative_to(args.source.resolve()):
+        parser.error("report must be outside the original validation bundle")
+    validation_source_sha = (
+        hashlib.sha256((args.source / "manifest.json").read_bytes()).hexdigest() if args.source is not None else None
+    )
     oracle: dict[str, Any] | None = None
     if args.family == "rivers" and args.oracles.exists():
         oracle = next(
@@ -374,12 +389,21 @@ def main() -> None:
     features: Access | None = None
     try:
         features = (
-            Access(args.bundle, args.family, list(dict.fromkeys(["id", *args.record_columns]))) if args.window else None
+            Access(
+                args.bundle,
+                args.family,
+                list(dict.fromkeys(["id", *args.record_columns])),
+                read_ahead_bytes=args.read_ahead_bytes,
+            )
+            if args.window
+            else None
         )
         access: Access | Original = (
             Original(args.bundle, args.family)
             if args.strategy in ("consumer", "consumer-file")
-            else Access(args.bundle, args.family, ["id", column], relationship=True)
+            else Access(
+                args.bundle, args.family, ["id", column], relationship=True, read_ahead_bytes=args.read_ahead_bytes
+            )
         )
     except Exception as error:
         if features is not None:
@@ -409,12 +433,14 @@ def main() -> None:
         if args.window
         else None,
         "phases": [],
-        "filesystem_cache": "uncontrolled",
+        "filesystem_cache": "uncontrolled; independent source validation can warm local files before repeats",
+        "reader_options": {"read_ahead_bytes": args.read_ahead_bytes, "original_parquet_pre_buffer": True},
         "versions": {"numpy": np.__version__, "pyarrow": pa.__version__},
         "code_sha256": code_sha256,
         "timer_boundary": "opening + preparation (includes connectivity validation) + first query; excludes imports, CLI parsing, oracle load and report bookkeeping",
         "consumer_remote": "original projected Parquet; acquisition and numeric preparation inside first-result time",
-        "cache_policy": "query-owned batch cache cleared before every traversal; bounded transport head/tail retained",
+        "cache_policy": "query-owned batch cache cleared before every traversal; head/tail and metadata retained; "
+        "optional IPC read-ahead retains bounded serialized data; original Parquet pre-buffer uses Arrow defaults",
         "scope": "inclusive unique membership over supplied edges; not delineation or terminal classification",
     }
     validation: Access | None = None
@@ -449,6 +475,8 @@ def main() -> None:
         if args.source_manifest_sha256 is not None and args.source_manifest_sha256 != source_sha:
             raise ValueError("expected source manifest differs")
         report["source_manifest_sha256"] = source_sha
+        if validation_source_sha is not None and validation_source_sha != source_sha:
+            raise ValueError("record validation source manifest differs")
         if workloads is not None and workloads["manifest_sha256"] != source_sha:
             raise ValueError("workload source manifest differs")
         if workflow_oracles is not None and workflow_oracles["source_manifest_sha256"] != source_sha:
@@ -480,7 +508,7 @@ def main() -> None:
             provider = graph
         else:
             if args.family == "catchments" and not args.window:
-                validation = Access(args.bundle, "catchments", ["id", "level"])
+                validation = Access(args.bundle, "catchments", ["id", "level"], read_ahead_bytes=args.read_ahead_bytes)
                 row, absent = validation.ids([args.seed])
                 if absent:
                     raise ValueError("absent seed")
@@ -492,6 +520,10 @@ def main() -> None:
         report["after_preparation"] = access.stats()
         if validation is not None:
             report["connectivity_validation"] = {**validation.stats(), "requests": validation.http.requests}
+        accesses = (
+            [access] + ([features] if features is not None else []) + ([validation] if validation is not None else [])
+        )
+        previous_transport = dict.fromkeys(TRANSPORT, 0)
         for index in range(args.repeats):
             if index and features is not None:
                 seeds, discovery = discover()
@@ -572,7 +604,15 @@ def main() -> None:
                             report["startup_to_records_s"] + phase["geometry_decode"]["elapsed_s"]
                         )
                     del decoded
-                del records
+                result_transport = transport_stats(accesses)
+                assert args.source is not None
+                expected, missing = source_records(args.source, args.family, result.tolist(), records.column_names)
+                phase["record_validation"] = validate_records(records, absent, expected, missing)
+                del expected, records
+            else:
+                result_transport = transport_stats(accesses)
+            phase["total_transport"] = {key: result_transport[key] - previous_transport[key] for key in TRANSPORT}
+            previous_transport = result_transport
             if (
                 not args.window
                 and oracle is not None
@@ -581,9 +621,11 @@ def main() -> None:
                 raise ValueError("independent traversal oracle mismatch")
             del result
         report["requests"] = access.http.requests
+        report["total_transport"] = transport_stats(accesses)
         report["process_peak_rss_bytes"] = peak_rss()
         report["memory_note"] = (
-            "retained Arrow buffers, estimated query workspace and cumulative process peak RSS are distinct; no exact Python heap claim"
+            "retained Arrow buffers, estimated query workspace and cumulative process peak RSS including independent "
+            "record validation are distinct; no exact Python heap claim"
         )
     except Exception as error:
         report["error"] = str(error)

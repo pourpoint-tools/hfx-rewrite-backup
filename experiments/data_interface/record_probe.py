@@ -236,10 +236,14 @@ def main() -> None:
     )
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--operation", choices=["records", "spatial"], default="records")
-    parser.add_argument("--selection", choices=["clustered", "scattered", "overlap", "absent"], default="scattered")
+    parser.add_argument(
+        "--selection",
+        choices=["clustered", "scattered", "overlap", "absent", "many-clustered", "many-scattered"],
+        default="scattered",
+    )
     parser.add_argument(
         "--spatial-window",
-        choices=["small", "elongated", "large_amazon", "empty", "source_batch_boundary"],
+        choices=["small", "medium", "elongated", "large_amazon", "empty", "source_batch_boundary"],
         default="small",
     )
     parser.add_argument("--level", type=int)
@@ -281,6 +285,9 @@ def main() -> None:
         "overlap": [clustered, [*clustered[len(clustered) // 2 :], *scattered, clustered[0]]],
         "absent": [[max(scattered) + 1]],
     }
+    if args.selection in ("many-clustered", "many-scattered"):
+        key = "many_clustered" if args.selection == "many-clustered" else "many_dispersed"
+        selections[args.selection] = [records[key]["requested_ids"]]
     window = None
     if args.operation == "spatial":
         if args.family == "river_nodes":

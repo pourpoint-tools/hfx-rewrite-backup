@@ -238,3 +238,75 @@ def test_node_spatial_cli_validates_source_oracle_and_tiers(tmp_path: Path, monk
     receipt.unlink()
     with pytest.raises(ValueError, match="independent bbox oracle"):
         record_probe.main()
+
+
+@pytest.mark.parametrize("selection", ["many-clustered", "many-scattered", "medium"])
+def test_extended_workload_cli_selects_exact_source_witness(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, selection: str
+) -> None:
+    import hashlib
+    import sys
+    from typing import Any
+
+    from experiments.data_interface import record_probe
+
+    source = tmp_path / "source"
+    source.mkdir()
+    (source / "manifest.json").write_text("{}")
+    binding = hashlib.sha256((source / "manifest.json").read_bytes()).hexdigest()
+    medium = {"bounds_epsg4326": [9.9, 19.9, 10.1, 20.1], "all_tiers": {"count": 2}}
+    workloads = tmp_path / "workloads.json"
+    workloads.write_text(
+        json.dumps(
+            {
+                "manifest_sha256": binding,
+                "rivers_records": {
+                    "clustered_ids": [91],
+                    "scattered_ids": [12],
+                    "many_clustered": {"requested_ids": [91, 3, 70]},
+                    "many_dispersed": {"requested_ids": [91, 70, 12]},
+                },
+                "rivers_graph": {"windows": {"medium": medium}},
+            }
+        )
+    )
+    captured: dict[str, Any] = {}
+
+    def measure(
+        bundle: str,
+        source: Path,
+        family: str,
+        columns: list[str] | None,
+        requests: list[list[int]],
+        repeats: int,
+        window: dict[str, Any] | None,
+        level: int | None,
+        **options: Any,
+    ) -> dict[str, Any]:
+        captured.update(requests=requests, window=window)
+        return {"repeats": []}
+
+    monkeypatch.setattr(record_probe, "measure", measure)
+    receipt = tmp_path / "receipt.json"
+    argv = [
+        "record_probe",
+        str(source),
+        "--source",
+        str(source),
+        "--workloads",
+        str(workloads),
+        "--report",
+        str(receipt),
+    ]
+    argv += (
+        ["--operation", "spatial", "--spatial-window", "medium"]
+        if selection == "medium"
+        else ["--selection", selection]
+    )
+    monkeypatch.setattr(sys, "argv", argv)
+    record_probe.main()
+    assert json.loads(receipt.read_text())["selection"] == selection
+    assert captured["window"] == (medium if selection == "medium" else None)
+    assert captured["requests"] == (
+        [[]] if selection == "medium" else [[91, 3, 70]] if selection == "many-clustered" else [[91, 70, 12]]
+    )

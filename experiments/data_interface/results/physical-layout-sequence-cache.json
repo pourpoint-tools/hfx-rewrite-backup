@@ -1,0 +1,223 @@
+{
+  "scope": "immutable six-trial compact follow-up; one existing candidate8192 query-owned batch-cache river trial, no new measurements or source edits",
+  "prior_compact": {
+    "name": "corrected-local-sequence-compact.json",
+    "sha256": "2d7aceef350ba65becb79503d64c0c8c8c454c2c69a3e826e5d3037f436e1d79",
+    "unchanged": true
+  },
+  "receipt": {
+    "name": "local-candidate8192-rivers-small0-downstream-batch-cache.json",
+    "sha256": "5408b069de1d8d102cb65ff01c0f5dfbd8899d1e198665d343f3e81cd0fee89d"
+  },
+  "execution_witness": {
+    "name": "corrected-local-river-cache-execution.json",
+    "sha256": "65c172b700bc6ba017b3703294bf0b1c4ddbbb8d8bc40569d99b9fda73d3bcf9",
+    "receipt_sha256_matches": true,
+    "exit_code": 0,
+    "code_commit": "8b2fac6d928c493187a97928c06b4749b6f50f1f"
+  },
+  "source": {
+    "measured_traversal_sha256": "94e5e0c558dde491ccfbfe31908540ca3b680934756c98944f60e7c11bb2b44e",
+    "observed_source_sha256_matches": true,
+    "source_manifest_sha256": "b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db",
+    "candidate_manifest_sha256": "155535aea34d16e8369ec0db416d2f58058911553c28e9031148607bb7511049",
+    "workflow_oracles_sha256": "a1cb9419234b5cd5884db67525a0daccc629190ecc29990b4d55881eebb7a164",
+    "workloads_sha256": "372f0188462b15944b26089dbc491405808264a70d215072d895efe6f155bedc"
+  },
+  "strategy": "existing Published batch-cache; query-owned Arrow adjacency batches cached only within each traversal; provider.reset clears cache before every query including repeat; metadata/head-tail retained; no new custom cache",
+  "context": {
+    "read_ahead_bytes": 65536,
+    "same_records": "1290 river records; id,level,bbox,source_length,geometry; exact original-source stream equality",
+    "semantics": "supplied downstream flow, not shared-node incidence or delineation",
+    "elapsed": "approved upload concurrent, nonisolated local filesystem, cache uncontrolled; descriptive elapsed only, not speedup claim",
+    "transport": "local serialized calls and bytes; allHTTP counters zero; no HTTP/request/remote speed claim",
+    "comparison": "same candidate layout plus different existing reader strategy isolates avoidable selective adjacency rereads; original uses prepared global adjacency; this is not a pure layout comparison",
+    "memory": "504492 adjacency Arrow-buffer bytes retained after each traversal until next reset; excludes Python heap/allocator/other readers; lifetime RSS includes validation; repeat does not retain adjacency from previous query",
+    "unmeasured": "isolated selected logical/WKB bytes not measured in raw receipt; null rather than invented"
+  },
+  "opening": {
+    "elapsed_s": 0.005078749964013696,
+    "all_access_transport": {
+      "http_requests": 0,
+      "http_body_bytes": 0,
+      "local_read_calls": 25,
+      "local_read_bytes": 1687814
+    }
+  },
+  "preparation": {
+    "elapsed_s": 3.958004526793957e-06,
+    "transport_delta": {
+      "http_requests": 0,
+      "http_body_bytes": 0,
+      "local_read_calls": 0,
+      "local_read_bytes": 0
+    }
+  },
+  "checks": [
+    {
+      "phase": "first",
+      "transport_parts_equal_total": true,
+      "first_decoded_total_matches_phase_sum": true,
+      "seed_count_and_hash_match_selective": true,
+      "closure_count_and_hash_match_selective": true,
+      "exact_source_record_stream_equal": true,
+      "record_stream_sha256_matches_original_and_selective": true
+    },
+    {
+      "phase": "repeat",
+      "transport_parts_equal_total": true,
+      "first_decoded_total_matches_phase_sum": null,
+      "seed_count_and_hash_match_selective": true,
+      "closure_count_and_hash_match_selective": true,
+      "exact_source_record_stream_equal": true,
+      "record_stream_sha256_matches_original_and_selective": true
+    }
+  ],
+  "phases": [
+    {
+      "phase": "first",
+      "decoded_result_s": 0.12139395903795958,
+      "decoded_result_method": "opening+preparation+discovery+traversal+fetch+decode",
+      "opening_s": 0.005078749964013696,
+      "preparation_s": 3.958004526793957e-06,
+      "discovery_s": 0.0017867920105345547,
+      "traversal_s": 0.05301320902071893,
+      "record_fetch_s": 0.06061633303761482,
+      "geometry_decode": {
+        "elapsed_s": 0.0008949170005507767,
+        "count": 1290,
+        "shapely_version": "2.2.0"
+      },
+      "discovery_transport": {
+        "http_requests": 0,
+        "http_body_bytes": 0,
+        "local_read_calls": 14,
+        "local_read_bytes": 800900
+      },
+      "traversal_transport": {
+        "http_requests": 0,
+        "http_body_bytes": 0,
+        "local_read_calls": 12,
+        "local_read_bytes": 786432
+      },
+      "record_fetch_transport": {
+        "http_requests": 0,
+        "http_body_bytes": 0,
+        "local_read_calls": 45,
+        "local_read_bytes": 42074112
+      },
+      "all_transport_delta_first_includes_startup": {
+        "http_requests": 0,
+        "http_body_bytes": 0,
+        "local_read_calls": 96,
+        "local_read_bytes": 45349258
+      },
+      "seed_count": 2,
+      "seed_ids_sha256_le_i64": "fbb2878d2a2d04842c5b072f3d7f45bf58cecb94b32c4b76c83d476dd91cdfdb",
+      "closure_count": 1290,
+      "closure_ids_sha256_le_i64": "35d3ddd2d49e6ca288c78ad15d7dca657434f18ed3476caa375ba15052585dff",
+      "new_reached_ids_beyond_seeds": 1288,
+      "retained_adjacency_buffers_bytes": 504492,
+      "output_id_array_bytes": 10320,
+      "numeric_workspace_estimate_bytes": 31200,
+      "workspace_method": "3x simultaneous frontier/visited/adjacent/next numeric bytes; excludes Python heap",
+      "adjacency_materialized_rows": 24576,
+      "adjacency_materialized_logical_bytes": 504480,
+      "record_materialized_rows": 25714,
+      "record_materialized_logical_bytes": 63181934,
+      "selected_record_rows": 1290,
+      "selected_record_arrow_buffer_bytes": 1191278,
+      "selected_record_logical_bytes": null,
+      "requested_wkb_bytes": null,
+      "record_validation": {
+        "semantic_equal": true,
+        "arrow_stream_sha256": "5305c20e76f7a7e65e890c4c8a9f7f802468fb60dfa85060564dd03edd7c324d",
+        "source_arrow_stream_sha256": "5305c20e76f7a7e65e890c4c8a9f7f802468fb60dfa85060564dd03edd7c324d",
+        "stream_bytes_equal": true,
+        "serialization_note": null
+      },
+      "retained_adjacency_serialized_read_ahead_bytes": 0,
+      "phase_snapshot_process_peak_rss_bytes": 101335040,
+      "record_snapshot_process_peak_rss_bytes": 226525184
+    },
+    {
+      "phase": "repeat",
+      "decoded_result_s": 0.10400374903110787,
+      "decoded_result_method": "discovery+traversal+fetch+decode",
+      "opening_s": 0,
+      "preparation_s": 0,
+      "discovery_s": 0.0010065410169772804,
+      "traversal_s": 0.0449868330033496,
+      "record_fetch_s": 0.05723208299605176,
+      "geometry_decode": {
+        "elapsed_s": 0.0007782920147292316,
+        "count": 1290,
+        "shapely_version": "2.2.0"
+      },
+      "discovery_transport": {
+        "http_requests": 0,
+        "http_body_bytes": 0,
+        "local_read_calls": 11,
+        "local_read_bytes": 720896
+      },
+      "traversal_transport": {
+        "http_requests": 0,
+        "http_body_bytes": 0,
+        "local_read_calls": 12,
+        "local_read_bytes": 786432
+      },
+      "record_fetch_transport": {
+        "http_requests": 0,
+        "http_body_bytes": 0,
+        "local_read_calls": 45,
+        "local_read_bytes": 42074112
+      },
+      "all_transport_delta_first_includes_startup": {
+        "http_requests": 0,
+        "http_body_bytes": 0,
+        "local_read_calls": 68,
+        "local_read_bytes": 43581440
+      },
+      "seed_count": 2,
+      "seed_ids_sha256_le_i64": "fbb2878d2a2d04842c5b072f3d7f45bf58cecb94b32c4b76c83d476dd91cdfdb",
+      "closure_count": 1290,
+      "closure_ids_sha256_le_i64": "35d3ddd2d49e6ca288c78ad15d7dca657434f18ed3476caa375ba15052585dff",
+      "new_reached_ids_beyond_seeds": 1288,
+      "retained_adjacency_buffers_bytes": 504492,
+      "output_id_array_bytes": 10320,
+      "numeric_workspace_estimate_bytes": 31200,
+      "workspace_method": "3x simultaneous frontier/visited/adjacent/next numeric bytes; excludes Python heap",
+      "adjacency_materialized_rows": 24576,
+      "adjacency_materialized_logical_bytes": 504480,
+      "record_materialized_rows": 25714,
+      "record_materialized_logical_bytes": 63181934,
+      "selected_record_rows": 1290,
+      "selected_record_arrow_buffer_bytes": 1191278,
+      "selected_record_logical_bytes": null,
+      "requested_wkb_bytes": null,
+      "record_validation": {
+        "semantic_equal": true,
+        "arrow_stream_sha256": "5305c20e76f7a7e65e890c4c8a9f7f802468fb60dfa85060564dd03edd7c324d",
+        "source_arrow_stream_sha256": "5305c20e76f7a7e65e890c4c8a9f7f802468fb60dfa85060564dd03edd7c324d",
+        "stream_bytes_equal": true,
+        "serialization_note": null
+      },
+      "retained_adjacency_serialized_read_ahead_bytes": 0,
+      "phase_snapshot_process_peak_rss_bytes": 238927872,
+      "record_snapshot_process_peak_rss_bytes": 311541760
+    }
+  ],
+  "final_transport": {
+    "http_requests": 0,
+    "http_body_bytes": 0,
+    "local_read_calls": 164,
+    "local_read_bytes": 88930698
+  },
+  "lifetime_peak_rss_bytes_including_validation": 318963712,
+  "audit_binding": {
+    "file": "corrected-local-sequence-cache-comparison.json",
+    "sha256": "ace303e27346ba6a4449751689a02ed0c90fa9604996c12313ede1691dc6a930",
+    "projection_note": "Prior original/selective results reference physical-layout-sequences.json; duplicate comparison snapshots omitted."
+  },
+  "prior_committed_projection": "physical-layout-sequences.json"
+}

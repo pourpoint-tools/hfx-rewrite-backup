@@ -19,8 +19,8 @@ uv run --group data-interface python -m experiments.data_interface.build "$SOURC
 ```
 
 Run benchmarks in fresh processes, serially. Same-instance repeats are diagnostic,
-not independent opening trials. Filesystem cache is uncontrolled. WKB decode needs
-`--group vector-production` (Shapely); ordinary probes do not.
+not independent opening trials. Filesystem cache is uncontrolled. Returning WKB also performs decode in `record_probe`; use
+`--group vector-production` (Shapely). Attribute-only probes do not need it.
 
 ```sh
 uv run --group data-interface python -m experiments.data_interface.record_probe "$CANDIDATE" --source "$SOURCE" --family rivers --workloads "$WORKLOADS" --selection scattered --columns id level bbox --report "$REPORT/records.json"
@@ -51,8 +51,8 @@ The retained combined river/catchment workflows use these exact shapes. Switch
 
 ```sh
 export WORKFLOW_ORACLES=experiments/data_interface/results/workflow-oracles.json
-uv run --group data-interface --group vector-production python -m experiments.data_interface.traversal_probe --bundle "$CANDIDATE" --family rivers --direction downstream --strategy batch-cache --workloads "$WORKLOADS" --window small --level 0 --record-columns id bbox geometry --decode-geometry --workflow-oracles "$WORKFLOW_ORACLES" --repeats 2 --report "$REPORT/workflow-rivers-small-batch-cache.json"
-uv run --group data-interface --group vector-production python -m experiments.data_interface.traversal_probe --bundle "$CANDIDATE" --family catchments --direction upstream --strategy batch-cache --workloads "$WORKLOADS" --window small --level 1 --record-columns id bbox geometry --decode-geometry --workflow-oracles "$WORKFLOW_ORACLES" --repeats 2 --report "$REPORT/workflow-catchments-small-batch-cache.json"
+uv run --group data-interface --group vector-production python -m experiments.data_interface.traversal_probe --source "$SOURCE" --bundle "$CANDIDATE" --family rivers --direction downstream --strategy batch-cache --workloads "$WORKLOADS" --window small --level 0 --record-columns id bbox geometry --decode-geometry --workflow-oracles "$WORKFLOW_ORACLES" --repeats 2 --report "$REPORT/workflow-rivers-small-batch-cache.json"
+uv run --group data-interface --group vector-production python -m experiments.data_interface.traversal_probe --source "$SOURCE" --bundle "$CANDIDATE" --family catchments --direction upstream --strategy batch-cache --workloads "$WORKLOADS" --window small --level 1 --record-columns id bbox geometry --decode-geometry --workflow-oracles "$WORKFLOW_ORACLES" --repeats 2 --report "$REPORT/workflow-catchments-small-batch-cache.json"
 uv run --group data-interface python -m experiments.data_interface.relation_baseline "$SOURCE/rivers.arrow" --column component_catchment_id --targets 8720 --repeats 3 --report "$REPORT/original-reverse-rivers-component_catchment_id-isolated.json"
 ```
 
@@ -124,7 +124,8 @@ bytes were never doubled. Retain legacy evidence rather than rewriting receipts.
 
 ## Actual HTTP reproduction
 
-The measured temporary candidate prefix is **deleted**. To repeat HTTP work, obtain
+The historical interface-experiment candidate prefix is **deleted**. The later
+physical-layout Hetzner publication is separate; its cleanup remains pending. To repeat HTTP work, obtain
 approval for a new empty experiment-only prefix and retention/cleanup plan. Publish
 the verified bundle without byte changes, artifacts first and manifest last. Record
 local SHA-256/length, uploaded object identity/HEAD and public readback before running
@@ -186,3 +187,232 @@ original Amazon partials wrap `experiments.data_interface.record_probe` with
 --columns id level bbox --repeats 1 --report "$REPORT/unfinished-records.json"`.
 Always choose fresh wrapper and driver report names. Keep capped receipts separate
 from completed results; partial response bodies do not imply equal progress.
+
+
+## Corrected original-public remote baseline
+
+The [current original-only findings](PHYSICAL_LAYOUT.md#original-publication-corrected-remote-baseline)
+and [compact evidence](results/physical-layout-remote-original.json) bind eight
+spatial and five successful known-ID cases. These historical public-host trials
+are separate from the completed same-host signed comparison below.
+These completed original-public runs do not use the historical capped wrapper.
+Use the measured code checkout **`8b2fac6d928c493187a97928c06b4749b6f50f1f`**,
+the source manifest pin above and its native uv environment. The GP local reader
+remains separately pinned to `44f1346ce298ee241841c890a557750346c3f122`; this historical
+section supplies no GP remote result. Do not relabel preserved receipts as current-code runs.
+
+Regenerate source witnesses outside timed runs using the source-only extension
+command in [Current workload and workflow probes](#current-workload-and-workflow-probes)
+below. Equivalent spatial witness entries reproduce selected
+IDs/values; generated file hashes do not replace the exact measured workload SHA.
+Set `REMOTE_WORKLOADS` to that extended file. The remote spatial receipts bind
+`372f0188462b15944b26089dbc491405808264a70d215072d895efe6f155bedc`.
+
+```sh
+uv run --group data-interface --group vector-production python -m experiments.data_interface.record_probe "$SOURCE_HTTP" --source "$SOURCE" --family rivers --workloads "$REMOTE_WORKLOADS" --operation spatial --spatial-window medium --columns id level bbox source_length geometry --read-ahead-bytes 65536 --repeats 2 --report "$REPORT/original-rivers-medium.json"
+uv run --group data-interface python -m experiments.data_interface.record_probe "$SOURCE_HTTP" --source "$SOURCE" --family catchments --workloads "$REMOTE_WORKLOADS" --operation spatial --spatial-window source_batch_boundary --columns id level bbox source_area --read-ahead-bytes 65536 --repeats 2 --report "$REPORT/original-catchments-boundary.json"
+```
+
+Use the first command for river `small`/`medium`; use attributes only (omit geometry
+and the vector group) for river `elongated`/`large_amazon`. Catchments use
+`source_area`, small/medium plus geometry, and `source_batch_boundary`/`large_amazon`
+attributes only. These are the eight completed spatial cases, not a full matrix.
+Choose fresh report names and run one command at a time only in an authorized quiet
+period, with upload/build/witness generation stopped. Fresh process does not mean
+cold CDN; repeat keeps native metadata and allowed buffers.
+
+Known-ID replay uses the [compact source-row witness](results/physical-layout-remote-known-ids.json),
+not a hidden private driver. Save `ARCHIVE_ROOT` as the checkout containing this
+file before switching to the measured checkout. Materialize its recorded clustered
+range and exact dispersed lists into a minimal CLI workload outside Git:
+
+```sh
+uv run python -c 'import json,pathlib,sys; w=json.loads(pathlib.Path(sys.argv[1]).read_text()); out={"manifest_sha256":w["manifest_sha256"]}; out.update({f+"_records":{"clustered_ids":list(range(v["clustered_delivered_ids"]["start"],v["clustered_delivered_ids"]["stop_exclusive"])),"scattered_ids":v["dispersed128_ids"]} for f,v in w["families"].items()}); pathlib.Path(sys.argv[2]).write_text(json.dumps(out)+"\n")' "$ARCHIVE_ROOT/experiments/data_interface/results/physical-layout-remote-known-ids.json" "$REPORT/remote-known-ids.json"
+uv run --group data-interface python -m experiments.data_interface.record_probe "$SOURCE_HTTP" --source "$SOURCE" --family rivers --workloads "$REPORT/remote-known-ids.json" --operation records --selection clustered --columns id level source_length --read-ahead-bytes 65536 --repeats 2 --report "$REPORT/original-rivers-clustered.json"
+```
+
+Repeat with river selections `scattered` (128 IDs) and `absent`; catchments use
+`--family catchments --columns id level source_area` with `clustered` and `absent`.
+Absent is the recorded source maximum + 1. Hash the generated sorted little-endian
+int64 IDs against the witness, and preserve its new file SHA alongside results;
+the measured larger CLI file SHA was
+`6a1615abe095644cce50042d202bb9b56a58a63c373a81641c0907cd97172b72`.
+This minimal projection selects identical IDs but is not byte-identical to that
+historical file. No timing is claimed for regenerated workloads.
+
+The initial river dispersed HTTP 500 failure and catchment dispersed HTTP 503
+failure have no result receipts. Preserve failed execution evidence; do not use
+process duration as result latency or silently retry. The one completed river
+retry is a separate fresh process with its own receipt. Catchment dispersed replay
+is not a completed baseline here and needs separate authorization. Full HTTP logs,
+failure tracebacks and private machine paths stay outside Git; compact raw/execution
+SHA bindings preserve their identities without copying those logs.
+
+## Current workload and workflow probes
+
+See the [current physical-layout findings](PHYSICAL_LAYOUT.md) and
+[local receipt summary](results/physical-layout-local.json). Original-public remote
+baselines are available above; the completed same-host signed comparison and
+qualified recommendation are in the current findings.
+
+These commands use the current reader, not the historical receipt revision.
+Generate the new witness file outside the source bundle and repository; the
+original witness entries remain unchanged. The medium square has radius 0.1°;
+the two many-record selections use 4,096 actual source row ordinals. These are
+investigation settings, not production layout constants.
+
+```sh
+uv run --group data-interface python -m experiments.data_interface.oracles.extend_workloads "$SOURCE" --workloads "$WORKLOADS" --catchment-records experiments/data_interface/results/catchments-records.json --report "$REPORT/extended-workloads.json"
+uv run --group data-interface python -m experiments.data_interface.record_probe "$CANDIDATE" --source "$SOURCE" --family rivers --workloads "$REPORT/extended-workloads.json" --operation spatial --spatial-window medium --columns id source_global_id --report "$REPORT/medium-records.json"
+uv run --group data-interface python -m experiments.data_interface.record_probe "$CANDIDATE" --source "$SOURCE" --family rivers --workloads "$REPORT/extended-workloads.json" --selection many-scattered --columns id source_global_id --report "$REPORT/many-records.json"
+uv run --group data-interface --group vector-production python -m experiments.data_interface.traversal_probe --bundle "$CANDIDATE" --source "$SOURCE" --strategy batch-cache --window small --level 0 --workloads "$WORKLOADS" --workflow-oracles experiments/data_interface/results/workflow-oracles.json --record-columns id source_global_id geometry --decode-geometry --repeats 2 --report "$REPORT/workflow-records.json"
+```
+
+The separate point-domain case uses `--family river_nodes --operation spatial`,
+`--node-spatial-oracle experiments/data_interface/results/source-node-spatial.json`
+and `--columns id level bbox coarser_node_id geometry --read-ahead-bytes 65536`
+with `--group vector-production` and the same source-only extended workload file.
+Its source/candidate equality and immutable receipt hashes are in
+[source-node evidence](results/physical-layout-source-nodes.json).
+
+All current workflow recipes, including the earlier combined cases and their
+HTTP repeats, retain `--source "$SOURCE"` for independent exact projected-record
+equality. Historical receipt commands remain bound to their original code version.
+Validation runs after timed fetch/decode, can warm local source files before
+repeats, and contributes to lifetime peak RSS. Each phase's `total_transport`
+includes all distinct adjacency, feature and connectivity-check Access instances:
+first-use counters include opening/preparation; repeats report deltas. The final
+`total_transport` is cumulative. Existing namespaced phase metrics remain separate.
+Use the same optional `--read-ahead-bytes N` on compared workflow commands; the
+default is zero. Original `consumer` now enables Parquet pre-buffering, with all
+projected graph acquisition and numeric preparation still inside first use.
+These drivers do not establish a remote performance or physical-layout result.
+
+## Historical census and incidence drivers
+
+The exact measured one-off sources are archived unchanged, not maintained APIs:
+[IPC census/incidence](results/useful-bulk.py.txt),
+[GeoParquet census](results/geoparquet-bulk.py.txt), and tiny tests for
+[IPC](results/test-useful-bulk.py.txt) / [GeoParquet](results/test-geoparquet-bulk.py.txt).
+[Archive binding](results/physical-layout-source-archives.json) records exact hashes,
+native checks and sanitized command templates. No private driver is needed.
+
+Copy these four files outside Git with their original Python module names. Save
+`ARCHIVE_ROOT` as this checkout's absolute path; choose a fresh existing `$REPORT`
+outside both input bundles and Git. Copy before switching to a measured checkout.
+
+```sh
+cp "$ARCHIVE_ROOT/experiments/data_interface/results/useful-bulk.py.txt" "$REPORT/useful_bulk.py"
+cp "$ARCHIVE_ROOT/experiments/data_interface/results/test-useful-bulk.py.txt" "$REPORT/test_useful_bulk.py"
+cp "$ARCHIVE_ROOT/experiments/data_interface/results/geoparquet-bulk.py.txt" "$REPORT/geoparquet_bulk.py"
+cp "$ARCHIVE_ROOT/experiments/data_interface/results/test-geoparquet-bulk.py.txt" "$REPORT/test_geoparquet_bulk.py"
+shasum -a 256 "$REPORT/useful_bulk.py" "$REPORT/geoparquet_bulk.py" "$REPORT/test_useful_bulk.py" "$REPORT/test_geoparquet_bulk.py"
+```
+
+For IPC use a separate checkout at **`8b2fac6d928c493187a97928c06b4749b6f50f1f`**.
+Run from that checkout root with its native uv environment. Match source manifest
+`b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db` and candidate
+manifest `155535aea34d16e8369ec0db416d2f58058911553c28e9031148607bb7511049`.
+Use the immutable artifact hashes in [local evidence](results/physical-layout-local.json);
+a local path or matching row count is not input identity. Measured versions were
+PyArrow 25.0.1, NumPy 2.5.3 and Shapely 2.2.0; verify versions rather than treating
+an unconstrained fresh dependency resolution as an exact environment replay.
+
+```sh
+PYTHONPATH=".:$REPORT" uv run --group data-interface --group vector-production pytest -q "$REPORT/test_useful_bulk.py"
+uv run ruff check "$REPORT/useful_bulk.py"
+uv run --group data-interface --group vector-production ty check "$REPORT/useful_bulk.py"
+PYTHONPATH=. uv run --group data-interface --group vector-production python "$REPORT/useful_bulk.py" census "$SOURCE" --source "$SOURCE" --family rivers --repeats 2 --read-ahead-bytes 65536 --report "$REPORT/rivers-original-census.json"
+PYTHONPATH=. uv run --group data-interface --group vector-production python "$REPORT/useful_bulk.py" census "$CANDIDATE" --source "$SOURCE" --family rivers --repeats 2 --read-ahead-bytes 65536 --report "$REPORT/rivers-candidate-census.json"
+PYTHONPATH=. uv run --group data-interface --group vector-production python "$REPORT/useful_bulk.py" immediate "$CANDIDATE" --source "$SOURCE" --repeats 2 --read-ahead-bytes 65536 --report "$REPORT/node2-incidence.json"
+```
+
+For zero-buffer controls change only `--read-ahead-bytes 0` and use fresh report
+names. For catchment census use `--family catchments`; it projects `source_area`
+instead of river `source_length`. `immediate` is the fixed source-node-2 incidence
+control, not arbitrary traversal. `total_to_records_s` excludes geometry decode;
+`total_to_result_s` includes it. The unchanged driver's generic `timer_boundary`
+prose incorrectly says WKB decode is outside: numeric fields and the tiny test
+establish the actual boundary. Independent source equality/hash stays outside.
+
+For GeoParquet use a separate checkout at
+**`44f1346ce298ee241841c890a557750346c3f122`**. Its tracked
+`experiments.data_interface.geoparquet` and `geoparquet_probe` modules provide the
+producer, full verifier and useful-result probe; consult their `--help`. Use the
+same verified IPC candidate and set `$GEOPARQUET` to the derivative bundle. The
+[evidence](results/physical-layout-geoparquet.json) binds exact derivative
+manifest/artifact hashes and writer options; do not silently reuse a lookup's old
+IPC hash as Parquet authority. Generate the original census witness above first.
+
+```sh
+uv run --group data-interface --group vector-production python -m experiments.data_interface.geoparquet_probe "$GEOPARQUET" --candidate "$CANDIDATE" --source "$SOURCE" --workloads "$REPORT/extended-workloads.json" --spatial-window medium --columns id level bbox source_length geometry --decode-geometry --repeats 2 --report "$REPORT/geoparquet-rivers-medium.json"
+PYTHONPATH=".:$REPORT" uv run --group data-interface pytest -q "$REPORT/test_geoparquet_bulk.py"
+uv run ruff check "$REPORT/geoparquet_bulk.py"
+uv run --group data-interface ty check "$REPORT/geoparquet_bulk.py"
+PYTHONPATH=. uv run --group data-interface python "$REPORT/geoparquet_bulk.py" --bundle "$GEOPARQUET" --candidate "$CANDIDATE" --source "$SOURCE" --witness "$REPORT/rivers-original-census.json" --report "$REPORT/geoparquet-rivers-local-census.json"
+```
+
+Run performance commands serially, separate from global verification or witness
+regeneration. Do not overwrite existing receipts. Upload concurrency, native cache
+retention, ordinary manifest reads and lifetime RSS limits are disclosed in the
+[current findings](PHYSICAL_LAYOUT.md); local replay is not remote evidence.
+
+## Same-host signed HTTP trials
+
+The [43-trial evidence](results/physical-layout-hetzner.json) records the completed
+original/IPC/river-GP comparison. It preserves raw/execution/queue hashes and portable
+source-file hash bindings, not credentials or request logs. Match those file hashes
+before replay: the measured combined tree used the corrected reader plus the GP
+probe; a current checkout is not automatically the measured revision. Use the
+committed dependency lock and verify the recorded versions above. This section is
+an experiment recipe, not a supported transport library.
+
+The byte-exact measured launcher is archived as
+[`signed-http-probe.py.txt`](results/signed-http-probe.py.txt), SHA-256
+`01b5ef42094aff5567cc63a98398b5798df8ac3850f1f3629ccfe626b82e1345`.
+Use an absolute `$REPORT` path. Copy it to `$REPORT/transport/signed_http_probe.py`;
+place the earlier archived
+`useful_bulk.py` at `$REPORT/useful_bulk.py` so its fixed relative lookup is unchanged.
+The wrapper replaces only transport URL opening and preserves range headers; the
+logical same-host object URLs stay in probe arguments. Inspect archive bytes against
+the hash rather than treating a rewritten wrapper as measured source.
+
+After separately authorized publication and identity/readback checks, prepare a fresh mode-0600
+JSON map from **every logical object URL to its same-host/path signed GET URL** using
+approved storage tooling. Set `HFX_SIGNED_URL_MAP` to that private file. Never print,
+commit or pass signed URLs as CLI arguments. Signing/import setup is outside query
+timers; expiration must cover the whole operation. The recorded planned signing
+command required import-path repair; it is not an exact executed-command receipt.
+No uploader or signing framework is added here. Set `SOURCE_HTTP`, `CANDIDATE_HTTP`
+and `GEOPARQUET_HTTP` to the approved same-host roots, and retain local verified
+`SOURCE` for checks outside measured time.
+
+```sh
+PYTHONPATH=. uv run --group data-interface --group vector-production python "$REPORT/transport/signed_http_probe.py" experiments.data_interface.record_probe "$CANDIDATE_HTTP" --source "$SOURCE" --family rivers --workloads "$REPORT/extended-workloads.json" --operation spatial --spatial-window small --columns id level bbox source_length geometry --repeats 2 --read-ahead-bytes 65536 --report "$REPORT/signed-river-small.json"
+PYTHONPATH=. uv run --group data-interface --group vector-production python "$REPORT/transport/signed_http_probe.py" experiments.data_interface.geoparquet_probe "$GEOPARQUET_HTTP" --candidate "$CANDIDATE_HTTP" --source "$SOURCE" --workloads "$REPORT/extended-workloads.json" --spatial-window small --columns id level bbox source_length geometry --decode-geometry --repeats 2 --report "$REPORT/signed-gp-small.json"
+PYTHONPATH=. uv run --group data-interface --group vector-production python "$REPORT/transport/signed_http_probe.py" "$REPORT/useful_bulk.py" immediate "$CANDIDATE_HTTP" --source "$SOURCE" --repeats 2 --read-ahead-bytes 65536 --report "$REPORT/signed-incidence.json"
+```
+
+For other cells use the evidence's family, columns, selection and read policy, the
+extended spatial witnesses and compact known-ID reconstruction above. Spatial cases
+are small/medium WKB, elongated/boundary/Amazon attributes; only the cells in the
+JSON were run. Known IDs use `--selection clustered|scattered|absent`, omit geometry
+and spatial options, and use the reconstructed known-ID workload. IPC uses
+`--operation records`; GP omits `--operation`. The river zero-buffer control changes
+only IPC `--read-ahead-bytes` to 0.
+
+Wrap `traversal_probe` similarly for the four composed cases: original `consumer`,
+candidate river `batch-cache`, candidate catchment `selective`; river downstream
+level 0 / catchment upstream level 1; small window; extended workloads and existing
+workflow oracles; record columns `id level bbox source_length geometry` (catchments:
+`source_area`), decode enabled, two repeats and 65,536-byte read-ahead. Include the
+source-manifest pin and local `--source`. This is not GP-composed evidence.
+
+Run serially in fresh processes, with uploads/builds stopped and same-instance
+second operations. Record before/after source hashes, environment, command identity,
+exit status and raw receipt hash. Preserve failures rather than replacing them.
+The historical minimal execution receipts do not duplicate root transcript
+before/after checks or contain stdout/stderr digests and independent quiet-process
+attestations. Signature date/TTL was reconstructed from actual private maps.
+Fresh process is not cold network cache. No benchmark rerun is needed to read or
+review these results. Cleanup remains a separate owned-object verification task.

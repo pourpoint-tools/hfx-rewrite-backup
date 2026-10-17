@@ -1,0 +1,300 @@
+"""Private streamed feature census and node2 incidence-to-record measurement."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from contextlib import ExitStack
+from pathlib import Path
+from time import perf_counter
+from typing import Any, cast
+
+import numpy as np
+import pyarrow as pa
+import pyarrow.compute as pc
+import shapely
+
+from experiments.data_interface.build import peak_rss
+from experiments.data_interface.probe import Access
+from experiments.data_interface.record_probe import TRANSPORT, id_hash, source_records, validate_records
+
+PINNED = "b9a38083131dcf1a4c7c4e73ebe9a97dff2a4b7ef91a8df53f8bc38cadfa48db"
+EXPECTED = {
+    "incoming_ids": (2, "fe6d3d3bb5dd778af1128cc7b2b33668d51b9a52dfc8f2342be37ddc06a0072d"),
+    "outgoing_ids": (1, "7c9fa136d4413fa6173637e883b6998d32e1d675f88cddff9dcbcf331820f4b8"),
+}
+
+
+def census(bundle: str, family: str, source: Path, *, repeats: int = 2, read_ahead_bytes: int = 0) -> dict[str, Any]:
+    columns = ["id", "level", "bbox", "source_length" if family == "rivers" else "source_area"]
+    source_raw = (source / "manifest.json").read_bytes()
+    source_manifest = json.loads(source_raw)
+    source_sha = hashlib.sha256(source_raw).hexdigest()
+    expected_rows = source_manifest["rivers"]["count"] if family == "rivers" else source_manifest["unit_count"]
+    started = perf_counter()
+    with Access(bundle, family, columns, read_ahead_bytes=read_ahead_bytes) as access:
+        opening_s = perf_counter() - started
+        if access.manifest.get("input_manifest_sha256", access.manifest_sha256) != source_sha:
+            raise ValueError("source manifest binding differs")
+        report: dict[str, Any] = {
+            "mode": "census",
+            "family": family,
+            "columns": columns,
+            "source_manifest_sha256": source_sha,
+            "manifest_sha256": access.manifest_sha256,
+            "projection_schema_sha256": hashlib.sha256(access.reader.schema.serialize().to_pybytes()).hexdigest(),
+            "opening_s": opening_s,
+            "opening": access.stats(),
+            "expected_rows": expected_rows,
+            "phases": [],
+            "complete_result": False,
+            "validation_scope": "row count independently from pinned source manifest; ID sum diagnostic, not multiset proof; full source/native preservation verified separately",
+            "cache_policy": "same Access projected reader; metadata and configured bounded read-ahead retained; filesystem/CDN uncontrolled",
+        }
+        previous = dict.fromkeys(TRANSPORT, 0)
+        for repeat in range(repeats):
+            phase_start = perf_counter()
+            rows = id_sum = max_buffer = logical = 0
+            nulls = dict.fromkeys([*columns, *["bbox." + n for n in ["xmin", "ymin", "xmax", "ymax"]]], 0)
+            tiers: dict[str, int] = {}
+            for index in range(access.reader.num_record_batches):
+                batch = access.reader.get_batch(index)
+                rows += batch.num_rows
+                logical += batch.nbytes
+                max_buffer = max(max_buffer, batch.get_total_buffer_size())
+                id_sum += int(pc.sum(batch["id"]).as_py())
+                for name in columns:
+                    nulls[name] += batch[name].null_count
+                levels, counts = np.unique(batch["level"].to_numpy(), return_counts=True)
+                for level, count in zip(levels.tolist(), counts.tolist(), strict=True):
+                    tiers[str(level)] = tiers.get(str(level), 0) + int(count)
+                bounds = cast(pa.StructArray, batch["bbox"])
+                coords = []
+                for name in ["xmin", "ymin", "xmax", "ymax"]:
+                    nulls["bbox." + name] += bounds.field(name).null_count
+                    coords.append(bounds.field(name).to_numpy())
+                if (
+                    any(np.any(~np.isfinite(values)) for values in coords)
+                    or np.any(coords[0] > coords[2])
+                    or np.any(coords[1] > coords[3])
+                ):
+                    raise ValueError("invalid projected bbox")
+                del batch
+            elapsed = perf_counter() - phase_start
+            if rows != expected_rows:
+                raise ValueError("global source row count differs")
+            stats = access.stats()
+            report["phases"].append(
+                {
+                    "repeat": repeat,
+                    "scan_s": elapsed,
+                    "total_to_result_s": elapsed + (opening_s if repeat == 0 else 0),
+                    "rows": rows,
+                    "physical_batches": access.reader.num_record_batches,
+                    "id_sum_diagnostic": id_sum,
+                    "null_counts": nulls,
+                    "by_tier_count": tiers,
+                    "projected_logical_bytes": logical,
+                    "max_projected_batch_buffer_bytes": max_buffer,
+                    "transport": {key: int(stats[key]) - previous[key] for key in TRANSPORT},
+                    "retained_range_bytes": stats["retained_range_bytes"],
+                    "read_ahead_capacity_bytes": stats["read_ahead_capacity_bytes"],
+                    "complete_scan": True,
+                }
+            )
+            previous = {key: int(stats[key]) for key in TRANSPORT}
+        report["complete_result"] = True
+        report["final"] = access.stats()
+    return report
+
+
+def immediate(bundle: str, source: Path, *, repeats: int = 2, read_ahead_bytes: int = 0) -> dict[str, Any]:
+    source_raw = (source / "manifest.json").read_bytes()
+    source_sha = hashlib.sha256(source_raw).hexdigest()
+    source_manifest = json.loads(source_raw)
+    columns = ["id", "level", "bbox", "source_length", "geometry"]
+    started = perf_counter()
+    with ExitStack() as stack:
+        records_access = stack.enter_context(Access(bundle, "rivers", columns, read_ahead_bytes=read_ahead_bytes))
+        experimental = bool(records_access.manifest.get("experimental"))
+        if records_access.manifest.get("input_manifest_sha256", records_access.manifest_sha256) != source_sha:
+            raise ValueError("source manifest binding differs")
+        relations = (
+            stack.enter_context(
+                Access(
+                    bundle,
+                    "river_nodes",
+                    ["id", "incoming_river_ids", "outgoing_river_ids"],
+                    relationship=True,
+                    read_ahead_bytes=read_ahead_bytes,
+                )
+            )
+            if experimental
+            else stack.enter_context(
+                Access(
+                    bundle,
+                    "rivers",
+                    ["id", "upstream_node_id", "downstream_node_id"],
+                    read_ahead_bytes=read_ahead_bytes,
+                )
+            )
+        )
+        if relations.manifest_sha256 != records_access.manifest_sha256:
+            raise ValueError("relationship and record bundle identities differ")
+        opening_s = perf_counter() - started
+        accesses = [records_access, relations]
+        report: dict[str, Any] = {
+            "mode": "immediate",
+            "node": 2,
+            "source_manifest_sha256": source_sha,
+            "manifest_sha256": records_access.manifest_sha256,
+            "experimental": experimental,
+            "opening_s": opening_s,
+            "opening": [access.stats() for access in accesses],
+            "phases": [],
+            "complete_result": False,
+            "cache_policy": "tiny node2 direction ID lists retained after first acquisition on BOTH layouts; same Access; no selected record batch cache; configured bounded read-ahead; filesystem/CDN uncontrolled",
+            "validation_scope": "exact original selected records after timed phases; independent node2 direction hashes checked only for pinned GRIT source",
+            "independent_incidence_authority": "existing reverse-isolated-summary.json original downstream_node_id==2 and upstream_node_id==2 censuses",
+        }
+        incoming: list[int] = []
+        outgoing: list[int] = []
+        previous = dict.fromkeys(TRANSPORT, 0)
+        max_buffer = scanned_rows = 0
+        for repeat in range(repeats):
+            acquisition_start = perf_counter()
+            if repeat == 0:
+                if experimental:
+                    table, absent = relations.ids([2])
+                    if absent:
+                        raise ValueError("node2 absent")
+                    incoming = sorted(cast(list[list[int]], table["incoming_river_ids"].to_pylist())[0])
+                    outgoing = sorted(cast(list[list[int]], table["outgoing_river_ids"].to_pylist())[0])
+                    max_buffer = table.get_total_buffer_size()
+                    del table
+                else:
+                    for index in range(relations.reader.num_record_batches):
+                        batch = relations.reader.get_batch(index)
+                        scanned_rows += batch.num_rows
+                        max_buffer = max(max_buffer, batch.get_total_buffer_size())
+                        incoming.extend(
+                            cast(
+                                list[int],
+                                batch["id"].filter(pc.equal(batch["downstream_node_id"], pa.scalar(2))).to_pylist(),
+                            )
+                        )
+                        outgoing.extend(
+                            cast(
+                                list[int],
+                                batch["id"].filter(pc.equal(batch["upstream_node_id"], pa.scalar(2))).to_pylist(),
+                            )
+                        )
+                        del batch
+                    if scanned_rows != source_manifest["rivers"]["count"]:
+                        raise ValueError("source scalar scan row count differs")
+                    incoming.sort()
+                    outgoing.sort()
+            acquisition_s = perf_counter() - acquisition_start
+            requested = sorted(set(incoming) | set(outgoing))
+            fetch_start = perf_counter()
+            records, absent = records_access.ids(requested)
+            fetch_s = perf_counter() - fetch_start
+            stats = [{key: int(access.stats()[key]) for key in TRANSPORT} for access in accesses]
+            total = {key: sum(item[key] for item in stats) for key in TRANSPORT}
+            decode_start = perf_counter()
+            decoded = shapely.from_wkb(records["geometry"].to_numpy())
+            decode_s = perf_counter() - decode_start
+            phase = {
+                "repeat": repeat,
+                "acquisition_s": acquisition_s,
+                "fetch_s": fetch_s,
+                "total_to_records_s": acquisition_s + fetch_s + (opening_s if repeat == 0 else 0),
+                "total_to_result_s": acquisition_s + fetch_s + (opening_s if repeat == 0 else 0) + decode_s,
+                "geometry_decode_s": decode_s,
+                "decoded_geometries": len(decoded),
+                "incoming_ids": incoming.copy(),
+                "outgoing_ids": outgoing.copy(),
+                "record_rows": records.num_rows,
+                "transport": {key: total[key] - previous[key] for key in TRANSPORT},
+                "max_projected_scalar_batch_buffer_bytes": max_buffer if not experimental else None,
+                "source_scalar_scan_rows": scanned_rows,
+                "complete_scalar_scan": not experimental and repeat == 0,
+                "incidence_acquisition_reused": repeat > 0,
+                "retained_incidence_ids_numeric_bytes": (len(incoming) + len(outgoing)) * 8,
+                "retained_id_memory_note": "int64 equivalent; excludes Python-list/int overhead",
+                "record_buffer_bytes": records.get_total_buffer_size(),
+            }
+            del decoded
+            if source_sha == PINNED:
+                for name, values in [("incoming_ids", incoming), ("outgoing_ids", outgoing)]:
+                    count, digest = EXPECTED[name]
+                    if len(values) != count or id_hash(values) != digest:
+                        raise ValueError("immediate source incidence witness differs")
+            expected, missing = source_records(source, "rivers", requested, records.column_names)
+            phase["validation"] = validate_records(records, absent, expected, missing)
+            report["phases"].append(phase)
+            previous = total
+            del records, expected
+        report["complete_result"] = True
+        report["final"] = [access.stats() for access in accesses]
+    return report
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("mode", choices=["census", "immediate"])
+    parser.add_argument("bundle")
+    parser.add_argument("--source", type=Path, required=True)
+    parser.add_argument("--family", choices=["rivers", "catchments"], default="rivers")
+    parser.add_argument("--report", type=Path, required=True)
+    parser.add_argument("--repeats", type=int, default=2)
+    parser.add_argument("--read-ahead-bytes", type=int, default=0)
+    parser.add_argument("--source-manifest-sha256", default=PINNED)
+    args = parser.parse_args()
+    if args.repeats < 1 or args.read_ahead_bytes < 0:
+        parser.error("positive repeats and nonnegative read-ahead required")
+    for path in [args.source, *([] if args.bundle.startswith(("http://", "https://")) else [Path(args.bundle)])]:
+        if args.report.resolve().is_relative_to(path.resolve()):
+            parser.error("report must be outside input bundles")
+    if hashlib.sha256((args.source / "manifest.json").read_bytes()).hexdigest() != args.source_manifest_sha256:
+        raise ValueError("expected source manifest identity differs")
+    with args.report.open("x") as stream:
+        try:
+            result = (
+                census(
+                    args.bundle, args.family, args.source, repeats=args.repeats, read_ahead_bytes=args.read_ahead_bytes
+                )
+                if args.mode == "census"
+                else immediate(args.bundle, args.source, repeats=args.repeats, read_ahead_bytes=args.read_ahead_bytes)
+            )
+        except Exception as error:
+            stream.write(
+                json.dumps(
+                    {
+                        "complete_result": False,
+                        "error": str(error),
+                        "mode": args.mode,
+                        "source_manifest_sha256": args.source_manifest_sha256,
+                        "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                    }
+                )
+                + "\n"
+            )
+            raise
+        result.update(
+            {
+                "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                "versions": {"pyarrow": pa.__version__, "numpy": np.__version__, "shapely": shapely.__version__},
+                "process_lifetime_peak_rss_bytes": peak_rss(),
+                "peak_note": "includes validation and interpreter lifetime; not query-only peak",
+                "timer_boundary": "opening+acquisition+record receipt; independent source equality/hash and WKB decode outside receipt timer, decode separately",
+                "read_ahead_bytes": args.read_ahead_bytes,
+            }
+        )
+        stream.write(json.dumps(result, indent=2) + "\n")
+    print(json.dumps({"report": str(args.report), "complete_result": True}))
+
+
+if __name__ == "__main__":
+    main()
