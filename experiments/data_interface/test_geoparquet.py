@@ -140,7 +140,7 @@ def test_output_cannot_mutate_input_bundle(tmp_path: Path) -> None:
         write_geoparquet(source, source.parent / "new.parquet")
 
 
-def test_retained_parquet_reader_spatial_and_known_ids(tmp_path: Path) -> None:
+def test_retained_parquet_reader_spatial_and_known_ids(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     source = source_file(tmp_path)
     lookup_schema = pa.schema(
         [pa.field("id", pa.int64(), False), pa.field("block", pa.int32(), False), pa.field("row", pa.int32(), False)],
@@ -214,9 +214,43 @@ def test_retained_parquet_reader_spatial_and_known_ids(tmp_path: Path) -> None:
         "bounds_epsg4326": [1.5, -1.0, 2.5, 1.0],
         "all_tiers": {"count": 1, "sorted_ids_sha256_le_i64": id_hash([2])},
     }
-    spatial = measure(str(bundle), str(source.parent), original, ["geometry", "id", "native"], [], 2, window)
+    import numpy as np
+    import numpy.typing as npt
+    import shapely
+
+    from experiments.data_interface import geoparquet_probe
+
+    events: list[str] = []
+    from_wkb = shapely.from_wkb
+    source_records = geoparquet_probe.source_records
+
+    def decode(wkb: npt.NDArray[np.object_]) -> npt.NDArray[np.object_]:
+        geometries = from_wkb(wkb)
+        assert shapely.to_wkt(geometries).tolist() == ["POINT (2 0)"]
+        events.append("decode")
+        return geometries
+
+    def validate_source(
+        root: Path, family: str, ids: list[int], columns: list[str] | None
+    ) -> tuple[pa.Table, list[int]]:
+        events.append("source_records")
+        return source_records(root, family, ids, columns)
+
+    monkeypatch.setattr(shapely, "from_wkb", decode)
+    monkeypatch.setattr(geoparquet_probe, "source_records", validate_source)
+    spatial = measure(
+        str(bundle), str(source.parent), original, ["geometry", "id", "native"], [], 2, window, decode=True
+    )
+    assert events == ["decode", "source_records", "decode", "source_records"]
     assert spatial["phase"] == "spatial_discovery_and_fetch"
-    assert all(item["output_rows"] == 1 for item in spatial["repeats"])
+    for index, item in enumerate(spatial["repeats"]):
+        assert item["output_rows"] == 1
+        assert item["validation"]["semantic_equal"]
+        assert item["requested_wkb_bytes"] == 21
+        assert item["geometry_decode_s"] > 0
+        assert item["total_to_result_s"] == pytest.approx(
+            item["acquisition"]["elapsed_s"] + item["geometry_decode_s"] + (spatial["opening_s"] if index == 0 else 0)
+        )
 
 
 def test_cli_rejects_receipt_output_collision_before_write(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
