@@ -220,3 +220,38 @@ Return the findings to #35 and Pourpoint #36 for maintainer confirmation before 
 adoption or full re-wrangling. A defensible choice need not win every workload. Do not close
 #35 or merge production changes merely because the experiments are complete. Production
 work requires a subsequent agreed vision.
+
+## Session handover — 2026-10-17
+
+Progress only; this does not change the vision or select a layout.
+
+- Reader corrections are merged in PR #39. PR #40 holds the report/evidence;
+  PR #41 holds the GeoParquet experiment. Both remain unmerged. Local comparisons
+  and original-publication remote baselines are recorded; candidate/GeoParquet
+  remote comparisons and the final recommendation are unfinished.
+- Temporary publication is **stopped**. The candidate river file completed and
+  verified (279 parts, 9,347,622,370 bytes). The relationships file has seven
+  accepted parts; part 8 exhausted three attempts with TLS errors before any HTTP
+  response. AWS CLI uploads previously failed with TLS errors too. Later transfers
+  used curl signed with the same `upstream-r2` profile; other S3 operations still
+  used `aws --profile upstream-r2`.
+- Fresh authenticated bucket checks succeeded. Completed objects total about
+  626.6 GB, excluding unfinished uploads and other buckets. No evidence establishes
+  a quota failure or file corruption; the TLS cause remains unknown. Network change
+  was suggested as a diagnostic, not established as the fix. No further upload
+  attempt is authorized by this note.
+- Preserve completed objects, accepted parts, the same owned UploadId and every
+  historical attempt. Never reset counters, replace accepted parts or abort/recreate
+  the upload to bypass exhaustion. Production remains untouched. Measurements stay
+  paused; candidate manifest-last publication and public readback must precede
+  separate GeoParquet publication approval.
+- On this machine, read `~/.cache/hfx/grit-physical-layout-2026-10-17-receipts/handoff.md`
+  first for exact identities, private receipts and remaining gates. Inspect actual
+  processes/receipts: the former upload process exited, and the progress heartbeat
+  is paused. Preserve the intentionally staged combined-validation checkout and
+  unrelated worktrees.
+
+Remaining: resolve the upload blocker, finish publication/readback and bounded
+remote comparisons, write the recommendation, perform exact owned-object cleanup,
+obtain fresh full-outcome review, merge approved experiment PRs and verify actual
+main. Return findings to HFX #35 and Pourpoint #36; **keep #35 open**.
