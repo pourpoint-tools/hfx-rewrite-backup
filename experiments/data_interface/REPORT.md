@@ -1,5 +1,8 @@
 # HFX data interface findings
 
+Historical interface experiment. The later [physical-layout recommendation](PHYSICAL_LAYOUT.md)
+adds same-host HTTP comparisons without replacing these receipts.
+
 Global verification and 134 local runs passed. Actual remote work completed with
 36 successful result processes and eight explicitly partial request-capped diagnostics.
 The approved temporary publication was removed and the original public manifest

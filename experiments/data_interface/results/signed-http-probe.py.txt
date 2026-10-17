@@ -1,0 +1,88 @@
+"""Private one-process signed GET injection; no reader or cache changes."""
+
+from __future__ import annotations
+
+import json
+import os
+import runpy
+import sys
+from collections.abc import Iterator
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Any, cast
+from urllib.parse import urlsplit
+from urllib.request import Request
+
+MODULES = {
+    "experiments.data_interface.probe",
+    "experiments.data_interface.record_probe",
+    "experiments.data_interface.traversal_probe",
+    "experiments.data_interface.association_probe",
+    "experiments.data_interface.baseline_graph_spatial",
+    "experiments.data_interface.geoparquet_probe",
+}
+
+
+def install(mapping: dict[str, str]) -> None:
+    from scripts import check_vector_access as transport
+
+    original = transport.urlopen
+
+    @contextmanager
+    def signed_open(request: Request, *, timeout: int) -> Iterator[Any]:
+        target = mapping.get(request.full_url)
+        if target is None:
+            raise RuntimeError("signed URL mapping missing")
+        try:
+            signed = Request(target, headers=dict(request.header_items()), method="GET")
+            with original(signed, timeout=timeout) as response:
+                yield response
+        except Exception:
+            raise RuntimeError("signed HTTP request failed") from None
+
+    cast(Any, transport).urlopen = signed_open
+
+
+def main() -> None:
+    # Secrets enter only through a private file, never command arguments.
+    path = Path(os.environ["HFX_SIGNED_URL_MAP"])
+    if path.stat().st_mode & 0o077:
+        raise ValueError("mapping permissions must be private")
+    mapping = json.loads(path.read_text())
+    if not isinstance(mapping, dict) or not mapping:
+        raise ValueError("invalid mapping")
+    for logical, signed in mapping.items():
+        if not isinstance(logical, str) or not isinstance(signed, str):
+            raise ValueError("invalid mapping")
+        source, target = urlsplit(logical), urlsplit(signed)
+        if (
+            source.scheme != "https"
+            or source.query
+            or source.fragment
+            or source.username
+            or target.scheme != source.scheme
+            or target.netloc != source.netloc
+            or target.path != source.path
+            or not target.query
+            or target.fragment
+        ):
+            raise ValueError("invalid mapping")
+    module = sys.argv[1]
+    bulk = Path(__file__).parent.parent / "useful_bulk.py"
+    if module not in MODULES and module != str(bulk):
+        raise ValueError("unsupported probe")
+    sys.path.insert(0, str(Path.cwd()))
+    install(mapping)
+    sys.argv = [module, *sys.argv[2:]]
+    if module == str(bulk):
+        runpy.run_path(module, run_name="__main__")
+    else:
+        runpy.run_module(module, run_name="__main__")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception:
+        print("Signed HTTP probe failed; no secret-bearing traceback retained.", file=sys.stderr)
+        sys.exit(1)

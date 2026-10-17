@@ -1,9 +1,17 @@
 # GRIT physical-layout investigation
 
-**In progress. No layout or production contract is selected.** Local corrected-
-reader and river GeoParquet evidence plus original-public remote baselines are
-available. Candidate/GeoParquet remote comparisons and the final recommendation
-remain pending.
+**Recommendation for maintainer discussion:** favor spatially organized GeoParquet
+as the feature-container direction, with one authoritative representation per domain,
+projected attributes and exact WKB, compact ID/spatial access, and separately
+addressable immediate relationships. River evidence supports this direction; an
+all-domain production choice remains blocked by unmeasured GeoParquet catchment/node
+behavior. The measured IPC catchment/node bundle is the evidence baseline, not an
+adopted fallback. A permanent mixed-container contract has unquantified reader and
+maintenance costs and is not selected by default.
+
+The authorized switch to Hetzner after R2 transport failures enabled the completed
+same-host HTTP comparison below. This is not production adoption or a claim about
+R2-versus-Hetzner causes. Temporary-publication cleanup remains pending.
 Related: [HFX #35](https://github.com/pourpoint-tools/hfx/issues/35).
 The [previous findings](REPORT.md) remain historical evidence, not revised results.
 
@@ -299,7 +307,7 @@ read-policy concerns but establish neither HTTP request counts nor remote benefi
 
 ## Original publication: corrected remote baseline
 
-**Original only; candidate and GeoParquet remote comparisons remain pending.**
+**Historical original-public baseline; not paired with the Hetzner trials below.**
 [Remote evidence](results/physical-layout-remote-original.json) preserves eight
 spatial workloads / 16 operations and five known-ID cases / 10 operations on the
 unchanged public GRIT publication. Trials ran serially with uploads stopped.
@@ -387,7 +395,124 @@ their tiny tests are [historical source archives](REPRODUCE.md#historical-census
 not maintained APIs. The archive binding records hashes and native checks;
 GeoParquet producer/probe source remains pinned to its measured commit.
 
-Remote candidate/GeoParquet comparisons, remaining remote relationship/bulk cases,
-publication cleanup and a final layout recommendation remain unfinished. Original-only
-remote results and local gains do not settle them. Keep #35 open and return the
-complete findings to maintainers and Pourpoint #36 before production adoption.
+The same-host selective and composed HTTP trials below complete the bounded remote
+comparison. They do not add complete remote projected censuses. Historical whole-file
+relationship preparation and repeated-work results in [REPORT.md](REPORT.md) remain
+valid for their original conditions, not a universal bulk crossover. Publication
+cleanup remains pending. Keep #35 open and return these findings to maintainers and
+Pourpoint #36; adoption requires a subsequent agreed production vision.
+
+## Same-host signed HTTP comparison
+
+[Compact evidence](results/physical-layout-hetzner.json) binds all **43 fresh-process
+trials / 86 first-and-reuse operations** to their exact sources and raw receipts.
+All selected results passed exact original-source checks. The experiment published
+and fully read back **46 objects / about 83.5 GB** on private Hetzner object storage.
+Original, candidate and river GeoParquet targets used the same host. Signed URL
+preparation is outside useful-result timers for every layout; opening and required
+metadata, discovery, record retrieval and requested WKB decode are inside. Reuse
+is the second operation on the same reader. These are single pairs, not latency
+distributions; fresh processes do not establish cold CDN or network caches.
+Queue source hashes and current-file checks bind the measured code. Root execution
+checked source hashes before/after each serial task, but the minimal execution JSON
+does not retain those snapshots, stdout/stderr hashes or independent quiet-process
+attestations. Do not infer those missing receipts from successful selected checks.
+GP validates expected witness IDs in its pinned probe without emitting a selected-ID
+hash; the evidence preserves that distinction.
+
+Seconds below are first useful results. Small/medium windows include WKB and decode;
+other spatial rows return projected attributes. IPC means the verified 8,192-row
+configuration, not an adopted cap. GP means the river-only GeoParquet control.
+
+| Family / request | Original s | IPC s | GP s |
+| --- | ---: | ---: | ---: |
+| Rivers / small | 11.808 | 9.568 | 5.553 |
+| Rivers / medium | 16.007 | 9.210 | 4.944 |
+| Rivers / elongated | 16.010 | 8.085 | 4.625 |
+| Rivers / Amazon | 277.392 | 35.616 | 18.948 |
+| Catchments / small | 14.144 | 9.599 | — |
+| Catchments / medium | 22.499 | 11.502 | — |
+| Catchments / source boundary | 17.623 | 10.597 | — |
+| Catchments / Amazon | 312.100 | 47.467 | — |
+| Rivers / clustered 4,096 attributes | 4.331 | 11.162 | 9.867 |
+| Catchments / clustered 4,096 attributes | 6.196 | 16.650 | — |
+| Rivers / dispersed 128 attributes | 111.290 | 115.437 | 83.224 |
+| Catchments / dispersed 128 attributes | 110.869 | 111.886 | — |
+
+GP source-boundary first result is 5.684 s, but this queue has no matched original
+or IPC river boundary trial. Do not manufacture that comparison. Absent-ID checks
+use source maximum + 1, not arbitrary interior absence. Exact reuse, request/body-byte,
+phase and materialization measurements are retained in the JSON rather than repeated
+in another table. Returned body bytes are not wire traffic. No provider-general
+latency or causal R2-versus-Hetzner comparison follows from these runs.
+
+The native GP path combines footer pruning, column pre-buffering and reuse of
+selected group/row addresses; IPC record fetch also consults its locator. Its
+first-spatial advantage is an **as-used reader/layout result**, not proof that
+encoding alone caused it. GP still opens a 10.646 MB footer. Local small results
+favored IPC, illustrating why local timing alone could not select the remote path.
+
+The matched remote zero-to-65,536-byte read-ahead controls reduce small-river first
+requests from 76 to 58 original and 96 to 52 IPC, while body bytes rise from
+70.388 to 70.763 MB and 13.126 to 14.167 MB. First results improve from 13.599 to
+11.808 s and 13.881 to 9.568 s respectively. This isolates a reader-policy benefit,
+not a physical-layout change; single ordered trials still do not establish an optimum.
+
+Composed spatial → supplied flow → exact records improves first results from
+43.149 to 17.140 s for rivers with query-owned adjacency reuse and 23.465 to
+8.647 s for catchments with selective adjacency access. These are **IPC workflows**, not measured GP compositions.
+Candidate node-2 incidence completes in 4.815 s; there is no matched remote
+original-node comparison. The source checks preserve connectivity beyond discovery
+bounds, not clipping or a new traversal engine. No complete remote projected census
+was added by this queue; remote bulk-throughput claims remain limited to the earlier
+whole-file/repeated-work evidence.
+
+## Recommended direction and exact remaining uncertainty
+
+Spatial-first priority makes the river GP result a defensible direction despite
+clustered-ID regressions. Recommend a spatially organized **single authoritative
+feature representation per domain**, with co-located independently projected
+attributes and exact WKB. Favor native GeoParquet rather than further custom feature
+storage machinery. Keep compact producer-prepared ID and conservative spatial access,
+and distinct immediate forward/reverse relationship structures; consumers traverse
+and own query workspace. Bbox overlap is conservative, not exact intersection.
+Flow, hierarchy, directed incidence, cross-tier correspondence and local/component
+associations keep their supplied meanings, including unknown/not-supplied values.
+
+Required reader behavior is actual column projection, retained metadata per reader,
+grouped native Parquet reads, reuse of spatially discovered record addresses and
+query-owned adjacency reuse. Tune read-ahead as a disclosed transfer/round-trip
+trade-off, not a fixed 64 KiB contract. The local scan controls show substantial
+skipped-gap transfer from that policy. Streaming output does not bound total RSS
+or native pre-buffer retention. Optional bulk preparation can serve repeated work;
+no universal selective-to-bulk crossover has been established.
+
+The GP river artifact is 8.989 GB versus 9.348 GB IPC: it can replace the feature
+artifact rather than accompany it. Production lookups/manifests must bind the
+actual Parquet identity and address convention, not the trial locator's old IPC
+hash. Preserve native types, nulls, schema metadata, exact delivered WKB, meanings
+and provenance. Full candidate verification covers all three domains, lookup rows,
+bounds and independently expanded immediate edges; GP global verification covers
+22,337,300 river rows only. Selected HTTP equality is not full interior authentication.
+Final production artifacts still require complete verification.
+
+No substantial feature duplication has earned its storage, build and verification
+cost: neither an original-order copy for clustered IDs, separate geometry, nor a
+FlatGeobuf derivative is justified by these measurements. The incomplete 256-row
+variation trades less materialization for startup/scan costs. Neither it nor 8,192,
+Morton order or the measured GP group boundaries is an optimum or production constant.
+
+**The exact all-domain blocker:** no GP catchment or node artifact was built,
+measured or fully verified. River results cannot establish their useful-result,
+bulk or memory behavior, especially polygon WKB overread. IPC catchments/nodes are
+the verified evidence baseline, not a permanent mixed-container recommendation.
+Maintaining two feature-container readers/addressing paths has not been justified
+against a uniform GP design. GP relationship-to-record composition is also unmeasured;
+carrying over relationship semantics does not establish its elapsed time.
+
+These limits block an evidence-complete all-domain production selection, not this
+qualified recommendation for maintainer discussion. No further format tournament
+or automatic benchmark expansion is warranted. Maintainers must accept the
+first-spatial versus clustered-ID trade-off and decide whether the narrowly stated
+all-domain uncertainty warrants follow-up under a subsequent production vision.
+No production contract, publication or Pourpoint runtime is changed here.

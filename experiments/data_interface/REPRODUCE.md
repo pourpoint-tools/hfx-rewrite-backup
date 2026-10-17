@@ -124,7 +124,8 @@ bytes were never doubled. Retain legacy evidence rather than rewriting receipts.
 
 ## Actual HTTP reproduction
 
-The measured temporary candidate prefix is **deleted**. To repeat HTTP work, obtain
+The historical interface-experiment candidate prefix is **deleted**. The later
+physical-layout Hetzner publication is separate; its cleanup remains pending. To repeat HTTP work, obtain
 approval for a new empty experiment-only prefix and retention/cleanup plan. Publish
 the verified bundle without byte changes, artifacts first and manifest last. Record
 local SHA-256/length, uploaded object identity/HEAD and public readback before running
@@ -192,13 +193,13 @@ from completed results; partial response bodies do not imply equal progress.
 
 The [current original-only findings](PHYSICAL_LAYOUT.md#original-publication-corrected-remote-baseline)
 and [compact evidence](results/physical-layout-remote-original.json) bind eight
-spatial and five successful known-ID cases. Candidate/GeoParquet remote comparison,
-remote relationship/bulk completion and final recommendation remain pending.
+spatial and five successful known-ID cases. These historical public-host trials
+are separate from the completed same-host signed comparison below.
 These completed original-public runs do not use the historical capped wrapper.
 Use the measured code checkout **`8b2fac6d928c493187a97928c06b4749b6f50f1f`**,
 the source manifest pin above and its native uv environment. The GP local reader
-remains separately pinned to `44f1346ce298ee241841c890a557750346c3f122`; no GP remote
-result is supplied here. Do not relabel preserved receipts as current-code runs.
+remains separately pinned to `44f1346ce298ee241841c890a557750346c3f122`; this historical
+section supplies no GP remote result. Do not relabel preserved receipts as current-code runs.
 
 Regenerate source witnesses outside timed runs using the source-only extension
 command in [Current workload and workflow probes](#current-workload-and-workflow-probes)
@@ -251,8 +252,8 @@ SHA bindings preserve their identities without copying those logs.
 
 See the [current physical-layout findings](PHYSICAL_LAYOUT.md) and
 [local receipt summary](results/physical-layout-local.json). Original-public remote
-baselines are available above; candidate/GeoParquet remote comparisons and the
-final recommendation remain pending.
+baselines are available above; the completed same-host signed comparison and
+qualified recommendation are in the current findings.
 
 These commands use the current reader, not the historical receipt revision.
 Generate the new witness file outside the source bundle and repository; the
@@ -355,3 +356,63 @@ Run performance commands serially, separate from global verification or witness
 regeneration. Do not overwrite existing receipts. Upload concurrency, native cache
 retention, ordinary manifest reads and lifetime RSS limits are disclosed in the
 [current findings](PHYSICAL_LAYOUT.md); local replay is not remote evidence.
+
+## Same-host signed HTTP trials
+
+The [43-trial evidence](results/physical-layout-hetzner.json) records the completed
+original/IPC/river-GP comparison. It preserves raw/execution/queue hashes and portable
+source-file hash bindings, not credentials or request logs. Match those file hashes
+before replay: the measured combined tree used the corrected reader plus the GP
+probe; a current checkout is not automatically the measured revision. Use the
+committed dependency lock and verify the recorded versions above. This section is
+an experiment recipe, not a supported transport library.
+
+The byte-exact measured launcher is archived as
+[`signed-http-probe.py.txt`](results/signed-http-probe.py.txt), SHA-256
+`01b5ef42094aff5567cc63a98398b5798df8ac3850f1f3629ccfe626b82e1345`.
+Use an absolute `$REPORT` path. Copy it to `$REPORT/transport/signed_http_probe.py`;
+place the earlier archived
+`useful_bulk.py` at `$REPORT/useful_bulk.py` so its fixed relative lookup is unchanged.
+The wrapper replaces only transport URL opening and preserves range headers; the
+logical same-host object URLs stay in probe arguments. Inspect archive bytes against
+the hash rather than treating a rewritten wrapper as measured source.
+
+After separately authorized publication and full readback, prepare a fresh mode-0600
+JSON map from **every logical object URL to its same-host/path signed GET URL** using
+approved storage tooling. Set `HFX_SIGNED_URL_MAP` to that private file. Never print,
+commit or pass signed URLs as CLI arguments. Signing/import setup is outside query
+timers; expiration must cover the whole operation. The recorded planned signing
+command required import-path repair; it is not an exact executed-command receipt.
+No uploader or signing framework is added here. Set `SOURCE_HTTP`, `CANDIDATE_HTTP`
+and `GEOPARQUET_HTTP` to the approved same-host roots, and retain local verified
+`SOURCE` for checks outside measured time.
+
+```sh
+PYTHONPATH=. uv run --group data-interface --group vector-production python "$REPORT/transport/signed_http_probe.py" experiments.data_interface.record_probe "$CANDIDATE_HTTP" --source "$SOURCE" --family rivers --workloads "$REPORT/extended-workloads.json" --operation spatial --spatial-window small --columns id level bbox source_length geometry --repeats 2 --read-ahead-bytes 65536 --report "$REPORT/signed-river-small.json"
+PYTHONPATH=. uv run --group data-interface --group vector-production python "$REPORT/transport/signed_http_probe.py" experiments.data_interface.geoparquet_probe "$GEOPARQUET_HTTP" --candidate "$CANDIDATE_HTTP" --source "$SOURCE" --workloads "$REPORT/extended-workloads.json" --spatial-window small --columns id level bbox source_length geometry --decode-geometry --repeats 2 --report "$REPORT/signed-gp-small.json"
+PYTHONPATH=. uv run --group data-interface --group vector-production python "$REPORT/transport/signed_http_probe.py" "$REPORT/useful_bulk.py" immediate "$CANDIDATE_HTTP" --source "$SOURCE" --repeats 2 --read-ahead-bytes 65536 --report "$REPORT/signed-incidence.json"
+```
+
+For other cells use the evidence's family, columns, selection and read policy, the
+extended spatial witnesses and compact known-ID reconstruction above. Spatial cases
+are small/medium WKB, elongated/boundary/Amazon attributes; only the cells in the
+JSON were run. Known IDs use `--selection clustered|scattered|absent`, omit geometry
+and spatial options, and use the reconstructed known-ID workload. IPC uses
+`--operation records`; GP omits `--operation`. The river zero-buffer control changes
+only IPC `--read-ahead-bytes` to 0.
+
+Wrap `traversal_probe` similarly for the four composed cases: original `consumer`,
+candidate river `batch-cache`, candidate catchment `selective`; river downstream
+level 0 / catchment upstream level 1; small window; extended workloads and existing
+workflow oracles; record columns `id level bbox source_length geometry` (catchments:
+`source_area`), decode enabled, two repeats and 65,536-byte read-ahead. Include the
+source-manifest pin and local `--source`. This is not GP-composed evidence.
+
+Run serially in fresh processes, with uploads/builds stopped and same-instance
+second operations. Record before/after source hashes, environment, command identity,
+exit status and raw receipt hash. Preserve failures rather than replacing them.
+The historical minimal execution receipts do not duplicate root transcript
+before/after checks or contain stdout/stderr digests and independent quiet-process
+attestations. Signature date/TTL was reconstructed from actual private maps.
+Fresh process is not cold network cache. No benchmark rerun is needed to read or
+review these results. Cleanup remains a separate owned-object verification task.
