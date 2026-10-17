@@ -377,7 +377,7 @@ The wrapper replaces only transport URL opening and preserves range headers; the
 logical same-host object URLs stay in probe arguments. Inspect archive bytes against
 the hash rather than treating a rewritten wrapper as measured source.
 
-After separately authorized publication and full readback, prepare a fresh mode-0600
+After separately authorized publication and identity/readback checks, prepare a fresh mode-0600
 JSON map from **every logical object URL to its same-host/path signed GET URL** using
 approved storage tooling. Set `HFX_SIGNED_URL_MAP` to that private file. Never print,
 commit or pass signed URLs as CLI arguments. Signing/import setup is outside query

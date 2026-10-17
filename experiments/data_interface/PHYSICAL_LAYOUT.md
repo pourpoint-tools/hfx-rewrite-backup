@@ -407,7 +407,10 @@ Pourpoint #36; adoption requires a subsequent agreed production vision.
 [Compact evidence](results/physical-layout-hetzner.json) binds all **43 fresh-process
 trials / 86 first-and-reuse operations** to their exact sources and raw receipts.
 All selected results passed exact original-source checks. The experiment published
-and fully read back **46 objects / about 83.5 GB** on private Hetzner object storage.
+**46 objects / about 83.5 GB** on private Hetzner object storage. Readback checked
+three complete manifests and head/tail ranges of 43 artifacts, with authenticated
+HEAD checks, producer full-file SHA-256 identities and upload MD5 checks. This was
+not a full remote download or interior authentication of every artifact.
 Original, candidate and river GeoParquet targets used the same host. Signed URL
 preparation is outside useful-result timers for every layout; opening and required
 metadata, discovery, record retrieval and requested WKB decode are inside. Reuse
