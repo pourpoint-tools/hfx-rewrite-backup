@@ -263,13 +263,17 @@ def verify_relationships(
         if declaration["count"] != len(ids):
             raise ValueError(f"{domain} count mismatch")
         with ipc.open_file(str(path)) as reader:
-            if reader.schema.names != ["id", *bindings]:
-                raise ValueError(f"{domain} column mismatch")
+            expected_schema = pa.schema(
+                [pa.field("id", pa.int64(), nullable=False)]
+                + [pa.field(name, pa.list_(pa.int64()), nullable=False) for name in bindings]
+            )
+            if not reader.schema.equals(expected_schema):
+                raise ValueError(f"{domain} relationship schema mismatch")
             batches: list[dict[str, int]] = []
             offset = 0
             for number in range(reader.num_record_batches):
                 batch = reader.get_batch(number)
-                batch_ids = np.asarray(batch.column(0).to_numpy(), dtype=np.int64)
+                batch_ids = _numeric(batch.column(0))
                 if not len(batch_ids) or not np.array_equal(batch_ids, ids[offset : offset + len(batch_ids)]):
                     raise ValueError(f"{domain} sorted IDs mismatch")
                 batches.append(
@@ -296,6 +300,9 @@ def verify_relationships(
                 raise ValueError(f"{domain}.{name} invalid list type or nulls")
             actual_values = _numeric(pc.list_flatten(lists))
             parents = pc.list_parent_indices(lists)
+            parent_indices = _numeric(parents)
+            if np.any((parent_indices[1:] == parent_indices[:-1]) & (actual_values[1:] <= actual_values[:-1])):
+                raise ValueError(f"{domain}.{name} neighbors must be strictly sorted")
             actual_keys = _numeric(pc.take(published["id"], parents))
             artifact, column = binding["source_artifact"], binding["source_column"]
             if artifact.endswith(".parquet"):

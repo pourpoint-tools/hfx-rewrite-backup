@@ -312,10 +312,6 @@ class SpatialAccess:
             "materialized_geometry_bytes": self.materialized_geometry_bytes,
             "discovery_groups": self.discovery_groups,
             "record_groups": self.last_groups,
-            "retained_bounded_range_bytes": sum(
-                sum(len(data) for _, data in raw.regions) for raw in self.files if isinstance(raw, RangeFile)
-            ),
-            "footer_bytes": self.reader.metadata.serialized_size,
         }
 
     def close(self) -> None:
@@ -330,16 +326,12 @@ class SpatialAccess:
 
 def _select(
     access: SpatialAccess, target: SpatialAccess, args: argparse.Namespace, columns: list[str]
-) -> tuple[pa.Table | None, list[int], tuple[int, int, float] | None]:
+) -> tuple[pa.Table, list[int]]:
     if args.relationship:
-        table, missing = target.ids(access.neighbors(args.ids, args.relationship), columns)
-    elif args.ids is not None:
-        table, missing = access.ids(args.ids, columns)
-    elif args.bounds is not None:
-        table, missing = access.spatial(cast(Bounds, tuple(args.bounds)), columns, args.level), []
-    else:
-        return None, [], access.bulk(columns)
-    return table, missing, None
+        return target.ids(access.neighbors(args.ids, args.relationship), columns)
+    if args.ids is not None:
+        return access.ids(args.ids, columns)
+    return access.spatial(cast(Bounds, tuple(args.bounds)), columns, args.level), []
 
 
 def main() -> None:
@@ -414,7 +406,8 @@ def main() -> None:
                 if args.bulk:
                     table, missing, bulk = None, [], access.bulk(columns, bulk_reference)
                 else:
-                    table, missing, bulk = _select(access, target, args, columns)
+                    table, missing = _select(access, target, args, columns)
+                    bulk = None
             finally:
                 if bulk_reference is not None:
                     bulk_reference.close()
@@ -436,16 +429,15 @@ def main() -> None:
                         raise ValueError("reference manifest differs")
                     if target.domain != access.domain:
                         reference_target = SpatialAccess(str(args.reference), target.domain)
-                    expected, absent, expected_bulk = _select(reference, reference_target, args, columns)
-                    if missing != absent or bulk != expected_bulk:
+                    expected, absent = _select(reference, reference_target, args, columns)
+                    if missing != absent:
                         raise ValueError("reference result differs")
-                    if table is not None:
-                        assert expected is not None
-                        if not table.schema.equals(expected.schema, check_metadata=True) or not all(
-                            exact_array(left.combine_chunks(), right.combine_chunks())
-                            for left, right in zip(table.columns, expected.columns, strict=True)
-                        ):
-                            raise ValueError("reference records differ")
+                    assert table is not None
+                    if not table.schema.equals(expected.schema, check_metadata=True) or not all(
+                        exact_array(left.combine_chunks(), right.combine_chunks())
+                        for left, right in zip(table.columns, expected.columns, strict=True)
+                    ):
+                        raise ValueError("reference records differ")
                     reference_status = "equal_verified_local_result"
                 finally:
                     if reference_target is not reference:
