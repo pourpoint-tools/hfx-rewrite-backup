@@ -76,6 +76,19 @@ class SpatialAccess:
         self.http = HTTP()
         self.files: list[CountFile | RangeFile] = []
         self.pafiles: list[pa.PythonFile] = []
+        try:
+            self._initialize(bundle, domain)
+        except BaseException:
+            for stream in self.pafiles:
+                stream.close()
+            for raw in self.files:
+                if isinstance(raw, CountFile):
+                    raw.stream.close()
+                raw.close()
+            self.http.close()
+            raise
+
+    def _initialize(self, bundle: str, domain: str) -> None:
         self.candidate = bundle.rstrip("/") + "/"
         raw = (
             self.http.get(urljoin(self.candidate, "manifest.json"))
@@ -322,6 +335,7 @@ class SpatialAccess:
             if isinstance(raw, CountFile):
                 raw.stream.close()
             raw.close()
+        self.http.close()
 
 
 def _select(

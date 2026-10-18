@@ -16,10 +16,10 @@ from pathlib import Path
 from time import perf_counter
 from typing import NotRequired, TypedDict, cast
 from urllib.parse import quote, urljoin, urlparse
-from urllib.request import Request, urlopen
 
 import pyarrow as pa
 import pyarrow.parquet as pq
+import urllib3
 
 
 class Fingerprint(TypedDict):
@@ -70,6 +70,10 @@ class HTTP:
     def __init__(self) -> None:
         self.etags: dict[str, str] = {}
         self.requests: list[Transfer] = []
+        self.pool = urllib3.PoolManager(retries=False, timeout=30)
+
+    def close(self) -> None:
+        self.pool.clear()
 
     def get(self, url: str, span: tuple[int, int, int] | None = None) -> bytes:
         headers = {"Accept-Encoding": "identity", "User-Agent": "hfx-vector-verification/0.4.0"}
@@ -78,7 +82,10 @@ class HTTP:
         if span:
             start, end, size = span
             headers["Range"] = f"bytes={start}-{end}"
-        with urlopen(Request(url, headers=headers), timeout=30) as response:
+        response = self.pool.request(
+            "GET", url, headers=headers, preload_content=False, decode_content=False, redirect=False
+        )
+        try:
             if response.headers.get("Content-Encoding", "identity") != "identity":
                 raise ValueError("Content-Encoding must preserve original bytes")
             etag = response.headers.get("ETag", "")
@@ -107,7 +114,12 @@ class HTTP:
                     "etag": etag,
                 }
             )
+            response.release_conn()
             return data
+        except BaseException:
+            response.close()
+            response.release_conn()
+            raise
 
 
 class RangeFile(io.RawIOBase):
@@ -295,11 +307,18 @@ def verify_source(
 
 
 def check(url: str, ids: list[int], source: Path | None = None, artifact: str = "catchments") -> dict[str, object]:
+    http = HTTP()
+    try:
+        return _check(http, url, ids, source, artifact)
+    finally:
+        http.close()
+
+
+def _check(http: HTTP, url: str, ids: list[int], source: Path | None, artifact: str) -> dict[str, object]:
     if urlparse(url).scheme not in ("http", "https"):
         raise ValueError("An HTTP(S) bundle URL is required")
     base = url if url.endswith("/") else url + "/"
     started = perf_counter()
-    http = HTTP()
     manifest_bytes = http.get(urljoin(base, "manifest.json"))
     manifest = cast(Manifest, json.loads(manifest_bytes))
     if manifest["format_version"] != "0.4.0":
