@@ -9,7 +9,11 @@ with minimal documentation and very little supporting code. Both the format and
 the repository's purpose are open to redesign, including changes that better
 serve the Python rewrite of Pourpoint.
 
-The [HFX 0.4.0 Vector Data contract](docs/v0.4.0/vector-data.md) specifies
+The revised [GRIT spatial stored contract](docs/v0.4.0/spatial-layout.md) uses
+GeoParquet features and separate immediate relationships. Its tooling does not
+claim completed global delivery or compatibility with existing IPC readers.
+
+The earlier [HFX 0.4.0 Vector Data contract](docs/v0.4.0/vector-data.md) specifies
 catchment and river IPC batches, ID lookups, directed graphs, source nodes and
 explicit drainage-unit associations. Rivers retain native identity and attributes;
 snapping is one possible use, not their stored data model.

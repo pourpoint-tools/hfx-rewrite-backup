@@ -1,5 +1,10 @@
 # HFX 0.4.0 Vector Data
 
+The finalized GRIT production layout is specified in [Spatial GeoParquet layout](spatial-layout.md).
+This page retains the earlier IPC physical layout and source field meanings.
+The same version string does not imply reader compatibility; revised global delivery
+is not claimed here.
+
 ## Bundle and manifest
 
 A bundle contains one UTF-8 `manifest.json` and the artifacts it identifies.
