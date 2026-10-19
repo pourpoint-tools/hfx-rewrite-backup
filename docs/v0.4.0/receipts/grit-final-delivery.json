@@ -293,6 +293,11 @@
       "artifact": "provider-teardown-complete.json",
       "sha256": "bbffadb7febf449efd75de83afb53b0b2e0dcfc5b3ead7eb1ff192dfc635bd4d",
       "size_bytes": 2362
+    },
+    "parallel_range_pilot": {
+      "artifact": "range-pilot-summary.json",
+      "sha256": "064e02277a1a1bdcbec6a47f2d7d31a95acf1a1aac610247b7b00f7959d207bd",
+      "size_bytes": 4023
     }
   },
   "canonical_checks": {
