@@ -1,5 +1,5 @@
 {
-  "status": "delivery verified; temporary resources removed; handoff and issue reconciliation pending",
+  "status": "delivery verified; temporary resources removed; Pourpoint handoff posted",
   "format_version": "0.4.0",
   "representation": "spatial-geoparquet-adjacency",
   "public_manifest": {
@@ -1098,10 +1098,7 @@
   "limitations": [
     "27 original timing cases completed; original catchments full prefetch run resource-blocked. Separate bounded full-column validation is not replacement original timing.",
     "Two repeats are not confidence intervals; fresh reader is not cold CDN cache. HTTP body bytes are not wire bytes.",
-    "Parallel exact-range replay is transport plus hashing, not end-to-end reader performance. Pooling PR46 remains unmerged diagnostic."
-  ],
-  "pending": [
-    "Pourpoint handoff and issue completion reconciliation"
+    "Parallel exact-range replay is transport plus hashing, not end-to-end reader performance. Pooling PR46 was closed unmerged as diagnostic evidence."
   ],
   "temporary_resources": {
     "status": "all owned server, volume and primary IP IDs verified absent",
@@ -1122,5 +1119,6 @@
     "http_requests": 70,
     "body_bytes": 2070311,
     "scope": "Canonical manifest, 22 artifact HEAD/ranges, two retained raster HEADs and separate river bundle; decoded windows were checked after cutover before cleanup, not repeated."
-  }
+  },
+  "pourpoint_handoff": "https://github.com/pourpoint-tools/pourpoint/issues/36#issuecomment-6258085025"
 }

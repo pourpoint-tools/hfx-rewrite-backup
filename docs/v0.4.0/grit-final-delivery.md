@@ -59,8 +59,8 @@ IDs. Reuse fetched about 379.7 MB in 3,368 requests, including nearly the entire
 358.8 MB lookup and 3,025 feature-group reads. A parallel exact-range replay acquired
 and hashed the same recorded ranges in about 124 seconds; it did **not** execute
 an end-to-end reader query. Neither number is a universal format latency bound.
-[Pooling PR #46](https://github.com/pourpoint-tools/hfx/pull/46) remains an unmerged
-diagnostic, not a delivered consumer optimization. No duplicate feature format,
+[Pooling PR #46](https://github.com/pourpoint-tools/hfx/pull/46) was closed unmerged
+as diagnostic evidence, not a delivered consumer optimization. No duplicate feature format,
 required private cache or new traversal engine was added to hide these costs.
 
 Measurements report HTTP body bytes, not wire bytes. Fresh readers are not cold
@@ -78,6 +78,7 @@ the approved EUR 50 budget. This is an hourly-rate estimate through final absenc
 verification, not a provider invoice. Larger resize attempts were quota-rejected;
 the original CCX33 remained in use. Compact VM evidence was preserved before teardown.
 
-The Pourpoint #36 contract/evidence handoff and #43 completion reconciliation remain
-pending. Readers must coordinate the actual stored contract, not infer compatibility
-from the shared version string.
+The [Pourpoint #36 handoff](https://github.com/pourpoint-tools/pourpoint/issues/36#issuecomment-6258085025)
+links the delivered contract, manifest, verification evidence and limitations.
+Readers must coordinate the actual stored contract, not infer compatibility from
+the shared version string.
