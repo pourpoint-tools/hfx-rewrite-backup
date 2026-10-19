@@ -72,78 +72,22 @@ The shared `0.4.0` string does not make old IPC readers compatible with this lay
 
 ## Starting point for a Pourpoint reader
 
-The successful transport experiment used **fsspec 2026.9.0** with **aiohttp
-3.14.5**, not a custom concurrent reader. These were isolated experiment
-dependencies, not additions to HFX or requirements on Pourpoint.
+Try **concurrent exact-range reads**, rather than sequential HTTP requests. Our
+experiment used **fsspec 2026.9.0 + aiohttp 3.14.5**, with the existing range
+scheduler at **concurrency 10**, no range coalescing, and ETag-pinned requests.
+It fetched and hash-checked the recorded artifact ranges in about **124 seconds**;
+the serial 4,096-ID query took about 20 minutes. The layout did not change.
 
-1. Resolve requested IDs through the producer lookup, group locations by Parquet
-   row group, and select only needed columns. The original probe already did this;
-   it did not issue an independent feature fetch for every ID.
-2. Collect exact byte ranges per immutable artifact. Our experiment replayed ranges
-   recorded by that probe; it did **not** discover them inside a new end-to-end
-   reader. Range planning and decoding still need integration in Pourpoint.
-3. Use one asynchronous `fsspec.implementations.http.HTTPFileSystem` per artifact,
-   with a fresh session, and its existing range scheduler. The tested asynchronous
-   call was `await fs._cat_ranges(urls, starts=starts, ends=exclusive_ends,
-   batch_size=10, max_gap=None, on_error="return")`. Input HTTP ranges had inclusive
-   ends; the fsspec call used end + 1. `max_gap=None` disabled coalescing in this
-   pinned implementation. `_cat_ranges` is a private, version-sensitive API: verify
-   the installed API and supported integration before adopting it.
-4. Pin requests with `If-Match` to the artifact ETag. Send
-   `Accept-Encoding: identity`, disable redirects and automatic decompression, and
-   use `aiohttp.ClientTimeout(total=30)` per request. A pre-body response callback
-   required status 206, the exact ETag, Content-Range including total object size,
-   and Content-Length; it rejected encoded or chunked responses. After reading,
-   check length and content. Our per-range SHA256 expectations came from verified
-   local files; they are **not** published per-range hashes available to consumers.
-5. Preserve range/result correspondence, decode with native libraries, then restore
-   requested ID order and duplicates. Validate missing IDs, nulls, types and exact
-   WKB against independent cases. The replay checked bytes, not this integrated
-   decode/result-assembly path. Close the HTTP session explicitly.
+This is a direction to investigate, not a ready-made reader: the replay knew the
+ranges in advance and excluded ID resolution, decoding and result assembly.
+Integrate range planning and native decoding, then benchmark the complete query.
+Preserve request order/duplicates and range/identity checks; measure retained
+memory and retries too. The tested async fsspec entrypoint was private
+(`_cat_ranges`, `batch_size=10`, `max_gap=None`, exclusive end offsets), so verify
+API support in the chosen version rather than copying it blindly.
 
-We first tested 128 fixed feature ranges (293,718 bytes), in separate processes:
-concurrency 1 took **45.57 s**, 4 took **11.21 s**, and 10 took **4.84 s**. Each
-made exactly 128 requests and passed all range hashes. Then, at concurrency 10,
-we replayed all 3,374 artifact ranges from the first 4,096-ID catchment query:
-389,988,733 bytes, all hashes passed, about **123.89 s** summed acquisition/hash
-time. Lookup data took 9.98 s (358.8 MB); feature data took 112.88 s (20.91 MB,
-3,025 requests). The manifest GET was excluded; opening/fingerprint reads and
-lookup-directory reads were included. Groups ran sequentially, with a fresh
-process per group and a different schedule from the original query.
-
-**Use this as a transport starting point, not an end-to-end latency promise.**
-Concurrency 10 is a tested experimental setting, not a format constant or proven
-optimum. Cache/network conditions were uncontrolled. The replay knew ranges in
-advance, retained each group's returned buffers, and excluded ID resolution,
-decoding and result assembly. The lookup group peaked at roughly 396 MiB RSS;
-concurrency alone does not bound total retained memory. Measure an integrated
-reader before claiming the same speedup.
-
-The installed aiohttp could retry a disconnected GET once; there was no manual or
-HTTP-status retry. We counted headers-sent attempts and tested that behavior.
-Successful public runs needed no extra attempts. With `on_error="return"`, fsspec
-can finish scheduled work before errors are inspected: this is not fail-fast.
-Completed-body bytes exclude unknown partial/socket traffic. Preserve these
-accounting and failure distinctions when comparing readers.
-
-Avoid assuming that merging ranges or enabling Arrow threads will solve the same
-problem. For the measured feature ranges, merging gaps up to 256 KiB saved no
-requests; allowing 4 MiB gaps saved 1,438 requests but added about 4.04 GB. Local
-PyArrow prefetch tests through the existing Python file wrapper did not demonstrate
-concurrent HTTP reads. Neither result rules out other native-library integrations.
-
-The next Pourpoint experiment should integrate maintained asynchronous/native
-transport with its reader, measure lookup, feature acquisition, decode and final
-result time separately, and retain cold/first-use versus repeat-use distinctions.
-Keep the same artifact identities and exact-result checks. Do not add a required
-private cache or change the stored layout merely to reproduce this diagnostic.
-
-References: [fsspec HTTP implementation](https://github.com/fsspec/filesystem_spec/blob/master/fsspec/implementations/http.py),
-[fsspec Parquet range planning](https://github.com/fsspec/filesystem_spec/blob/master/fsspec/parquet.py),
-and [PyArrow pre-buffer documentation](https://arrow.apache.org/docs/python/generated/pyarrow.parquet.read_table.html).
-The [compact receipt](receipts/grit-final-delivery.json) binds the public pilot and
-full replay evidence; the measurements above are from this delivery, not the
-libraries' general performance claims.
+See [fsspec's Parquet range-planning approach](https://developer.nvidia.com/blog/optimizing-access-to-parquet-data-with-fsspec/)
+and the pilot/replay bindings in the [delivery receipt](receipts/grit-final-delivery.json).
 
 ## Resource cleanup and handoff
 
