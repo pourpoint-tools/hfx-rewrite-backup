@@ -10,8 +10,9 @@ the repository's purpose are open to redesign, including changes that better
 serve the Python rewrite of Pourpoint.
 
 The revised [GRIT spatial stored contract](docs/v0.4.0/spatial-layout.md) uses
-GeoParquet features and separate immediate relationships. Its tooling does not
-claim completed global delivery or compatibility with existing IPC readers.
+GeoParquet features and separate immediate relationships. The
+[global delivery record](docs/v0.4.0/grit-final-delivery.md) tracks verified publication
+and resource cleanup. Existing IPC reader compatibility is not implied.
 
 The earlier [HFX 0.4.0 Vector Data contract](docs/v0.4.0/vector-data.md) specifies
 catchment and river IPC batches, ID lookups, directed graphs, source nodes and

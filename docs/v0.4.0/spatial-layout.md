@@ -2,7 +2,8 @@
 
 This is the revised stored contract for [HFX #43](https://github.com/pourpoint-tools/hfx/issues/43)
 and its [production vision](../../planning/visions/2026-10-18-grit-final-hfx-0-4-0-production.md).
-Tooling is available; **global production, public verification and cutover are not yet delivered**.
+The [global delivery record](grit-final-delivery.md) reports production, public
+verification, cutover and resource cleanup, with limitations explicitly tracked.
 The old [vector contract](vector-data.md) supplies field meanings, not the physical
 layout below. The shared `0.4.0` string does not imply compatibility with IPC readers.
 Pourpoint must select this representation explicitly before using its addresses.
