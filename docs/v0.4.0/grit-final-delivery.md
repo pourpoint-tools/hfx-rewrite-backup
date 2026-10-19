@@ -70,25 +70,6 @@ are bbox candidates, not exact intersections. Relationship membership is not cli
 to spatial discovery seeds; consumers still own traversal and query workspace.
 The shared `0.4.0` string does not make old IPC readers compatible with this layout.
 
-## Starting point for a Pourpoint reader
-
-Try **concurrent exact-range reads**, rather than sequential HTTP requests. Our
-experiment used **fsspec 2026.9.0 + aiohttp 3.14.5**, with the existing range
-scheduler at **concurrency 10**, no range coalescing, and ETag-pinned requests.
-It fetched and hash-checked the recorded artifact ranges in about **124 seconds**;
-the serial 4,096-ID query took about 20 minutes. The layout did not change.
-
-This is a direction to investigate, not a ready-made reader: the replay knew the
-ranges in advance and excluded ID resolution, decoding and result assembly.
-Integrate range planning and native decoding, then benchmark the complete query.
-Preserve request order/duplicates and range/identity checks; measure retained
-memory and retries too. The tested async fsspec entrypoint was private
-(`_cat_ranges`, `batch_size=10`, `max_gap=None`, exclusive end offsets), so verify
-API support in the chosen version rather than copying it blindly.
-
-See [fsspec's Parquet range-planning approach](https://developer.nvidia.com/blog/optimizing-access-to-parquet-data-with-fsspec/)
-and the pilot/replay bindings in the [delivery receipt](receipts/grit-final-delivery.json).
-
 ## Resource cleanup and handoff
 
 The temporary server, attached volume and both primary IPs were verified absent on
