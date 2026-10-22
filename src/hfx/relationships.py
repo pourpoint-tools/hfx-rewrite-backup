@@ -69,6 +69,10 @@ def _bindings(source: Path, domain: str, files: dict[str, str]) -> dict[str, dic
                     "direction": direction,
                 }
     association = manifest.get("local_associations")
+    if not association and "rivers" in files and "catchments" in files:
+        with ipc.open_file(str(source / files["rivers"])) as reader:
+            if "local_catchment_id" not in reader.schema.names:
+                raise ValueError("Local association evidence requires a scalar column or declared edge table")
     if association and domain in ("rivers", "catchments"):
         if "rivers" not in files or "catchments" not in files:
             raise ValueError("Local associations require rivers and catchments")

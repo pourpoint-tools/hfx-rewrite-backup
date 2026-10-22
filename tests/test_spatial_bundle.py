@@ -233,3 +233,35 @@ def test_plural_reverse_edges_and_bindings_are_independently_verified(tmp_path: 
     (output / "manifest.json").write_text(json.dumps(manifest))
     with pytest.raises(ValueError, match="local_river_ids differs from source"):
         verify(source, output, source_manifest_sha256=digest)
+
+
+def test_missing_local_association_declaration_is_not_empty_evidence(tmp_path: Path) -> None:
+    from hfx.spatial_bundle import build
+
+    source = tmp_path / "source"
+    node_free_source(source)
+    manifest = json.loads((source / "manifest.json").read_text())
+    del manifest["local_associations"]
+    (source / "manifest.json").write_text(json.dumps(manifest))
+    digest = hashlib.sha256((source / "manifest.json").read_bytes()).hexdigest()
+    with pytest.raises(ValueError, match="Local association evidence"):
+        build(source, tmp_path / "output", source_manifest_sha256=digest)
+
+
+def test_explicit_empty_local_associations_are_valid(tmp_path: Path) -> None:
+    import pyarrow.parquet as pq
+
+    from hfx.spatial_bundle import build, verify
+    from tests.test_data_interface_relationships import _records
+
+    source, output = tmp_path / "source", tmp_path / "output"
+    node_free_source(source)
+    path = source / "local-associations.parquet"
+    pq.write_table(pa.table({"river_id": pa.array([], pa.int64()), "catchment_id": pa.array([], pa.int64())}), path)
+    manifest = json.loads((source / "manifest.json").read_text())
+    manifest["artifacts"][path.name] = fingerprint(path)
+    (source / "manifest.json").write_text(json.dumps(manifest))
+    digest = hashlib.sha256((source / "manifest.json").read_bytes()).hexdigest()
+    final = build(source, output, source_manifest_sha256=digest)
+    assert all(row["local_catchment_ids"] == [] for row in _records(output, final["relationships"]["rivers"]).values())
+    assert verify(source, output, source_manifest_sha256=digest)["status"] == "passed"
