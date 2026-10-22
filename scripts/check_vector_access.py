@@ -11,15 +11,20 @@ import io
 import json
 import struct
 from bisect import bisect_left
+from collections.abc import Callable
 from hashlib import sha256
 from pathlib import Path
 from time import perf_counter
-from typing import NotRequired, TypedDict, cast
-from urllib.parse import quote, urljoin, urlparse
+from typing import TYPE_CHECKING, NotRequired, TypedDict, cast
+from urllib.parse import quote, unquote, urljoin, urlparse
 from urllib.request import Request, urlopen
 
 import pyarrow as pa
 import pyarrow.parquet as pq
+
+if TYPE_CHECKING:
+    from mypy_boto3_s3 import S3Client
+    from mypy_boto3_s3.type_defs import GetObjectRequestTypeDef
 
 
 class Fingerprint(TypedDict):
@@ -79,35 +84,101 @@ class HTTP:
             start, end, size = span
             headers["Range"] = f"bytes={start}-{end}"
         with urlopen(Request(url, headers=headers), timeout=30) as response:
-            if response.headers.get("Content-Encoding", "identity") != "identity":
-                raise ValueError("Content-Encoding must preserve original bytes")
-            etag = response.headers.get("ETag", "")
-            if len(etag) < 2 or not etag.startswith('"') or not etag.endswith('"'):
-                raise ValueError("A strong ETag is required")
-            if url in self.etags and self.etags[url] != etag:
-                raise ValueError("ETag changed during access")
-            if span:
-                if response.status != 206 or response.headers.get("Content-Range") != f"bytes {start}-{end}/{size}":
-                    raise ValueError("Invalid 206 Content-Range")
-                limit = end - start + 1
-            else:
-                if response.status != 200:
-                    raise ValueError("Expected HTTP 200")
-                limit = 16 * 1024 * 1024
-            data = response.read(limit + 1)
-            if len(data) > limit or (span and len(data) != limit):
-                raise ValueError("Unexpected response length")
-            self.etags[url] = etag
-            self.requests.append(
-                {
-                    "url": url,
-                    "start": span[0] if span else None,
-                    "end": span[1] if span else None,
-                    "bytes": len(data),
-                    "etag": etag,
-                }
+            return self._receive(
+                url,
+                span,
+                response.status,
+                {key.lower(): value for key, value in response.headers.items()},
+                response.read,
             )
-            return data
+
+    def _receive(
+        self,
+        url: str,
+        span: tuple[int, int, int] | None,
+        status: int,
+        headers: dict[str, str],
+        read: Callable[[int], bytes],
+    ) -> bytes:
+        if headers.get("content-encoding", "identity") != "identity":
+            raise ValueError("Content-Encoding must preserve original bytes")
+        etag = headers.get("etag", "")
+        if len(etag) < 2 or not etag.startswith('"') or not etag.endswith('"'):
+            raise ValueError("A strong ETag is required")
+        if url in self.etags and self.etags[url] != etag:
+            raise ValueError("ETag changed during access")
+        if span:
+            start, end, size = span
+            if status != 206 or headers.get("content-range") != f"bytes {start}-{end}/{size}":
+                raise ValueError("Invalid 206 Content-Range")
+            limit = end - start + 1
+        else:
+            if status != 200:
+                raise ValueError("Expected HTTP 200")
+            limit = 16 * 1024 * 1024
+        data = read(limit + 1)
+        if len(data) > limit or (span and len(data) != limit):
+            raise ValueError("Unexpected response length")
+        self.etags[url] = etag
+        self.requests.append(
+            {
+                "url": url,
+                "start": span[0] if span else None,
+                "end": span[1] if span else None,
+                "bytes": len(data),
+                "etag": etag,
+            }
+        )
+        return data
+
+
+class S3(HTTP):
+    """Signed SDK reads of path-style URLs at one configured S3 endpoint."""
+
+    def __init__(self, client: S3Client, endpoint: str) -> None:
+        super().__init__()
+        parsed = urlparse(endpoint)
+        if (
+            parsed.scheme != "https"
+            or not parsed.netloc
+            or parsed.path not in ("", "/")
+            or parsed.query
+            or parsed.fragment
+            or parsed.username
+        ):
+            raise ValueError("Expected an HTTPS S3 endpoint without a path or credentials")
+        self.client = client
+        self.endpoint = endpoint.rstrip("/")
+
+    def get(self, url: str, span: tuple[int, int, int] | None = None) -> bytes:
+        parsed = urlparse(url)
+        endpoint = urlparse(self.endpoint)
+        if (parsed.scheme, parsed.netloc) != (endpoint.scheme, endpoint.netloc) or parsed.query or parsed.fragment:
+            raise ValueError("Object URL must use the configured S3 endpoint without query or fragment")
+        bucket, separator, key = parsed.path.lstrip("/").partition("/")
+        if not bucket or not separator or not key:
+            raise ValueError("Object URL must include endpoint/bucket/key")
+        request: GetObjectRequestTypeDef = {"Bucket": bucket, "Key": unquote(key)}
+        if span:
+            request["Range"] = f"bytes={span[0]}-{span[1]}"
+        if url in self.etags:
+            request["IfMatch"] = self.etags[url]
+        response = self.client.get_object(**request)
+        body = response["Body"]
+        try:
+            return self._receive(
+                url,
+                span,
+                response["ResponseMetadata"]["HTTPStatusCode"],
+                {
+                    "etag": response.get("ETag", ""),
+                    "content-range": response.get("ContentRange", ""),
+                    "content-encoding": response.get("ContentEncoding", "identity"),
+                },
+                body.read,
+            )
+        finally:
+            body.close()
 
 
 class RangeFile(io.RawIOBase):

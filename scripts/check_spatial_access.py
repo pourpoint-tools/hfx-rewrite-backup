@@ -1,5 +1,8 @@
 """Selective local/HTTP production probe; not a traversal engine or integrity verifier.
 
+Private S3 reads use --aws-profile and --s3-endpoint with a path-style HTTPS
+bundle URL. Install the existing raster-experiment dependency group for boto3.
+
 Use a trusted, fully verified manifest. Bounded hashes detect endpoint mismatch,
 not interior corruption. Fresh readers do not imply cold filesystem/CDN caches.
 """
@@ -23,7 +26,7 @@ import pyarrow as pa
 import pyarrow.ipc as ipc
 import pyarrow.parquet as pq
 
-from scripts.check_vector_access import HTTP, Fingerprint, RangeFile
+from scripts.check_vector_access import HTTP, S3, Fingerprint, RangeFile
 
 BBOX_LEAVES = [f"bbox.{name}" for name in ("xmin", "ymin", "xmax", "ymax")]
 Bounds = tuple[float, float, float, float]
@@ -72,8 +75,8 @@ class CountFile(io.RawIOBase):
 class SpatialAccess:
     """Retained native readers for one production feature domain."""
 
-    def __init__(self, bundle: str, domain: str) -> None:
-        self.http = HTTP()
+    def __init__(self, bundle: str, domain: str, http: HTTP | None = None) -> None:
+        self.http = http if http is not None else HTTP()
         self.files: list[CountFile | RangeFile] = []
         self.pafiles: list[pa.PythonFile] = []
         self.candidate = bundle.rstrip("/") + "/"
@@ -337,6 +340,8 @@ def _select(
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("bundle")
+    parser.add_argument("--aws-profile", help="AWS profile for private path-style S3 HTTPS reads")
+    parser.add_argument("--s3-endpoint", help="HTTPS S3 endpoint; required with --aws-profile")
     parser.add_argument("--domain", required=True, choices=["catchments", "rivers", "river_nodes"])
     selection = parser.add_mutually_exclusive_group(required=True)
     selection.add_argument("--ids", type=int, nargs="+")
@@ -357,14 +362,29 @@ def main() -> None:
         raise FileExistsError(args.report)
     if not args.bundle.startswith("http") and args.report.resolve().is_relative_to(Path(args.bundle).resolve()):
         parser.error("report must be outside bundle")
+    if bool(args.aws_profile) != bool(args.s3_endpoint):
+        parser.error("--aws-profile and --s3-endpoint must be supplied together")
+    http: HTTP = HTTP()
+    if args.aws_profile:
+        if not args.bundle.startswith("https://"):
+            parser.error("private S3 access requires a path-style HTTPS bundle URL")
+        import boto3
+        from botocore.config import Config
+
+        http = S3(
+            boto3.Session(profile_name=args.aws_profile).client(
+                "s3", endpoint_url=args.s3_endpoint, config=Config(s3={"addressing_style": "path"})
+            ),
+            args.s3_endpoint,
+        )
     started = perf_counter()
-    access = SpatialAccess(args.bundle, args.domain)
+    access = SpatialAccess(args.bundle, args.domain, http)
     target = access
     try:
         if args.relationship:
             binding = access.manifest["relationships"][args.domain]["columns"][args.relationship]
             if binding["target_domain"] != args.domain:
-                target = SpatialAccess(args.bundle, binding["target_domain"])
+                target = SpatialAccess(args.bundle, binding["target_domain"], http)
         readers = [access] if target is access else [access, target]
         metrics = (
             "http_requests",
@@ -377,7 +397,10 @@ def main() -> None:
         )
 
         def totals() -> dict[str, int]:
-            return {key: sum(reader.stats()[key] for reader in readers) for key in metrics}
+            result = {key: sum(reader.stats()[key] for reader in readers) for key in metrics}
+            result["http_requests"] = len(http.requests)
+            result["http_body_bytes"] = sum(item["bytes"] for item in http.requests)
+            return result
 
         opening_s = perf_counter() - started
         report: dict[str, Any] = {
@@ -461,7 +484,7 @@ def main() -> None:
         report["peak_rss_bytes"] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * (
             1 if sys.platform == "darwin" else 1024
         )
-        report["requests"] = [request for reader in readers for request in reader.http.requests]
+        report["requests"] = http.requests
         report["final"] = totals()
         with args.report.open("x") as stream:
             stream.write(json.dumps(report, indent=2) + "\n")
