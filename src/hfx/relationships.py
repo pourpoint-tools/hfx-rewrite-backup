@@ -18,7 +18,6 @@ import pyarrow.parquet as pq
 
 IntArray = npt.NDArray[np.int64]
 
-_FILES = {"catchments": "catchments.arrow", "rivers": "rivers.arrow", "river_nodes": "river-nodes.arrow"}
 # Explicit scalar source references, with independent reverse access names.
 _REFERENCES = [
     ("catchments", "parent_id", "catchments", "parent_ids", "child_ids"),
@@ -31,43 +30,87 @@ _REFERENCES = [
 ]
 
 
-def _bindings(domain: str) -> dict[str, dict[str, str]]:
+def _bindings(source: Path, domain: str, files: dict[str, str]) -> dict[str, dict[str, str]]:
+    manifest = json.loads((source / "manifest.json").read_text())
     bindings: dict[str, dict[str, str]] = {}
-    if domain != "river_nodes":
+    graph = manifest.get("graph") if domain == "catchments" else manifest.get(domain, {}).get("graph")
+    if graph:
         for name, direction in (("upstream_ids", "forward"), ("downstream_ids", "reverse")):
             bindings[name] = {
                 "source_domain": domain,
                 "target_domain": domain,
-                "source_artifact": "graph.parquet" if domain == "catchments" else "river-graph.parquet",
+                "source_artifact": graph,
                 "source_column": "upstream_ids",
                 "direction": direction,
             }
     for origin, column, target, forward, reverse in _REFERENCES:
-        if domain == origin:
-            bindings[forward] = {
-                "source_domain": origin,
-                "target_domain": target,
-                "source_artifact": _FILES[origin],
-                "source_column": column,
-                "direction": "forward",
-            }
-        if domain == target:
-            bindings[reverse] = {
-                "source_domain": origin,
-                "target_domain": origin,
-                "source_artifact": _FILES[origin],
-                "source_column": column,
-                "direction": "reverse",
-            }
+        if origin not in files or domain not in (origin, target):
+            continue
+        with ipc.open_file(str(source / files[origin])) as reader:
+            if column not in reader.schema.names:
+                continue
+        references = _project(source / files[origin], [column])[column]
+        if target not in files:
+            if references.null_count != len(references):
+                raise ValueError("Non-null reference to unrepresented domain")
+            continue
+        if column != "local_catchment_id" and references.null_count == len(references):
+            continue
+        for current, name, destination, direction in (
+            (origin, forward, target, "forward"),
+            (target, reverse, origin, "reverse"),
+        ):
+            if current == domain:
+                bindings[name] = {
+                    "source_domain": origin,
+                    "target_domain": destination,
+                    "source_artifact": files[origin],
+                    "source_column": column,
+                    "direction": direction,
+                }
+    association = manifest.get("local_associations")
+    if association and domain in ("rivers", "catchments"):
+        if "rivers" not in files or "catchments" not in files:
+            raise ValueError("Local associations require rivers and catchments")
+        with ipc.open_file(str(source / files["rivers"])) as reader:
+            has_scalar = "local_catchment_id" in reader.schema.names
+        if has_scalar:
+            evidence = pq.read_table(
+                source / association["data"], columns=[association["river_column"], association["catchment_column"]]
+            )
+            keys = _numeric(evidence[association["river_column"]])
+            values = _numeric(evidence[association["catchment_column"]])
+            scalar_keys, scalar_values = _references(source / files["rivers"], "local_catchment_id")
+            if len(np.unique(keys)) != len(keys) or not all(
+                np.array_equal(left, right)
+                for left, right in zip(
+                    _ordered_pairs(keys, values), _ordered_pairs(scalar_keys, scalar_values), strict=True
+                )
+            ):
+                raise ValueError("Local association scalar cannot represent supplied associations")
+        forward = domain == "rivers"
+        bindings["local_catchment_ids" if forward else "local_river_ids"] = {
+            "source_domain": "rivers",
+            "target_domain": "catchments" if forward else "rivers",
+            "source_artifact": association["data"],
+            "source_column": association["catchment_column"],
+            "key_column": association["river_column"],
+            "direction": "forward" if forward else "reverse",
+        }
     return bindings
 
 
-def _source_artifacts(domain: str, bindings: dict[str, dict[str, str]]) -> list[str]:
-    artifacts = {_FILES[domain]}
+def _files(source: Path, families: Mapping[str, Mapping[str, object]]) -> dict[str, str]:
+    manifest = json.loads((source / "manifest.json").read_text())
+    return {
+        domain: manifest["catchments"] if domain == "catchments" else manifest[domain]["data"] for domain in families
+    }
+
+
+def _source_artifacts(domain: str, bindings: dict[str, dict[str, str]], files: dict[str, str]) -> list[str]:
+    artifacts = {files[domain]}
     for binding in bindings.values():
-        artifacts.update(
-            (binding["source_artifact"], _FILES[binding["source_domain"]], _FILES[binding["target_domain"]])
-        )
+        artifacts.update((binding["source_artifact"], files[binding["source_domain"]], files[binding["target_domain"]]))
     if domain == "catchments":
         artifacts.add("manifest.json")
     return sorted(artifacts)
@@ -86,6 +129,8 @@ def _project(path: Path, names: list[str]) -> pa.Table:
 
 
 def _numeric(column: pa.ChunkedArray | pa.Array) -> IntArray:
+    if column.type != pa.int64():
+        raise ValueError("Relationship IDs must be int64")
     if column.null_count:
         raise ValueError("Relationship IDs must not be null")
     return np.asarray(column.to_numpy(), dtype=np.int64)
@@ -195,35 +240,32 @@ def build_relationships(
     """
     if batch_rows <= 0:
         raise ValueError("batch_rows must be positive")
-    ids = {domain: _ids(source / filename) for domain, filename in _FILES.items()}
+    files = _files(source, families)
+    ids = {domain: _ids(source / filename) for domain, filename in files.items()}
     declarations: dict[str, object] = {}
-    for domain in _FILES:
+    for domain in files:
         columns: dict[str, pa.ListArray] = {}
-        bindings = _bindings(domain)
-        if domain != "river_nodes":
-            graph = "graph.parquet" if domain == "catchments" else "river-graph.parquet"
-            keys, values = _flow(source / graph, ids[domain])
-            for name, left, right in (
-                ("upstream_ids", keys, values),
-                ("downstream_ids", values, keys),
-            ):
-                columns[name] = _lists(ids[domain], left, right)
-            del keys, values, left, right
-        for origin, source_column, target, forward, reverse in _REFERENCES:
-            if domain not in (origin, target):
-                continue
-            keys, values = _references(source / _FILES[origin], source_column)
-            _check_members(ids[origin], keys)
-            _check_members(ids[target], values)
-            if domain == origin:
-                columns[forward] = _lists(ids[domain], keys, values)
-            if domain == target:
-                columns[reverse] = _lists(ids[domain], values, keys)
-            del keys, values
+        bindings = _bindings(source, domain, files)
+        for name, binding in bindings.items():
+            artifact = source / binding["source_artifact"]
+            if "key_column" in binding:
+                table = pq.read_table(artifact, columns=[binding["key_column"], binding["source_column"]])
+                keys, values = _numeric(table[binding["key_column"]]), _numeric(table[binding["source_column"]])
+                _check_members(ids["rivers"], keys)
+                _check_members(ids["catchments"], values)
+            elif artifact.suffix == ".parquet":
+                keys, values = _flow(artifact, ids[domain])
+            else:
+                keys, values = _references(artifact, binding["source_column"])
+            if binding["direction"] == "reverse":
+                keys, values = values, keys
+            _check_members(ids[domain], keys)
+            _check_members(ids[binding["target_domain"]], values)
+            columns[name] = _lists(ids[domain], keys, values)
         declaration = _write(output, domain, ids[domain], columns, batch_rows)
         declaration["columns"] = bindings
         declaration["feature_artifacts"] = _feature_artifacts(domain, bindings, families)
-        declaration["source_artifacts"] = _source_artifacts(domain, bindings)
+        declaration["source_artifacts"] = _source_artifacts(domain, bindings, files)
         if domain == "catchments":
             manifest = json.loads((source / "manifest.json").read_text())
             declaration["connectivity"] = manifest["catchment_connectivity"]
@@ -251,10 +293,13 @@ def verify_relationships(
     Artifact fingerprint verification remains the caller's responsibility.
     """
     results: dict[str, dict[str, object]] = {}
-    for domain, filename in _FILES.items():
+    files = _files(source, families)
+    for domain, filename in files.items():
         declaration = cast(dict[str, object], declarations[domain])
-        bindings = _bindings(domain)
-        if declaration["columns"] != bindings or declaration["source_artifacts"] != _source_artifacts(domain, bindings):
+        bindings = _bindings(source, domain, files)
+        if declaration["columns"] != bindings or declaration["source_artifacts"] != _source_artifacts(
+            domain, bindings, files
+        ):
             raise ValueError(f"{domain} source binding mismatch")
         if declaration["feature_artifacts"] != _feature_artifacts(domain, bindings, families):
             raise ValueError(f"{domain} feature artifact binding mismatch")
@@ -305,7 +350,11 @@ def verify_relationships(
                 raise ValueError(f"{domain}.{name} neighbors must be strictly sorted")
             actual_keys = _numeric(pc.take(published["id"], parents))
             artifact, column = binding["source_artifact"], binding["source_column"]
-            if artifact.endswith(".parquet"):
+            if "key_column" in binding:
+                evidence = pq.read_table(source / artifact, columns=[binding["key_column"], column])
+                expected_keys = _numeric(evidence[binding["key_column"]])
+                expected_values = _numeric(evidence[column])
+            elif artifact.endswith(".parquet"):
                 evidence = pq.read_table(source / artifact, columns=["id", column]).combine_chunks()
                 expected_keys = _numeric(pc.take(evidence["id"], pc.list_parent_indices(evidence[column])))
                 expected_values = _numeric(pc.list_flatten(evidence[column]))
@@ -316,6 +365,8 @@ def verify_relationships(
                 expected_values = _numeric(pc.filter(evidence[column], valid))
             if binding["direction"] == "reverse":
                 expected_keys, expected_values = expected_values, expected_keys
+            _check_members(ids, expected_keys)
+            _check_members(_ids(source / files[binding["target_domain"]]), expected_values)
             actual = _ordered_pairs(actual_keys, actual_values)
             expected = _ordered_pairs(expected_keys, expected_values)
             if not all(np.array_equal(a, b) for a, b in zip(actual, expected, strict=True)):

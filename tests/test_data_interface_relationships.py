@@ -19,7 +19,13 @@ def _source(path: Path) -> None:
     path.mkdir()
     (path / "manifest.json").write_text(
         json.dumps(
-            {"catchment_connectivity": [{"level": 0, "status": "not_supplied"}, {"level": 1, "status": "supplied"}]}
+            {
+                "catchments": "catchments.arrow",
+                "graph": "graph.parquet",
+                "rivers": {"data": "rivers.arrow", "graph": "river-graph.parquet"},
+                "river_nodes": {"data": "river-nodes.arrow"},
+                "catchment_connectivity": [{"level": 0, "status": "not_supplied"}, {"level": 1, "status": "supplied"}],
+            }
         )
     )
     _ipc(

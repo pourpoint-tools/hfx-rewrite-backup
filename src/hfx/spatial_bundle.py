@@ -1,4 +1,4 @@
-"""Build and fully verify the GRIT spatial layout from pinned normalized inputs.
+"""Build and fully verify the spatial layout from pinned normalized inputs.
 
 No network access, original-source normalization, raster reads or publication.
 """
@@ -17,7 +17,6 @@ from typing import Any
 
 from hfx.candidates import fingerprint
 
-FAMILIES = {"catchments": "catchments.arrow", "rivers": "rivers.arrow", "river_nodes": "river-nodes.arrow"}
 REPRESENTATION = "spatial-geoparquet-adjacency"
 ADDRESSING = {"block": "zero-based Parquet row group", "row": "zero-based row within group"}
 # Superseded physical declarations, not source semantics.
@@ -33,6 +32,7 @@ PHYSICAL = {
     "river_nodes",
     "categorical_columns",
     "source_manifest",
+    "local_associations",
 }
 
 
@@ -56,8 +56,8 @@ def _source(source: Path, digest: str) -> tuple[bytes, dict[str, Any]]:
     if hashlib.sha256(raw).hexdigest() != digest:
         raise ValueError("source manifest differs from trusted digest")
     manifest = json.loads(raw)
-    if manifest["format_version"] != "0.4.0" or manifest["fabric_name"] != "grit" or manifest["crs"] != "EPSG:4326":
-        raise ValueError("requires normalized GRIT 0.4.0 EPSG:4326 input")
+    if manifest["format_version"] != "0.4.0" or manifest["crs"] != "EPSG:4326":
+        raise ValueError("requires normalized 0.4.0 EPSG:4326 input")
     return raw, manifest
 
 
@@ -68,8 +68,27 @@ def _local(root: Path, name: str) -> Path:
     return path
 
 
+def _families(manifest: dict[str, Any]) -> dict[str, str]:
+    result = {"catchments": manifest["catchments"]}
+    for domain in ("rivers", "river_nodes"):
+        if domain in manifest:
+            result[domain] = manifest[domain]["data"]
+    if "river_nodes" in result and "rivers" not in result:
+        raise ValueError("river nodes require rivers")
+    return result
+
+
 def _check_inputs(source: Path, manifest: dict[str, Any]) -> None:
-    for name in (*FAMILIES.values(), "graph.parquet", "river-graph.parquet"):
+    names = list(_families(manifest).values())
+    if "graph" in manifest:
+        names.append(manifest["graph"])
+    elif any(entry["status"] != "not_supplied" for entry in manifest["catchment_connectivity"]):
+        raise ValueError("supplied catchment connectivity requires graph")
+    if "rivers" in manifest:
+        names.append(manifest["rivers"]["graph"])
+    if "local_associations" in manifest:
+        names.append(manifest["local_associations"]["data"])
+    for name in names:
         if fingerprint(_local(source, name)) != manifest["artifacts"][name]:
             raise ValueError(f"source artifact differs: {name}")
 
@@ -84,11 +103,12 @@ def _provenance(original: dict[str, Any]) -> dict[str, Any]:
 
 def _semantics(original: dict[str, Any], families: dict[str, Any]) -> dict[str, Any]:
     result = {key: value for key, value in original.items() if key not in PHYSICAL}
-    remap = {FAMILIES[family]: declaration["data"] for family, declaration in families.items()}
+    remap = {_families(original)[family]: declaration["data"] for family, declaration in families.items()}
     physical_domain_keys = {"data", "lookup", "directory", "graph", "count", "batch_bytes", "index_batch_rows"}
     result["source_domain_metadata"] = {
         domain: {key: value for key, value in original.get(domain, {}).items() if key not in physical_domain_keys}
         for domain in ("rivers", "river_nodes")
+        if domain in families
     }
     result["categorical_columns"] = [
         {**entry, "artifact": remap.get(entry["artifact"], entry["artifact"])}
@@ -111,7 +131,7 @@ def build(
     _check_inputs(source, original)
     output.mkdir(parents=True, exist_ok=False)
     families = {}
-    for family, name in FAMILIES.items():
+    for family, name in _families(original).items():
         started = perf_counter()
         families[family] = build_features(source / name, output, family, rows=rows, budget=budget)
         _progress(f"build {family}", started, output)
@@ -158,7 +178,9 @@ def verify(source: Path, output: Path, *, source_manifest_sha256: str) -> dict[s
         raise ValueError("stored representation differs")
     if manifest.get("addressing") != ADDRESSING:
         raise ValueError("address conventions differ")
-    if set(manifest["families"]) != set(FAMILIES) or set(manifest["relationships"]) != set(FAMILIES):
+    if set(manifest["families"]) != set(_families(original)) or set(manifest["relationships"]) != set(
+        _families(original)
+    ):
         raise ValueError("feature/relationship domain coverage differs")
     if (
         manifest["input_manifest_sha256"] != source_manifest_sha256
@@ -181,7 +203,7 @@ def verify(source: Path, output: Path, *, source_manifest_sha256: str) -> dict[s
         if fingerprint(_local(output, name)) != identity:
             raise ValueError(f"output artifact differs: {name}")
     features = {}
-    for family, name in FAMILIES.items():
+    for family, name in _families(original).items():
         started = perf_counter()
         features[family] = verify_features(source / name, output, manifest["families"][family])
         _progress(f"verify {family}", started, output)
