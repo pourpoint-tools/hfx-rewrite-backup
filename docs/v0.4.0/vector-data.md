@@ -1,6 +1,6 @@
 # HFX 0.4.0 Vector Data
 
-The finalized GRIT production layout is specified in [Spatial GeoParquet layout](spatial-layout.md).
+The finalized spatial production layout is specified in [Spatial GeoParquet layout](spatial-layout.md).
 This page retains the earlier IPC physical layout and source field meanings.
 The same version string does not imply reader compatibility; revised global delivery
 is not claimed here.
@@ -176,6 +176,11 @@ rows exist; an empty file is not an alternative declaration. `topology` is `tree
 | `geometry_orientation` | `int8` | No | 0 unspecified, 1 upstream-first, 2 downstream-first |
 | `bbox` | Catchment bbox struct | No | Outward-covering EPSG:4326 bounds |
 | `geometry` | `binary` | No | LineString or MultiLineString WKB in EPSG:4326 |
+
+The required nullable `local_catchment_id` above is the legacy IPC scalar contract.
+Spatial GeoParquet bundles instead use authoritative plural local associations and
+may omit this feature column; see [the spatial override](spatial-layout.md#local-drainage-associations).
+The IPC requirement is unchanged.
 
 Within each feature table, `(source_namespace, source_id)` is unique across all
 levels; river, node and catchment tables have separate HFX ID domains. Namespaces
