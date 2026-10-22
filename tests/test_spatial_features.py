@@ -150,3 +150,37 @@ def test_verifier_rejects_locator_schema_change(tmp_path: Path) -> None:
         writer.write_table(changed)
     with pytest.raises(ValueError, match="lookup schema"):
         verify_features(source, output, declaration)
+
+
+@pytest.mark.parametrize("limit", ["bytes", "rows", "oversized"])
+def test_verifier_amortizes_interleaved_source_decoding(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, limit: str
+) -> None:
+    import hfx.spatial_features as features
+
+    seed = source_file(tmp_path / "seed.arrow", "catchments")
+    table = ipc.open_file(str(seed)).read_all()
+    table = pa.concat_tables([table] * 16).combine_chunks()
+    table = table.set_column(0, table.schema.field("id"), pa.array(np.arange(1, 65), type=pa.int64()))
+    source = tmp_path / "compressed.arrow"
+    with ipc.new_file(str(source), table.schema, options=ipc.IpcWriteOptions(compression="zstd")) as writer:
+        for batch in table.to_batches(max_chunksize=8):
+            writer.write_batch(batch)
+    output = tmp_path / "out"
+    output.mkdir()
+    declaration = build_features(source, output, "catchments", rows=1, budget=200)
+    if limit == "bytes":
+        monkeypatch.setattr(features, "VERIFY_WINDOW_BYTES", table.nbytes // 2)
+    elif limit == "rows":
+        monkeypatch.setattr(features, "VERIFY_WINDOW_ROWS", 24)
+    else:
+        # Each physical group exceeds the limit and must still be checked alone.
+        monkeypatch.setattr(features, "VERIFY_WINDOW_BYTES", 1)
+    result = verify_features(source, output, declaration)
+    assert result["rows"] == 64
+    assert result["row_groups"] == 64
+    # Eight source batches for IDs, then at most three complete source passes.
+    # Oversized one-row groups instead require one source batch read per row.
+    expected_reads = 8 + 64 if limit == "oversized" else 8 + 3 * 8
+    assert result["source_batch_reads"] <= expected_reads
+    assert result["source_decode_amplification"] <= expected_reads / 8
