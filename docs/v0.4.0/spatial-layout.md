@@ -1,4 +1,4 @@
-# Spatial GeoParquet layout for GRIT 0.4.0
+# Spatial GeoParquet layout for HFX 0.4.0
 
 This is the revised stored contract for [HFX #43](https://github.com/pourpoint-tools/hfx/issues/43)
 and its [production vision](../../planning/visions/2026-10-18-grit-final-hfx-0-4-0-production.md).
@@ -7,12 +7,16 @@ verification, cutover and resource cleanup, with limitations explicitly tracked.
 The old [vector contract](vector-data.md) supplies field meanings, not the physical
 layout below. The shared `0.4.0` string does not imply compatibility with IPC readers.
 Pourpoint must select this representation explicitly before using its addresses.
+The [TDX delivery vision](../../planning/visions/2026-10-22-tdx-hfx-0-4-0-private-vector-delivery.md)
+also targets this contract; the production commands and evidence below are GRIT-specific.
 
 ## Discovery and identity
 
 `manifest.json` has `format_version: "0.4.0"`,
 `representation: "spatial-geoparquet-adjacency"`, and `representation_version: 1`.
-`families` maps `catchments`, `rivers`, and `river_nodes` to independent ID domains.
+`families` maps represented `catchments`, `rivers`, and `river_nodes` to independent
+ID domains. Omit unsupplied domains such as source nodes, including their feature,
+lookup and relationship declarations; do not create dummy files or invent nodes.
 Each declaration supplies `data`, `data_sha256`, `count`, `lookup` and `directory`.
 `artifacts` gives full SHA-256, size and bounded head/tail fingerprints of every
 local data, index and provenance artifact. Paths are bundle-relative. Full hashes
@@ -59,6 +63,28 @@ Rows and each neighbor list are sorted. Relationships are immediate, not closure
 - `coarser_node_ids` / `finer_node_ids`: cross-tier node correspondence;
 - `local_catchment_ids` / `local_river_ids`, and `component_catchment_ids` /
   `component_river_ids`: distinct drainage associations.
+
+### Local drainage associations
+
+For this representation, river `local_catchment_ids` and its exact reverse,
+catchment `local_river_ids`, are authoritative. A river may have zero, one or
+multiple represented local catchments; preserve every supplied association.
+Keep feature identity separate from association keys: preserve native fields such
+as TDX `streamID` independently, without merging distinct source features that
+share an association key.
+
+The river feature column `local_catchment_id` may be omitted. If present, it must
+equal the sole associated catchment ID, or be null when there is no represented
+association. It cannot represent multiple associations. If any river has multiple
+local catchments, omit this scalar column from the domain's feature file rather
+than choosing one catchment or writing a misleading null. This overrides only the
+legacy IPC requirement for this scalar in [the vector contract](vector-data.md#rivers-and-source-nodes).
+
+Existing GRIT singleton associations and their consistent scalar feature columns
+remain valid without changing published files or hashes. The physical relationship
+lists are unchanged; no migration or format/representation version change is needed.
+
+### Relationship provenance and access
 
 Each `columns` entry records original source artifact/column, direction and domain
 meaning. `feature_artifacts` binds involved domains to final feature paths/hashes.
