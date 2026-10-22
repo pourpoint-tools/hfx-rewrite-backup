@@ -17,6 +17,9 @@ import pyarrow.parquet as pq
 from hfx.candidates import fingerprint
 from hfx.vector_storage import budget_batches, write_address_index
 
+VERIFY_WINDOW_BYTES = 128 * 1024 * 1024
+VERIFY_WINDOW_ROWS = 8192
+
 BBOX_NAMES = ("xmin", "ymin", "xmax", "ymax")
 BBOX_LEAVES = [f"bbox.{name}" for name in BBOX_NAMES]
 GEO = {
@@ -194,7 +197,13 @@ def exact_array(left: pa.Array, right: pa.Array) -> bool:
 
 
 def verify_features(source: Path, output: Path, declaration: dict[str, Any]) -> dict[str, Any]:
-    """Compare every original value using independent ID resolution, not a feature sort."""
+    """Compare every original value using independent ID resolution, not a feature sort.
+
+    Coalesce physical groups into byte- and row-limited comparison windows. One
+    oversized physical group is accepted alone. Live geometry includes the window,
+    one incoming group, one source batch, and selected comparison arrays; the limits
+    bound retained output, not process RSS. Numeric address arrays scale with rows.
+    """
     data = output / declaration["data"]
     digest = fingerprint(data)["sha256"]
     lookup = ipc.open_file(str(output / declaration["lookup"]))
@@ -221,16 +230,15 @@ def verify_features(source: Path, output: Path, declaration: dict[str, Any]) -> 
         seen = np.zeros(len(source_ids), dtype=bool)
         physical_ids = []
         group_starts = [0]
-        for index in range(parquet.num_row_groups):
-            group = parquet.read_row_group(index).combine_chunks()
-            ids = group.column("id").chunk(0).to_numpy()
-            ranks = np.searchsorted(sorted_ids, ids)
-            if np.any(ranks >= len(sorted_ids)) or not np.array_equal(sorted_ids[ranks], ids):
-                raise ValueError("source IDs differ")
-            positions = source_order[ranks]
-            if np.any(seen[positions]) or len(np.unique(positions)) != len(positions):
-                raise ValueError("duplicate output IDs")
-            seen[positions] = True
+        window: list[pa.Table] = []
+        window_positions: list[IntArray] = []
+        window_bytes = 0
+        window_rows = 0
+
+        def compare_window() -> None:
+            nonlocal source_batch_reads, source_decoded_bytes
+            group = pa.concat_tables(window)
+            positions = np.concatenate(window_positions)
             source_blocks = np.searchsorted(starts, positions, side="right") - 1
             for block in np.unique(source_blocks):
                 places = np.flatnonzero(source_blocks == block)
@@ -241,8 +249,21 @@ def verify_features(source: Path, output: Path, declaration: dict[str, Any]) -> 
                 del incoming
                 actual = group.take(pa.array(places, type=pa.int64()))
                 for name in original.schema.names:
-                    if not exact_array(expected.column(name), cast(pa.Array, actual.column(name).chunk(0))):
+                    if not exact_array(expected.column(name), actual.column(name).combine_chunks()):
                         raise ValueError(f"source column {name} differs")
+            window.clear()
+            window_positions.clear()
+
+        for index in range(parquet.num_row_groups):
+            group = parquet.read_row_group(index).combine_chunks()
+            ids = group.column("id").chunk(0).to_numpy()
+            ranks = np.searchsorted(sorted_ids, ids)
+            if np.any(ranks >= len(sorted_ids)) or not np.array_equal(sorted_ids[ranks], ids):
+                raise ValueError("source IDs differ")
+            positions = source_order[ranks]
+            if np.any(seen[positions]) or len(np.unique(positions)) != len(positions):
+                raise ValueError("duplicate output IDs")
+            seen[positions] = True
             bounds = cast(pa.StructArray, group.column("bbox").chunk(0))
             for column_index in range(parquet.metadata.num_columns):
                 column = parquet.metadata.row_group(index).column(column_index)
@@ -261,6 +282,18 @@ def verify_features(source: Path, output: Path, declaration: dict[str, Any]) -> 
                         raise ValueError("bbox statistics are not conservative")
             physical_ids.append(ids.copy())
             group_starts.append(group_starts[-1] + len(ids))
+            if window and (
+                window_bytes + group.nbytes > VERIFY_WINDOW_BYTES or window_rows + group.num_rows > VERIFY_WINDOW_ROWS
+            ):
+                compare_window()
+                window_bytes = 0
+                window_rows = 0
+            window.append(group)
+            window_positions.append(positions)
+            window_bytes += group.nbytes
+            window_rows += group.num_rows
+        if window:
+            compare_window()
         if not np.all(seen) or len(source_ids) != declaration["count"]:
             raise ValueError("source row coverage differs")
         stored_ids = np.concatenate(physical_ids)
