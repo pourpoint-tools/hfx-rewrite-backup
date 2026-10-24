@@ -2,9 +2,96 @@
 
 Produce and publish a valid worldwide, vector-only TDX-Hydro bundle in the final
 HFX 0.4.0 layout on the maintainer's private Hetzner Object Storage. Use temporary
-Hetzner compute for bulk work. Delivery under this vision completes
+Hetzner compute where needed; one-basin local work is also authorized below.
+Delivery under this vision completes
 [HFX #33](https://github.com/pourpoint-tools/hfx/issues/33); publishing this document
 does not complete the issue or start production.
+
+## Resume state: verified raw archive (2026-10-23)
+
+Raw acquisition is partly complete; global HFX production and delivery are not.
+The permanent private archive is
+`s3://pourpoint-hfx/raw/tdx-hydro/NGA-TDX-Hydro-20230126/`, accessed with the
+profile and endpoint below. Its cumulative inventory is `inventories/66-files.json`;
+root `inventory.json` and `verification.json` describe only the initial 12-file
+snapshot. Later per-file/addition receipts are under `receipts/`. Read the cumulative
+inventory before reacquiring anything.
+
+- All **62 original river GeoPackages** are archived.
+- Four original polygon GeoPackages are archived: `2020003440`, `4020050470`,
+  `6020000010`, and `7020000010`. **58 polygon files remain missing.**
+- The 66 files total **99,949,490,176 bytes**. Every local source SHA-256 and full
+  archived-object readback SHA-256 matched retained historical acquisition hashes.
+  The final remote file-name/size inventory and cumulative inventory readback matched.
+  These are original files, not a delivered HFX bundle or proof of normalized fidelity.
+- Preserve this raw archive permanently. Temporary-compute and derived-bundle cleanup
+  must not delete it. Deletion needs explicit maintainer authorization. Private access
+  is unchanged; this is a retention rule, not an object-lock/WORM guarantee. Source
+  license and attribution are stored in `LICENSE.txt` and `NOTICE.txt`. Ongoing raw
+  storage costs are authorized separately from temporary compute.
+
+The river workaround is the public
+[ArcGIS TDX Hydro collection](https://www.arcgis.com/home/group.html?id=117d140bc2d042b78370d0c3ab99d054).
+Its file-item `/data` endpoints support byte ranges. Newly acquired river files
+matched historical NGA hashes in full, despite some mirror filenames using a
+`_02` suffix. Per-file source URLs are in the cumulative inventory. No original
+polygon mirror was found; do not substitute processed GEOGLOWS or WikiWatershed data.
+NGA full downloads repeatedly disconnected on German/US compute and the laptop;
+both tested NGA server addresses ignored byte ranges. A faster address and session
+cookies did not resolve this. Historical downloads using the same URLs succeeded;
+the reset cause remains unknown, not proof that all polygon files are unavailable.
+[WikiWatershed #14](https://github.com/WikiWatershed/global-hydrography/issues/14)
+asks for unchanged originals or another source. Check for replies before repeating
+research. NGA's published contact is `SFNAGGeoscienceApplications@nga.mil`; no email
+was sent. External correspondence still needs maintainer authorization.
+
+### Implemented tooling and remaining verification
+
+The contract amendment and tools are merged: [#53](https://github.com/pourpoint-tools/hfx/pull/53)
+(plural local associations), [#54](https://github.com/pourpoint-tools/hfx/pull/54)
+(represented domains), [#55](https://github.com/pourpoint-tools/hfx/pull/55)
+(original normalization/verifier), [#56](https://github.com/pourpoint-tools/hfx/pull/56)
+(authenticated reads), and [#57](https://github.com/pourpoint-tools/hfx/pull/57)
+(bounded verification windows). See [TDX normalization](../../docs/v0.4.0/tdx-normalization.md)
+for commands and inventory shape; reuse these tools rather than rebuilding them.
+The merged target passed 199 tests with the vector-production and raster-experiment
+optional groups. Rerun current validation before continuing.
+
+One complete original pair, `7020000010`, passed independent original-to-staging
+and full staging-to-spatial verification: 331,263 catchments, 331,386 rivers,
+327,808 flow edges, and 331,263 local associations. Its 123 polygonless rivers and
+149 finite degenerate source lines were retained. No polygon overlap check was
+performed. This sample does not establish global conformance. Catchment connectivity
+is `not_supplied`; no contracted catchment graph, invented nodes, or outlet inference.
+Plural local associations preserve separate polygon identities; existing published
+GRIT data need no rewrite. [Pourpoint #44](https://github.com/pourpoint-tools/pourpoint/issues/44)
+is the separate reader/runtime follow-up, not proof of reader compatibility.
+
+On an 8 GiB CPX32 sample VM, normalization took about seven minutes and peaked at
+926 MiB RSS; original verification took about six minutes and peaked at 742 MiB.
+The revised spatial verifier checked the same unchanged output in about six minutes
+with 1.91 GiB peak RSS. Catchment source decoding still amplified logical input by
+18 times. These are sample measurements, not global sizing or latency guarantees.
+Global numeric workspace, all-basin schema/anomaly checks, polygon topology coverage,
+final assembly, private publication, authenticated consumer checks and handoff remain.
+
+Local evidence for this session is under
+`~/.prime/agent/tdx-source-sample-20261022/` (source/verification receipts, transport
+research and archive inventories). Acquired river originals and per-file receipts
+are under `~/hfx-acquisition/tdx-20230126/`. Twelve earlier originals remain under
+`~/hfx-campaign-evidence/2026-08-07-close-the-seven-basin-coverage-gap/off-vm/acquired-source/`.
+Preserve these user files. The deprecated checkout `../deprecated/hfx` and that
+historical evidence root contain original acquisition hashes. Prefer the durable
+private archive over depending on local session files. Temporary VM sample outputs
+were removed with the VMs; reproduce them from archived originals and merged tools.
+All temporary servers, volumes and owned IPs from this session were removed; no
+compute or transfer remains active. Reconcile retained cost evidence against the
+EUR 50 total before provisioning again; the earlier conservative estimate was under
+EUR 1.72 before the final short-lived retry VM, not a provider invoice or a reset budget.
+
+Next: acquire and permanently archive the missing polygons, verify paired source
+identities and anomalies, then normalize/verify the full collection and deliver the
+private spatial bundle. Do not close #33 based on the raw archive alone.
 
 ## Target format and scope
 
@@ -82,12 +169,16 @@ attached storage, IPs, transfer and applicable taxes; ongoing dataset storage is
 outside this ceiling. Track spend and stop before exceeding the ceiling. It is
 not a provider-enforced spending cap.
 
-Provision new temporary Hetzner compute; the prior GRIT VM was removed. Select
-machine and storage sizes from TDX source sizes and meaningful sample measurements,
-not GRIT's final cost or capacity assumptions. Favor economical completion; no
-hard deadline or latency target was selected. Keep bulk data off the maintainer
-laptop and credentials and bulk data outside Git. Monitor memory, disk and spend;
-preserve diagnosis evidence if a run cannot safely continue.
+Provision new temporary Hetzner compute only when needed; prior VMs were removed.
+Select machine and storage sizes from TDX source sizes and meaningful sample
+measurements, not GRIT's final cost or capacity assumptions. The maintainer later
+authorized downloading and processing one basin at a time on the laptop, followed
+by verified archival/upload. This supersedes the earlier no-local-bulk restriction.
+Check current free disk and memory first; keep originals until their permanent
+archive copies are verified. Local permission does not establish that global
+assembly fits the laptop. Favor economical completion; no hard deadline or latency
+target was selected. Keep credentials and bulk data outside Git. Monitor memory,
+disk and spend; preserve diagnosis evidence if a run cannot safely continue.
 
 ## Verification and completion
 
