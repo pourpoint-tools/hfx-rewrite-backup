@@ -6,12 +6,13 @@ import json
 import sqlite3
 from collections.abc import Iterator
 from datetime import UTC, datetime
-from itertools import chain
+from itertools import chain, groupby
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import numpy as np
 import pyarrow as pa
+import pyarrow.ipc as ipc
 import pyarrow.parquet as pq
 from pyproj import Geod
 from shapely import from_wkb, get_coordinates
@@ -169,6 +170,61 @@ def source_relationships(
     return {identity: sorted(values) for identity, values in incoming.items()}, sorted(associations)
 
 
+def _projected_rows(path: Path, names: list[str]) -> Iterator[dict[str, Any]]:
+    """Project IPC fields before decompression/decoding; never load geometry here."""
+    with ipc.open_file(str(path)) as reader:
+        fields = [reader.schema.get_field_index(name) for name in names]
+    with ipc.open_file(str(path), options=ipc.IpcReadOptions(included_fields=fields)) as reader:
+        for index in range(reader.num_record_batches):
+            yield from reader.get_batch(index).to_pylist()
+
+
+def _write_basin_relationships(
+    river_rows: Iterator[dict[str, Any]],
+    polygon_rows: Iterator[dict[str, Any]],
+    graph: pq.ParquetWriter,
+    local: pq.ParquetWriter,
+    graph_schema: pa.Schema,
+    association_schema: pa.Schema,
+) -> None:
+    """Keep topology workspace within one basin; release it before the next."""
+    rivers: list[tuple[int, int, int, int, int]] = []
+    graph_bounds: dict[int, dict[str, float]] = {}
+    for row in river_rows:
+        rivers.append((row["id"], row["LINKNO"], row["DSLINKNO"], row["USLINKNO1"], row["USLINKNO2"]))
+        graph_bounds[row["id"]] = row["bbox"]
+    polygons = [(row["id"], row["streamID"]) for row in polygon_rows]
+    flow, associations = source_relationships(rivers, polygons)
+    ids = sorted(flow)
+    for start in range(0, len(ids), 4096):
+        rows = [
+            {
+                "id": identity,
+                "level": 0,
+                "upstream_ids": flow[identity],
+                **dict(
+                    zip(
+                        ("bbox_minx", "bbox_miny", "bbox_maxx", "bbox_maxy"),
+                        graph_bounds[identity].values(),
+                        strict=True,
+                    )
+                ),
+            }
+            for identity in ids[start : start + 4096]
+        ]
+        graph.write_table(pa.Table.from_pylist(rows, schema=graph_schema))
+    for start in range(0, len(associations), 4096):
+        local.write_table(
+            pa.Table.from_pylist(
+                [
+                    {"river_id": river, "catchment_id": catchment}
+                    for river, catchment in associations[start : start + 4096]
+                ],
+                schema=association_schema,
+            )
+        )
+
+
 def produce(inventory_path: Path, output: Path) -> None:
     """Create private normalized staging; independent verification is required."""
     inventory = json.loads(inventory_path.read_bytes())
@@ -215,17 +271,11 @@ def produce(inventory_path: Path, output: Path) -> None:
     output.mkdir(parents=True, exist_ok=False)
     counts = {"catchments": 0, "rivers": 0}
     overall = [float("inf"), float("inf"), -float("inf"), -float("inf")]
-    # Numeric topology only: geometry streams in bounded incoming groups.
-    river_rows: dict[str, list[tuple[int, int, int, int, int]]] = {}
-    polygon_rows: dict[str, list[tuple[int, int]]] = {}
-    graph_bounds: dict[int, dict[str, float]] = {}
     for domain in ("catchments", "rivers"):
 
         def batches(domain: Literal["catchments", "rivers"] = domain) -> Iterator[pa.RecordBatch]:
             for item in sources:
                 basin = item["basin"]
-                river_rows.setdefault(basin, [])
-                polygon_rows.setdefault(basin, [])
                 for incoming in read_layer(Path(item[domain]["path"]), domain):
                     mapped = normalized_batch(incoming, domain, basin, first_id=counts[domain] + 1)
                     counts[domain] += len(mapped)
@@ -234,7 +284,6 @@ def produce(inventory_path: Path, output: Path) -> None:
                         if domain == "catchments"
                         else ["id", "bbox", "LINKNO", "DSLINKNO", "USLINKNO1", "USLINKNO2"]
                     ).to_pylist():
-                        identity = row["id"]
                         bbox = row["bbox"]
                         for index, name in enumerate(("xmin", "ymin", "xmax", "ymax")):
                             overall[index] = (
@@ -243,13 +292,10 @@ def produce(inventory_path: Path, output: Path) -> None:
                         if domain == "catchments":
                             if type(row["streamID"]) is not int:
                                 raise ValueError("Null or noninteger streamID")
-                            polygon_rows[basin].append((identity, row["streamID"]))
                         else:
                             values = [row[name] for name in ("LINKNO", "DSLINKNO", "USLINKNO1", "USLINKNO2")]
                             if any(type(value) is not int for value in values):
                                 raise ValueError("Null or noninteger native connectivity")
-                            river_rows[basin].append((identity, *values))
-                            graph_bounds[identity] = bbox
                     yield mapped
 
         incoming = batches()
@@ -279,36 +325,25 @@ def produce(inventory_path: Path, output: Path) -> None:
         pq.ParquetWriter(output / "river-graph.parquet", graph_schema) as graph,
         pq.ParquetWriter(output / "local-associations.parquet", association_schema) as local,
     ):
+        river_groups = groupby(
+            _projected_rows(
+                output / "rivers.arrow",
+                ["processing_basin", "id", "bbox", "LINKNO", "DSLINKNO", "USLINKNO1", "USLINKNO2"],
+            ),
+            key=lambda row: row["processing_basin"],
+        )
+        polygon_groups = groupby(
+            _projected_rows(output / "catchments.arrow", ["processing_basin", "id", "streamID"]),
+            key=lambda row: row["processing_basin"],
+        )
         for basin in basins:
-            flow, associations = source_relationships(river_rows[basin], polygon_rows[basin])
-            ids = sorted(flow)
-            for start in range(0, len(ids), 4096):
-                rows = [
-                    {
-                        "id": identity,
-                        "level": 0,
-                        "upstream_ids": flow[identity],
-                        **dict(
-                            zip(
-                                ("bbox_minx", "bbox_miny", "bbox_maxx", "bbox_maxy"),
-                                graph_bounds[identity].values(),
-                                strict=True,
-                            )
-                        ),
-                    }
-                    for identity in ids[start : start + 4096]
-                ]
-                graph.write_table(pa.Table.from_pylist(rows, schema=graph_schema))
-            for start in range(0, len(associations), 4096):
-                local.write_table(
-                    pa.Table.from_pylist(
-                        [
-                            {"river_id": river, "catchment_id": catchment}
-                            for river, catchment in associations[start : start + 4096]
-                        ],
-                        schema=association_schema,
-                    )
-                )
+            river_basin, rivers = next(river_groups, (None, iter(())))
+            polygon_basin, polygons = next(polygon_groups, (None, iter(())))
+            if river_basin != basin or polygon_basin != basin:
+                raise ValueError("Staging processing basin coverage differs")
+            _write_basin_relationships(rivers, polygons, graph, local, graph_schema, association_schema)
+        if next(river_groups, None) is not None or next(polygon_groups, None) is not None:
+            raise ValueError("Extra staging processing basin")
     for path, digest in before.items():
         with path.open("rb") as stream:
             if hashlib.file_digest(stream, "sha256").hexdigest() != digest:
