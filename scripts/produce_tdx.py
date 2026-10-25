@@ -25,7 +25,12 @@ BOUNDS = pa.struct([pa.field(name, pa.float32(), nullable=False) for name in ("x
 
 
 def normalized_batch(
-    source: pa.RecordBatch, domain: Literal["catchments", "rivers"], basin: str, *, first_id: int
+    source: pa.RecordBatch,
+    domain: Literal["catchments", "rivers"],
+    basin: str,
+    *,
+    first_id: int,
+    local_catchment_coverage: Literal["supplied", "unavailable"] = "supplied",
 ) -> pa.RecordBatch:
     """Map one fid-ordered native batch; numbering is dataset-local, not a source ID."""
     if not basin.isdecimal() or first_id <= 0:
@@ -49,6 +54,7 @@ def normalized_batch(
         ]
         if domain == "catchments"
         else [
+            pa.field("local_catchment_coverage", pa.string(), nullable=False),
             pa.field("component_catchment_id", pa.int64()),
             pa.field("upstream_node_id", pa.int64()),
             pa.field("downstream_node_id", pa.int64()),
@@ -58,6 +64,20 @@ def normalized_batch(
     native = [field for field in source.schema if field.name != "geom"]
     if {field.name for field in native} & {field.name for field in common + extra}:
         raise ValueError("Native column collides with normalized field; explicit rename required")
+    if domain == "catchments":
+        if source.schema.field("streamID").type not in (pa.int32(), pa.int64()):
+            raise ValueError("streamID must use a supported integer type")
+        native = [
+            pa.field(
+                "streamID",
+                pa.int64(),
+                nullable=field.nullable,
+                metadata={"hfx:source_mapping": "streamID INTEGER/MEDIUMINT to int64, lossless"},
+            )
+            if field.name == "streamID"
+            else field
+            for field in native
+        ]
     schema = pa.schema(common + extra + native)
     rows: list[dict[str, object]] = []
     geod = Geod(ellps="WGS84")
@@ -104,7 +124,11 @@ def normalized_batch(
             row.update(area_km2=area, up_area_km2=None, outlet_lon=None, outlet_lat=None)
         else:
             row.update(
-                component_catchment_id=None, upstream_node_id=None, downstream_node_id=None, geometry_orientation=0
+                component_catchment_id=None,
+                upstream_node_id=None,
+                downstream_node_id=None,
+                geometry_orientation=0,
+                local_catchment_coverage=local_catchment_coverage,
             )
         rows.append(row)
     return pa.RecordBatch.from_pylist(rows, schema=schema)
@@ -234,10 +258,31 @@ def produce(inventory_path: Path, output: Path) -> None:
     basins = [item["basin"] for item in sources]
     if not basins or len(set(basins)) != len(basins):
         raise ValueError("Source processing basins must be nonempty and unique")
+    for item in sources:
+        for domain in ("catchments", "rivers"):
+            entry = item.get(domain)
+            if not isinstance(entry, dict):
+                raise ValueError("Every basin must declare both source domains")
+            if "status" in entry:
+                if (
+                    domain != "catchments"
+                    or entry.get("status") != "unavailable"
+                    or set(entry) != {"status", "reason"}
+                    or not isinstance(entry["reason"], str)
+                    or not entry["reason"].strip()
+                ):
+                    raise ValueError("Unavailable catchments require an explicit reason and no source path")
+            elif not {"path", "sha256"}.issubset(entry):
+                raise ValueError("Supplied source requires path and sha256")
+    if all("status" in item["catchments"] for item in sources):
+        raise ValueError("At least one supplied catchment source is required")
     before: dict[Path, str] = {}
     source_metadata: list[dict[str, object]] = []
     for item in sources:
         for domain in ("catchments", "rivers"):
+            if item[domain].get("status") == "unavailable":
+                source_metadata.append({"basin": item["basin"], "domain": domain, **item[domain]})
+                continue
             path = Path(item[domain]["path"])
             with path.open("rb") as stream:
                 digest = hashlib.file_digest(stream, "sha256").hexdigest()
@@ -257,6 +302,7 @@ def produce(inventory_path: Path, output: Path) -> None:
                     {
                         "basin": item["basin"],
                         "domain": domain,
+                        "status": "supplied",
                         "sha256": digest,
                         "contents": contents,
                         "geometry_columns": [
@@ -276,8 +322,16 @@ def produce(inventory_path: Path, output: Path) -> None:
         def batches(domain: Literal["catchments", "rivers"] = domain) -> Iterator[pa.RecordBatch]:
             for item in sources:
                 basin = item["basin"]
+                if item[domain].get("status") == "unavailable":
+                    continue
                 for incoming in read_layer(Path(item[domain]["path"]), domain):
-                    mapped = normalized_batch(incoming, domain, basin, first_id=counts[domain] + 1)
+                    mapped = normalized_batch(
+                        incoming,
+                        domain,
+                        basin,
+                        first_id=counts[domain] + 1,
+                        local_catchment_coverage="unavailable" if "status" in item["catchments"] else "supplied",
+                    )
                     counts[domain] += len(mapped)
                     for row in mapped.select(
                         ["id", "bbox", "streamID"]
@@ -336,9 +390,12 @@ def produce(inventory_path: Path, output: Path) -> None:
             _projected_rows(output / "catchments.arrow", ["processing_basin", "id", "streamID"]),
             key=lambda row: row["processing_basin"],
         )
-        for basin in basins:
+        for item in sources:
+            basin = item["basin"]
             river_basin, rivers = next(river_groups, (None, iter(())))
-            polygon_basin, polygons = next(polygon_groups, (None, iter(())))
+            polygon_basin, polygons = (
+                (basin, iter(())) if "status" in item["catchments"] else next(polygon_groups, (None, iter(())))
+            )
             if river_basin != basin or polygon_basin != basin:
                 raise ValueError("Staging processing basin coverage differs")
             _write_basin_relationships(rivers, polygons, graph, local, graph_schema, association_schema)
@@ -351,7 +408,7 @@ def produce(inventory_path: Path, output: Path) -> None:
     (output / "original-inventory.json").write_bytes(inventory_path.read_bytes())
     (output / "source-metadata.json").write_text(json.dumps(source_metadata, indent=2) + "\n")
     (output / "NOTICE").write_text(
-        "Original NGA TDX-Hydro, CC BY-SA 4.0. Source release NGA-TDX-Hydro-20230126. GeoPackage headers removed; embedded WKB retained unchanged. Native fields, including raw area values, retained. Derived local area is WGS84 geodesic km2; upstream area and outlets unknown. Native zero-length rivers retained. Missing links do not classify terminals; processing-boundary truncation and coastal/dateline cuts remain source limitations. No invented catchment connectivity or source nodes. Source schemas must match across basin inputs.\n"
+        "Original NGA TDX-Hydro, CC BY-SA 4.0. Source release NGA-TDX-Hydro-20230126. GeoPackage headers removed; embedded WKB retained unchanged. Native fields, including raw area values, retained. Derived local area is WGS84 geodesic km2; upstream area and outlets unknown. Native zero-length rivers retained. Missing links do not classify terminals; processing-boundary truncation and coastal/dateline cuts remain source limitations. No invented catchment connectivity or source nodes. Catchment streamID INTEGER/MEDIUMINT is stored losslessly as int64; original declarations remain in source-metadata.json. Other source schemas must match across basin inputs. River local_catchment_coverage distinguishes supplied polygon sources from unavailable sources; empty associations in unavailable basins do not establish naturally polygonless rivers.\n"
     )
     manifest = {
         "format_version": "0.4.0",
@@ -363,7 +420,7 @@ def produce(inventory_path: Path, output: Path) -> None:
         "bbox": overall,
         "unit_count": counts["catchments"],
         "created_at": datetime.now(UTC).isoformat(),
-        "adapter_version": "tdx-original-1",
+        "adapter_version": "tdx-original-2",
         "region": ",".join(basins),
         "catchments": "catchments.arrow",
         "lookup": "lookup.arrow",
@@ -371,6 +428,18 @@ def produce(inventory_path: Path, output: Path) -> None:
         "index_batch_rows": 65536,
         "catchment_batch_bytes": 8388608,
         "auxiliary": [],
+        "categorical_columns": [
+            {
+                "artifact": "rivers.arrow",
+                "column": "local_catchment_coverage",
+                "physical_type": "string",
+                "codes": [
+                    {"code": "supplied", "meaning": "Polygon source supplied; local associations exhaustively checked"},
+                    {"code": "unavailable", "meaning": "Polygon source unavailable; local associations unknown"},
+                ],
+                "null_meaning": "not permitted",
+            }
+        ],
         "catchment_connectivity": [{"level": 0, "status": "not_supplied"}],
         "rivers": {
             "data": "rivers.arrow",

@@ -232,7 +232,10 @@ lookup/HTTP integrity rules apply unchanged.
 ## Typed meanings and source fidelity
 
 HFX fixes structural fields, not a complete source attribute schema. Preserve
-useful source attributes, physical types, nulls and meanings. Document retained,
+useful source attributes, physical types, nulls and meanings. Explicitly approved
+lossless type mappings may change physical width while preserving exact values and
+nulls; retain original per-source declarations and document the mapping. TDX
+catchment `streamID` widens int32 to int64 under this rule. Document retained,
 renamed, transformed and omitted fields; a collision with an HFX structural name
 requires an explicit source-column rename map in provenance, not value replacement.
 Retain source field/schema metadata where applicable; update geometry metadata for
