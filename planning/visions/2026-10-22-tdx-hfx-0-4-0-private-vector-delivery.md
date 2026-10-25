@@ -1,212 +1,235 @@
 # TDX HFX 0.4.0 private vector delivery
 
-Produce and publish a valid worldwide, vector-only TDX-Hydro bundle in the final
-HFX 0.4.0 layout on the maintainer's private Hetzner Object Storage. Use temporary
-Hetzner compute where needed; one-basin local work is also authorized below.
-Delivery under this vision completes
-[HFX #33](https://github.com/pourpoint-tools/hfx/issues/33); publishing this document
-does not complete the issue or start production.
+Produce and publish a verified vector-only TDX-Hydro bundle on the maintainer's
+private Hetzner Object Storage: rivers from all 62 processing basins and catchments
+from the 59 available polygon originals. Explicitly document the three missing
+polygon sources. Delivery under this vision completes
+[HFX #33](https://github.com/pourpoint-tools/hfx/issues/33); publication of this
+vision does not complete it.
 
-## Resume state: verified raw archive (2026-10-23)
+## Confirmed scope decisions
 
-Raw acquisition is partly complete; global HFX production and delivery are not.
+The maintainer accepts missing polygon originals for processing basins
+`1020027430`, `5020049720`, and `6020006540`. Keep their original rivers and supplied
+river connectivity. Do not exclude those rivers because polygons are unavailable.
+Do not acquire these missing polygons as a prerequisite, repeat exhausted downloads,
+or substitute processed datasets. This accepted coverage replaces the earlier
+124-original and complete-worldwide-catchment requirements.
+
+Record available and missing source coverage by domain and processing basin in
+machine-readable provenance and the consumer documentation. Associations for these
+three basins are unavailable, not evidence that their rivers naturally have no
+catchments. Distinguish them from genuinely unmatched rivers within the 59 supplied
+polygon sources. Do not invent polygons, associations or catchment connectivity.
+The precise representation of this distinction is an implementation choice; make
+its meaning unambiguous to consumers and verify it independently.
+
+Lossless type harmonization is approved. Store catchment `streamID` consistently
+as **int64**, widening the int32 source values exactly. Preserve values, nulls and
+source identity; retain original per-source declarations in provenance and document
+the conversion. Do not introduce separate int32/int64 columns. Other justified
+lossless conversions may be made with explicit source mappings and independent
+verification; changes that could alter values, precision, nulls or meaning still
+require an explicit decision. Exact physical source width is not required for an
+authorized lossless conversion. Geometry repair, polygon dissolves and connectivity
+inference are not authorized by this type-harmonization decision.
+
+There are no remaining known human decisions blocking this agreed scope. Full
+production validation may expose new material conflicts; investigate those rather
+than weakening checks silently.
+
+## Verified resume state (2026-10-25)
+
 The permanent private archive is
-`s3://pourpoint-hfx/raw/tdx-hydro/NGA-TDX-Hydro-20230126/`, accessed with the
-profile and endpoint below. Its cumulative inventory is `inventories/66-files.json`;
-root `inventory.json` and `verification.json` describe only the initial 12-file
-snapshot. Later per-file/addition receipts are under `receipts/`. Read the cumulative
-inventory before reacquiring anything.
+`s3://pourpoint-hfx/raw/tdx-hydro/NGA-TDX-Hydro-20230126/`.
+Read `inventories/121-files.json`, not the older root inventory, for current coverage.
+It contains all 62 river originals and 59 polygon originals totaling
+**332,385,001,472 bytes**. A fresh name/size listing matched, and the cumulative
+inventory was uploaded and read back byte-for-byte. Full content-readback evidence
+comprises 66 reconciled earlier originals and 55 additional originals matching
+historical SHA-256 and size; this was not a new full readback of all 121 files.
+Preserve the raw archive permanently. Source license/attribution are retained in
+`LICENSE.txt` and `NOTICE.txt`; private access is unchanged. Archive storage costs
+are authorized separately from temporary compute.
 
-- All **62 original river GeoPackages** are archived.
-- Four original polygon GeoPackages are archived: `2020003440`, `4020050470`,
-  `6020000010`, and `7020000010`. **58 polygon files remain missing.**
-- The 66 files total **99,949,490,176 bytes**. Every local source SHA-256 and full
-  archived-object readback SHA-256 matched retained historical acquisition hashes.
-  The final remote file-name/size inventory and cumulative inventory readback matched.
-  These are original files, not a delivered HFX bundle or proof of normalized fidelity.
-- Preserve this raw archive permanently. Temporary-compute and derived-bundle cleanup
-  must not delete it. Deletion needs explicit maintainer authorization. Private access
-  is unchanged; this is a retention rule, not an object-lock/WORM guarantee. Source
-  license and attribution are stored in `LICENSE.txt` and `NOTICE.txt`. Ongoing raw
-  storage costs are authorized separately from temporary compute.
+All temporary servers, attached volumes and owned IPs from the acquisition/sample
+run were removed and verified absent. **No VM or production job remains active.**
+The heartbeat is paused; do not create a persistent goal. Earlier running-VM
+instructions and archive-only handoffs are obsolete. Estimated cumulative temporary
+cost including conservative prior/transfer reserves is **EUR 12.89**, not an invoice
+or a reset budget. Reconcile retained resource/cost evidence before spending again.
 
-The river workaround is the public
-[ArcGIS TDX Hydro collection](https://www.arcgis.com/home/group.html?id=117d140bc2d042b78370d0c3ab99d054).
-Its file-item `/data` endpoints support byte ranges. Newly acquired river files
-matched historical NGA hashes in full, despite some mirror filenames using a
-`_02` suffix. Per-file source URLs are in the cumulative inventory. No original
-polygon mirror was found; do not substitute processed GEOGLOWS or WikiWatershed data.
-NGA full downloads repeatedly disconnected on German/US compute and the laptop;
-both tested NGA server addresses ignored byte ranges. A faster address and session
-cookies did not resolve this. Historical downloads using the same URLs succeeded;
-the reset cause remains unknown, not proof that all polygon files are unavailable.
-[WikiWatershed #14](https://github.com/WikiWatershed/global-hydrography/issues/14)
-asks for unchanged originals or another source. Check for replies before repeating
-research. NGA's published contact is `SFNAGGeoscienceApplications@nga.mil`; no email
-was sent. External correspondence still needs maintainer authorization.
+Durable local evidence is under `~/.prime/agent/tdx-resume-20261024/`:
 
-### Implemented tooling and remaining verification
+- `inventory-121.json`, `inventory-121-readback.json`, and
+  `archive-listing-121.json` record the permanent archive snapshot.
+- `production/metadata-final/` contains all 121 source schema/count records.
+  The 62 river files have matching declarations and **15,940,505 rows**.
+  Among 59 polygon sources, `1020018110` declares `streamID MEDIUMINT` (int32);
+  the other 58 declare `INTEGER` (int64). The former also declares `POLYGON`
+  rather than `GEOMETRY`; exact source WKB remains authoritative.
+- `production/final-vm-evidence/` contains original/spatial verification receipts,
+  topology results, timings, manifests, provenance and logs for the two samples.
+- `resources-after-cleanup.txt` and `final-budget-estimate.json` record cleanup/cost.
+- `preserved-partials/` retains eight failed archive partials (71,149,249,955 bytes)
+  and two failed production-transfer partials (2,683,437,056 bytes), all copied with
+  matching SHA-256. They are evidence, not complete originals or normalization inputs.
 
-The contract amendment and tools are merged: [#53](https://github.com/pourpoint-tools/hfx/pull/53)
-(plural local associations), [#54](https://github.com/pourpoint-tools/hfx/pull/54)
-(represented domains), [#55](https://github.com/pourpoint-tools/hfx/pull/55)
-(original normalization/verifier), [#56](https://github.com/pourpoint-tools/hfx/pull/56)
-(authenticated reads), and [#57](https://github.com/pourpoint-tools/hfx/pull/57)
-(bounded verification windows). See [TDX normalization](../../docs/v0.4.0/tdx-normalization.md)
-for commands and inventory shape; reuse these tools rather than rebuilding them.
-The merged target passed 199 tests with the vector-production and raster-experiment
-optional groups. Rerun current validation before continuing.
+Credentials and bulk data stay outside Git. Preserve these local files and earlier
+user evidence under `~/hfx-acquisition/` and `~/hfx-campaign-evidence/`. Prefer the
+permanent archive for reproducible inputs. Sample outputs and the production copy
+of the originals were removed with the VMs; reproduce from the archive when needed.
+No global normalized TDX bundle has been published.
 
-One complete original pair, `7020000010`, passed independent original-to-staging
-and full staging-to-spatial verification: 331,263 catchments, 331,386 rivers,
-327,808 flow edges, and 331,263 local associations. Its 123 polygonless rivers and
-149 finite degenerate source lines were retained. No polygon overlap check was
-performed. This sample does not establish global conformance. Catchment connectivity
-is `not_supplied`; no contracted catchment graph, invented nodes, or outlet inference.
-Plural local associations preserve separate polygon identities; existing published
-GRIT data need no rewrite. [Pourpoint #44](https://github.com/pourpoint-tools/pourpoint/issues/44)
-is the separate reader/runtime follow-up, not proof of reader compatibility.
+## Existing tools and remaining implementation
 
-On an 8 GiB CPX32 sample VM, normalization took about seven minutes and peaked at
-926 MiB RSS; original verification took about six minutes and peaked at 742 MiB.
-The revised spatial verifier checked the same unchanged output in about six minutes
-with 1.91 GiB peak RSS. Catchment source decoding still amplified logical input by
-18 times. These are sample measurements, not global sizing or latency guarantees.
-Global numeric workspace, all-basin schema/anomaly checks, polygon topology coverage,
-final assembly, private publication, authenticated consumer checks and handoff remain.
+Reuse the merged tooling, not the old toolkit:
+[#53](https://github.com/pourpoint-tools/hfx/pull/53) plural local associations,
+[#54](https://github.com/pourpoint-tools/hfx/pull/54) represented domains,
+[#55](https://github.com/pourpoint-tools/hfx/pull/55) original normalization/verifier,
+[#56](https://github.com/pourpoint-tools/hfx/pull/56) authenticated access,
+[#57](https://github.com/pourpoint-tools/hfx/pull/57) bounded verification windows,
+and [#59](https://github.com/pourpoint-tools/hfx/pull/59) basin-local producer/verifier
+workspace. Target `9db0e60143cefa3e3e923c2037f35bfcf6533f46` passed 216 tests both
+locally and on production Linux, with independent review. Rerun current validation.
 
-Local evidence for this session is under
-`~/.prime/agent/tdx-source-sample-20261022/` (source/verification receipts, transport
-research and archive inventories). Acquired river originals and per-file receipts
-are under `~/hfx-acquisition/tdx-20230126/`. Twelve earlier originals remain under
-`~/hfx-campaign-evidence/2026-08-07-close-the-seven-basin-coverage-gap/off-vm/acquired-source/`.
-Preserve these user files. The deprecated checkout `../deprecated/hfx` and that
-historical evidence root contain original acquisition hashes. Prefer the durable
-private archive over depending on local session files. Temporary VM sample outputs
-were removed with the VMs; reproduce them from archived originals and merged tools.
-All temporary servers, volumes and owned IPs from this session were removed; no
-compute or transfer remains active. Reconcile retained cost evidence against the
-EUR 50 total before provisioning again; the earlier conservative estimate was under
-EUR 1.72 before the final short-lived retry VM, not a provider invoice or a reset budget.
+[TDX normalization](../../docs/v0.4.0/tdx-normalization.md) describes the existing
+commands and paired-source inventory. It still requires matching schemas and paired
+sources; those restrictions must be updated for the two confirmed decisions above.
+The current producer rejects mixed int32/int64 `streamID` schemas. Implement the
+lossless mapping and missing-polygon inventory/coverage semantics in the producer,
+independent original verifier and relevant contract/docs. Keep the generic storage
+layout lean; this is not authority for a new toolkit. Coordinate the actual consumer
+contract explicitly with the separate
+[Pourpoint #44](https://github.com/pourpoint-tools/pourpoint/issues/44) follow-up;
+do not implement Pourpoint or imply current reader compatibility.
 
-Next: acquire and permanently archive the missing polygons, verify paired source
-identities and anomalies, then normalize/verify the full collection and deliver the
-private spatial bundle. Do not close #33 based on the raw archive alone.
+PR #59 bounds Python topology workspace by the largest basin, not a fixed RSS cap.
+The independent verifier uses temporary SQLite for actual output relationships
+(8 MiB cache, 4096-row ingest), while deriving expectations separately from original
+sources. Global spatial numeric arrays still grow with feature count. Current tools
+keep all supplied originals locally available through pre/post hashing; they do not
+provide a per-basin artifact merge/rebase command. Size scratch and final output
+storage accordingly rather than assuming one-basin laptop processing solves assembly.
 
-## Target format and scope
+Two complete pairs passed exact original-to-staging and full staging-to-spatial
+verification with the merged tools:
 
-Use the finalized [spatial GeoParquet layout](../../docs/v0.4.0/spatial-layout.md):
-one authoritative GeoParquet feature file per represented domain, artifact-bound
-ID lookups, conservative spatial bounds, and separately addressable immediate
-forward/reverse relationships. The manifest declares `format_version: "0.4.0"`,
-`representation: "spatial-geoparquet-adjacency"`, and `representation_version: 1`.
-The earlier [vector contract](../../docs/v0.4.0/vector-data.md) supplies field meanings,
-not the target IPC feature layout. The [TDX handoff](../../docs/v0.4.0/tdx-handoff.md)
-remains source evidence; its IPC production advice is superseded by this target.
+| Basin | Catchments | Rivers | Flow edges | Local associations |
+|---|---:|---:|---:|---:|
+| `7020000010` | 331,263 | 331,386 | 327,808 | 331,263 |
+| `1020018110` | 924,556 | 515,435 | 514,528 | 924,556 |
 
-Deliver original NGA TDX rivers and catchments across all 62 processing basins.
-Preserve native fields, types, nulls, source identities, geometry order and supplied
-connectivity. Keep processing-basin identity alongside native IDs; the basins are
-source partitions, not invented hierarchy tiers. Represent all source rivers,
-including those without a represented catchment, rather than reducing rivers to
-snapping aids. Verify polygon-to-river associations from original identities.
-Do not invent source nodes, tiers, outlets or relationships merely to match GRIT.
-No raster files or raster references are part of this delivery.
+Polygonless rivers, distinct polygon identities sharing `streamID`, and finite
+zero-length lines were preserved (149 and 87 zero-length rivers respectively).
+These single-schema samples do not verify the new harmonized combined output or
+missing-polygon behavior. Add independent multi-basin tests for both before production.
 
-This is a TDX normalization and publication effort, not another layout study,
-hydrological repair project, or general toolkit. Pourpoint implementation is out
-of scope. Provide a concise consumer handoff with the actual stored contract and
-verification evidence; shared version numbers do not establish reader compatibility.
+On a CPX62 (32 GB RAM), the larger pair normalized in 11m29s at about 1.35 GiB peak
+RSS and independently verified in 9m07s at about 1.28 GiB. Its spatial build/full
+verification peaked around 3.12 GiB. These are sample measurements, not global fit
+or latency guarantees. A CCX43 request was rejected by the project's dedicated-core
+quota; do not assume larger dedicated instances are available. Temporary attached
+storage is available separately from VM size.
 
-## Original-source fidelity
+Read-only full within-basin topology screens checked 1,681,345 candidate pairs for
+`7020000010` and 9,054,460 for `1020018110`, finding no positive planar intersection
+area, invalid features, dateline flags or overlay errors. Source hashes stayed
+unchanged. The larger screen took about 119 minutes. The method used original WKB,
+disk-backed spatial candidates and a strictly positive computed degrees-squared
+threshold, not an accepted numerical tolerance or geometry repair. This is evidence
+for those two basins, not worldwide or cross-basin certification. Report actual
+coverage and investigate any discovered conflicts; do not conflate full WKB fidelity
+with exhaustive topology checking.
 
-Reacquire the original NGA vector pairs as needed, using release
-`NGA-TDX-Hydro-20230126` as the identified source baseline. Pin actual acquisition
-identities and retain provenance. Establish source schema, CRS, area units,
-relationships and geometry behavior before scaling. Source `basins.streamID` and
-`streamnet.LINKNO` provide the association evidence; verify complete coverage,
-duplicates and unmatched identities rather than assuming every river has a polygon.
-Preserve original area attributes separately from derived normalized areas.
+## Target format and source fidelity
 
-The existing 0.3.0 bundle is comparison evidence, not a sufficient normalization
-input. Its reduced river model excludes polygonless reaches and contracts their
-connectivity. Historical delivery also mixed earlier and corrected outlet
-conventions. Later corrective code does not itself prove a corrected publication.
-Do not carry those losses or outlet assumptions into the new bundle.
+Use the [spatial GeoParquet layout](../../docs/v0.4.0/spatial-layout.md): one
+authoritative feature file per represented domain, artifact-bound ID lookups,
+conservative spatial bounds, and separately addressable immediate forward/reverse
+relationships. Declare `format_version: "0.4.0"`,
+`representation: "spatial-geoparquet-adjacency"`, `representation_version: 1`.
+The earlier [vector contract](../../docs/v0.4.0/vector-data.md) supplies field
+meanings, not the target IPC feature layout. Amend relevant fidelity wording for
+approved lossless harmonization rather than retaining contradictory requirements.
 
-Relevant historical evidence lives in the deprecated `CooperBigFoot/hfx` repository:
-[pristine NGA source decision](https://github.com/CooperBigFoot/hfx/blob/c18a8a6a115e2045080d8752279d39db2b9b29b6/docs/decisions/2026-07-21-tdx-hydro-pristine-nga-source.md),
-[adapter notes](https://github.com/CooperBigFoot/hfx/blob/c18a8a6a115e2045080d8752279d39db2b9b29b6/adapters/tdx-hydro/README.md),
-and [global delivery history](https://github.com/CooperBigFoot/hfx/issues/108).
-These are evidence, not compatibility requirements. Old ID numbering, polygon
-dissolves, coordinate clamps and outlet inferences require fresh justification
-against the current contract; do not inherit them silently.
+Use original release `NGA-TDX-Hydro-20230126` and pin actual acquisition hashes.
+Preserve native attributes and nulls, subject only to documented approved lossless
+mappings; preserve exact embedded WKB, geometry order, source identities and supplied
+river connectivity. Keep processing-basin identity alongside native IDs, not as
+invented hierarchy tiers. Verify polygon-to-river associations using original
+`basins.streamID` and `streamnet.LINKNO` for the available polygon sources. Preserve
+original area attributes separately from derived normalized areas. Missing downstream
+links do not establish natural terminals. Catchment connectivity remains
+`not_supplied`; do not infer outlets, nodes, upstream areas or graph contractions.
+No raster files or references are part of this delivery.
+
+The existing 0.3.0 bundle is comparison evidence, not a sufficient input. Its reduced
+river model excludes polygonless reaches and contracts their connectivity; outlet
+conventions also varied. Do not inherit polygon dissolves, coordinate clamps or
+outlet assumptions. Historical [PR #221](https://github.com/CooperBigFoot/hfx/pull/221)
+records a valid 55-of-62 partial 0.3.0 fabric; its absent set differs from this run.
+That precedent supports truthful coverage reporting, not copying its semantics.
 
 TDX source caveats include processing-boundary truncation, missing upstream area,
-coastal extensions and dateline cuts. Missing downstream links do not classify
-natural terminals. Preserve uncertainty and document necessary transformations;
-do not silently reverse, simplify, repair or discard source geometry. Any source
-anomaly that conflicts with the contract requires an explicit decision before
-production proceeds, not a relaxed invariant hidden in an anomaly report.
+coastal extensions and dateline cuts. Preserve uncertainty. Do not silently reverse,
+simplify, repair or discard source geometry. Any newly discovered conflict outside
+the approved missing-coverage and lossless-type decisions requires investigation
+and, if it changes intended fidelity, an explicit decision before publication.
+Retain CC BY-SA 4.0 licensing, attribution and transformation notices. Private access
+is the maintainer's requirement, not a claim that the license prohibits redistribution.
 
-Retain applicable attribution, licensing and transformation notices. The inspected
-original NGA license is CC BY-SA 4.0, not GRIT's CC BY-NC license. Private publication
-is the maintainer's explicit access requirement, not a claim that CC BY-SA itself
-prohibits large-scale redistribution.
+## Private publication and resources
 
-## Private publication and temporary infrastructure
+Use AWS CLI profile `hetzner-pourpoint`, bucket `pourpoint-hfx`, endpoint
+`https://fsn1.your-objectstorage.com`. Publish at a new unused TDX 0.4.0 prefix.
+Preserve the old 0.3.0 publication, permanent raw archive and unrelated objects.
+Do not enable anonymous access or change permissions. Verify authenticated
+consumer-facing range reads.
 
-Use the existing `hetzner-pourpoint` AWS CLI profile and `pourpoint-hfx` bucket at
-`fsn1.your-objectstorage.com`. Publish to a new, unused TDX 0.4.0 prefix. Preserve
-the existing 0.3.0 publication and unrelated objects. Keep access private and
-available through the maintainer's existing authorized access arrangements;
-do not enable anonymous access or change permissions. Verify authenticated
-consumer-facing range reads rather than requiring public HTTP access.
-
-The approved temporary infrastructure ceiling is **EUR 50**, interpreted from
-“50 bucks again” as the same currency used for GRIT. Include estimated compute,
-attached storage, IPs, transfer and applicable taxes; ongoing dataset storage is
-outside this ceiling. Track spend and stop before exceeding the ceiling. It is
-not a provider-enforced spending cap.
-
-Provision new temporary Hetzner compute only when needed; prior VMs were removed.
-Select machine and storage sizes from TDX source sizes and meaningful sample
-measurements, not GRIT's final cost or capacity assumptions. The maintainer later
-authorized downloading and processing one basin at a time on the laptop, followed
-by verified archival/upload. This supersedes the earlier no-local-bulk restriction.
-Check current free disk and memory first; keep originals until their permanent
-archive copies are verified. Local permission does not establish that global
-assembly fits the laptop. Favor economical completion; no hard deadline or latency
-target was selected. Keep credentials and bulk data outside Git. Monitor memory,
-disk and spend; preserve diagnosis evidence if a run cannot safely continue.
+The cumulative temporary infrastructure ceiling remains **EUR 50**, including
+compute, attached storage, IPs, transfer and applicable taxes. Ongoing dataset
+storage is outside it. Track spend and stop before exceeding the ceiling; this is
+not a provider-enforced cap. The earlier EUR 12.89 estimate does not reset it.
+Provision only needed temporary resources after reconciling actual current state
+and pricing. Base sizing on source bytes and measured working memory, not GRIT costs.
+One-basin local downloading/processing is authorized, subject to free disk/memory;
+it does not prove global assembly fits the laptop. No hard latency target was chosen.
+Keep credentials/private access details and bulk payloads out of Git.
 
 ## Verification and completion
 
-Use the [GRIT delivery workflow](../../docs/v0.4.0/grit-final-delivery.md) as an
-operational example, not inherited proof of TDX fidelity or permission to delete
-old publications. Reuse suitable format machinery without pretending GRIT-specific
-source mappings are TDX mappings. Exact VM sizing, grouping parameters, native
-field mappings and the new prefix are implementation choices within this contract.
+Complete the accepted 62-river/59-polygon scope, not an unqualified worldwide
+catchment claim. Independently verify every supplied source feature, native value,
+null, identity, exact geometry, supplied connectivity and available association
+against final output. For harmonized fields, prove exact values/nulls and approved
+output type while retaining original declarations. Verify all available catchment
+associations; separately prove missing-source basin coverage without fabricating
+associations or misclassifying those rivers as naturally polygonless.
 
-Before publication, independently verify complete source-to-output feature
-coverage, native values/types/nulls, identities, geometry fidelity under documented
-necessary transformations, associations and supplied connectivity. Verify final
-ID addresses, conservative bounds and complete immediate relationships in both
-directions against their declared meanings. Distinguish full checks from sampled
-geometry/topology checks and preserve source limitations.
+Verify final ID addresses, conservative bounds and complete immediate relationships
+in both directions. Reconcile source basin rosters and feature counts, including
+rivers from the three missing-polygon basins. Distinguish full checks from sampled
+or selected-basin topology checks and disclose coverage limitations.
 
-Stage verified files, verify complete uploaded artifact identities/readback, and
-publish the manifest last. Check the final assembled bundle through authenticated
-access, including representative projected/full records, known and absent IDs,
-spatial discovery and relationship-to-record reads. Report observed access behavior
-without inventing latency guarantees. Selected reads do not replace full content
-verification. No publication on failed verification.
+Stage only verified files. Verify complete uploaded artifact identities/full content
+readback, publish the manifest last, and GET-verify its exact bytes. Check the
+assembled bundle through authenticated full/projected records, known/absent IDs,
+spatial discovery and relationship-to-record reads against trusted references.
+Selected access tests do not replace full content verification. No publication on
+failed verification. The [GRIT delivery record](../../docs/v0.4.0/grit-final-delivery.md)
+is an operational example, not inherited proof or permission to delete prior objects.
 
-Retain compact source inventories, hashes, verification receipts, access results
-and cost/cleanup evidence. After verified delivery, remove this effort's temporary
-VM, attached storage and owned IPs, and verify each is absent. Do not delete unknown
-objects or resources. Report any retained resources and ongoing costs honestly.
+Provide a concise consumer handoff stating actual stored contract, location,
+verification evidence, approved type conversion, all three missing polygon basins,
+and what missing coverage means for associations. Shared version numbers do not
+establish Pourpoint reader compatibility. Preserve compact inventories, hashes,
+receipts and cost/cleanup evidence. Remove this effort's new temporary servers,
+volumes and owned IPs after verified delivery and confirm absence; preserve unknown
+resources and unique unverified evidence.
 
-Success is a valid, fully verified global vector-only bundle at the reported private
-Hetzner location, preserved prior publications and access policy, a concise consumer
-handoff, and accounted-for temporary-resource cleanup within budget.
+Success is the valid, fully verified private vector bundle for the accepted coverage,
+preserved prior publications/access policy, documented limitations and consumer
+handoff, and accounted-for temporary-resource cleanup within the cumulative budget.
+Only then close #33. Raw archival, sample verification or a partial implementation
+PR alone does not complete this outcome.
