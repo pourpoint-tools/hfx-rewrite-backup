@@ -98,8 +98,11 @@ def _verify_basin(
     upstream: set[tuple[str, int, int]] = set()
     river_bounds: dict[int, dict[str, float]] = {}
     degenerate = 0
+    unavailable = item["catchments"].get("status") == "unavailable"
     geod = Geod(ellps="WGS84")
     for domain in ("catchments", "rivers"):
+        if domain == "catchments" and unavailable:
+            continue
         schema = schemas[domain]
         actual_rows = iterators[domain]
         count = counts[domain]
@@ -124,11 +127,16 @@ def _verify_basin(
                 if name == geometry:
                     continue
                 field = schema.field(name)
-                if (
-                    field.type != expected_types[declared]
-                    or field.nullable != (not nonnull)
-                    or field.metadata != {b"gpkg:declared_type": declared.encode()}
-                ):
+                mapped = domain == "catchments" and name == "streamID"
+                if mapped and declared not in ("INTEGER", "MEDIUMINT"):
+                    raise ValueError("Unsupported original streamID declaration")
+                expected_type = pa.int64() if mapped else expected_types[declared]
+                metadata = (
+                    {b"hfx:source_mapping": b"streamID INTEGER/MEDIUMINT to int64, lossless"}
+                    if mapped
+                    else {b"gpkg:declared_type": declared.encode()}
+                )
+                if field.type != expected_type or field.nullable != (not nonnull) or field.metadata != metadata:
                     raise ValueError(f"Native schema differs: {name}")
             for values in connection.execute(f"SELECT * FROM {quoted} ORDER BY fid"):
                 original = dict(zip((field[1] for field in fields), values, strict=True))
@@ -199,6 +207,8 @@ def _verify_basin(
                         raise ValueError("Invented upstream area or outlet")
                     polygons.append((basin, original["streamID"], count))
                 else:
+                    if actual["local_catchment_coverage"] != ("unavailable" if unavailable else "supplied"):
+                        raise ValueError("Local catchment coverage differs from original inventory")
                     if actual["geometry_orientation"] != 0 or any(
                         actual[name] is not None
                         for name in ("component_catchment_id", "upstream_node_id", "downstream_node_id")
@@ -222,7 +232,7 @@ def _verify_basin(
         finally:
             connection.close()
         counts[domain] = count
-    if not rivers or not polygons:
+    if not rivers or (not unavailable and not polygons):
         raise ValueError("Empty original basin domain")
     if downstream != upstream:
         raise ValueError("Original supplied graph directions disagree")
@@ -260,6 +270,10 @@ def _verify_basin(
         raise ValueError("Unmatched original polygon streamID")
     expected_associations = {(rivers[basin, stream], identity) for basin, stream, identity in polygons}
     polygon_ids = [identity for _, _, identity in polygons]
+    if unavailable:
+        if relations.execute("SELECT 1 FROM association WHERE river BETWEEN ? AND ? LIMIT 1", (low, high)).fetchone():
+            raise ValueError("Invented associations for unavailable catchment source")
+        return len(expected_edges), 0, degenerate
     actual_associations = set(
         relations.execute(
             "SELECT river, catchment FROM association WHERE catchment BETWEEN ? AND ?",
@@ -269,6 +283,67 @@ def _verify_basin(
     if actual_associations != expected_associations:
         raise ValueError("Complete local associations differ")
     return len(expected_edges), len(expected_associations), degenerate
+
+
+def _verify_source_metadata(inventory: dict[str, Any], output: Path) -> None:
+    """Compare provenance declarations directly with each original SQLite file."""
+    recorded = json.loads((output / "source-metadata.json").read_bytes())
+    expected: list[dict[str, Any]] = []
+    sources = inventory["sources"]
+    basins = [item["basin"] for item in sources]
+    if not basins or len(set(basins)) != len(basins):
+        raise ValueError("Invalid source basin coverage")
+    supplied_polygons = 0
+    for item in sorted(sources, key=lambda value: value["basin"]):
+        for domain in ("catchments", "rivers"):
+            entry = item.get(domain)
+            if not isinstance(entry, dict):
+                raise ValueError("Missing source coverage declaration")
+            base = {"basin": item["basin"], "domain": domain}
+            if "status" in entry:
+                if (
+                    domain != "catchments"
+                    or entry.get("status") != "unavailable"
+                    or set(entry) != {"status", "reason"}
+                    or not isinstance(entry["reason"], str)
+                    or not entry["reason"].strip()
+                ):
+                    raise ValueError("Invalid unavailable source coverage declaration")
+                expected.append({**base, **entry})
+                continue
+            if not {"path", "sha256"}.issubset(entry):
+                raise ValueError("Missing supplied source coverage declaration")
+            supplied_polygons += domain == "catchments"
+            source = Path(entry["path"])
+            digest = entry["sha256"]
+            connection = sqlite3.connect(source.resolve().as_uri() + "?mode=ro", uri=True)
+            try:
+                connection.row_factory = sqlite3.Row
+                contents = [dict(row) for row in connection.execute("SELECT * FROM gpkg_contents")]
+                schemas = {}
+                for layer in contents:
+                    if layer["data_type"] == "features":
+                        name = layer["table_name"]
+                        quoted = '"' + name.replace('"', '""') + '"'
+                        schemas[name] = [dict(row) for row in connection.execute(f"PRAGMA table_info({quoted})")]
+                expected.append(
+                    {
+                        **base,
+                        "status": "supplied",
+                        "sha256": digest,
+                        "contents": contents,
+                        "geometry_columns": [
+                            dict(row) for row in connection.execute("SELECT * FROM gpkg_geometry_columns")
+                        ],
+                        "schemas": schemas,
+                    }
+                )
+            finally:
+                connection.close()
+    if not supplied_polygons:
+        raise ValueError("No supplied catchment source coverage")
+    if recorded != expected:
+        raise ValueError("Source metadata differs from originals or coverage inventory")
 
 
 def verify_originals(inventory_path: Path, output: Path) -> dict[str, object]:
@@ -291,6 +366,21 @@ def verify_originals(inventory_path: Path, output: Path) -> dict[str, object]:
         or manifest["catchment_connectivity"] != [{"level": 0, "status": "not_supplied"}]
     ):
         raise ValueError("Invented catchment graph or node domain")
+    expected_categories = [
+        {
+            "artifact": "rivers.arrow",
+            "column": "local_catchment_coverage",
+            "physical_type": "string",
+            "codes": [
+                {"code": "supplied", "meaning": "Polygon source supplied; local associations exhaustively checked"},
+                {"code": "unavailable", "meaning": "Polygon source unavailable; local associations unknown"},
+            ],
+            "null_meaning": "not permitted",
+        }
+    ]
+    if manifest.get("categorical_columns") != expected_categories:
+        raise ValueError("Manifest local catchment coverage semantics differ")
+    _verify_source_metadata(inventory, output)
     counts = {"catchments": 0, "rivers": 0}
     source_hashes: dict[str, str] = {}
     schemas: dict[str, pa.Schema] = {}
@@ -299,6 +389,9 @@ def verify_originals(inventory_path: Path, output: Path) -> dict[str, object]:
         with ipc.open_file(str(output / f"{domain}.arrow")) as reader:
             schemas[domain] = reader.schema
         iterators[domain] = _rows(output / f"{domain}.arrow")
+    coverage_field = schemas["rivers"].field("local_catchment_coverage")
+    if coverage_field.type != pa.string() or coverage_field.nullable:
+        raise ValueError("Invalid local catchment coverage schema")
     flow_edges = associations = degenerate = 0
     try:
         with _actual_relations(output) as actual:

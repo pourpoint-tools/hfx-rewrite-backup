@@ -23,8 +23,10 @@ local data, index and provenance artifact. Paths are bundle-relative. Full hashe
 are production identities; bounded fingerprints are selective-access checks, not
 proof that all bytes were verified. A manifest is published only after its files.
 
-One GeoParquet file per domain is authoritative. Fields retain native Arrow types,
+One GeoParquet file per domain is authoritative. Fields retain normalized Arrow types,
 nulls, field/schema metadata, source identities, tiers and exact normalized WKB.
+Native widths may change only under documented approved lossless source mappings
+with original per-source declarations retained; TDX catchment `streamID` uses int64.
 Only GeoParquet `geo` metadata is added. Coordinates are longitude/latitude WGS84
 (GeoParquet's default CRS84). Attributes can be projected without geometry.
 Current production orders by tier, 16-bit Morton key and ID. Row groups target
@@ -84,6 +86,16 @@ Existing GRIT singleton associations and their consistent scalar feature columns
 remain valid without changing published files or hashes. The physical relationship
 lists are unchanged; no migration or format/representation version change is needed.
 
+TDX river features additionally carry nonnull string `local_catchment_coverage`:
+`supplied` means the basin's polygon source was available and associations were
+exhaustively checked; `unavailable` means the polygon source was missing and local
+associations are unknown. Both may have empty relationship lists; they are not the
+same evidence. `processing_basin` connects each feature to the domain coverage and
+original declarations in `source-metadata.json`. The manifest's `categorical_columns`
+records the field meanings. This TDX extension does not require rewriting existing
+GRIT publications. Pourpoint support requires explicit coordination; shared version
+numbers and support for plural lists alone do not establish reader compatibility.
+
 ### Relationship provenance and access
 
 Each `columns` entry records original source artifact/column, direction and domain
@@ -110,8 +122,10 @@ rasters. Public range and decoded-window verification is a separate delivery dut
 
 ## Production commands and evidence
 
-Run on approved temporary compute, not the maintainer laptop, with pinned verified
-normalized inputs and a new disjoint output directory:
+Run with pinned verified normalized inputs and a new disjoint output directory.
+Global production requires appropriately sized approved compute and storage. The
+TDX vision permits one-basin local processing subject to free disk and memory,
+without claiming that global assembly fits the laptop:
 
 ```bash
 uv sync

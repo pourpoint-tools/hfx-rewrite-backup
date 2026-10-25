@@ -88,3 +88,31 @@ def test_hole_area_is_subtracted_even_when_ring_orientation_matches_exterior() -
     # Independently tabulated WGS84 geodesic square areas: 49231.584297 - 12307.409724 km².
     assert result["area_km2"][0].as_py() == pytest.approx(36924.174573, abs=0.01)
     assert result["geometry"][0].as_py() == polygon
+
+
+@pytest.mark.parametrize(
+    "source_type,values",
+    [
+        (pa.int32(), [-2147483648, 2147483647, None]),
+        (pa.int64(), [-9223372036854775808, 9223372036854775807, None]),
+    ],
+)
+def test_stream_id_widening_preserves_values_and_nulls(source_type: pa.DataType, values: list[int | None]) -> None:
+    polygon = struct.pack("<BIII10d", 1, 3, 1, 5, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0)
+    source = pa.record_batch(
+        {
+            "fid": [1, 2, 3],
+            "geom": [polygon] * 3,
+            "streamID": pa.array(values, type=source_type),
+        }
+    )
+    result = normalized_batch(source, "catchments", "10", first_id=1)
+    assert result.schema.field("streamID").type == pa.int64()
+    assert result["streamID"].to_pylist() == values
+
+
+def test_stream_id_mapping_does_not_authorize_float_conversion() -> None:
+    polygon = struct.pack("<BIII10d", 1, 3, 1, 5, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0)
+    source = pa.record_batch({"fid": [1], "geom": [polygon], "streamID": [9.5]})
+    with pytest.raises(ValueError, match="streamID.*integer"):
+        normalized_batch(source, "catchments", "10", first_id=1)
