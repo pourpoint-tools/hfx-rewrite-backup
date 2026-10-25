@@ -48,8 +48,15 @@ hashes before/after. Polygon overlap is **not checked**; no worldwide topology
 certification or 62-basin completeness is claimed by these sample-capable tools.
 Final spatial feature/lookup/relationship verification remains a separate step.
 
-Geometry is streamed in groups of 4096 rows before byte-budget splitting. Numeric
-identity, graph, association and bounds workspace is retained in memory. Measure
-peak RSS/disk on meaningful samples before sizing global work. Failed artifacts
-remain for diagnosis. Neither command provisions, downloads, publishes or reads
-credentials. Reports must remain outside bundles.
+Geometry is streamed in groups of 4096 rows before byte-budget splitting. The
+producer re-reads projected numeric staging columns and validates relationships
+one basin at a time. The independent verifier retains source topology for one
+basin and indexes actual output relationships in temporary SQLite storage, with
+an 8 MiB page cache, outside the bundle. Graph and association row order is not
+required. Temporary verifier storage is removed on success or failure.
+
+Numeric memory scales with the largest basin, not a fixed byte limit. Measure
+peak RSS and scratch disk on meaningful samples before sizing global work; final
+spatial assembly has separate workspace needs. Failed artifacts remain for
+diagnosis. Neither command provisions, downloads, publishes or reads credentials.
+Reports must remain outside bundles.
