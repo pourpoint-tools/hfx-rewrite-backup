@@ -99,7 +99,7 @@ def build_features(source: Path, output: Path, family: str, rows: int = 8192, bu
     for path in (data, lookup, directory):
         if path.exists():
             raise FileExistsError(path)
-    with pa.memory_map(str(source), "r") as stream:
+    with pa.OSFile(str(source), "r") as stream:
         reader = ipc.open_file(stream)
         schema = geo_schema(reader.schema)
         ids, starts, source_logical_bytes = _source_ids(reader)
@@ -218,7 +218,7 @@ def verify_features(source: Path, output: Path, declaration: dict[str, Any]) -> 
     )
     if not lookup.schema.equals(lookup_schema, check_metadata=True):
         raise ValueError("lookup schema differs")
-    with pa.memory_map(str(source), "r") as stream, pq.ParquetFile(data) as parquet:
+    with pa.OSFile(str(source), "r") as stream, pq.ParquetFile(data) as parquet:
         original = ipc.open_file(stream)
         if not geo_schema(original.schema).equals(parquet.schema_arrow, check_metadata=True):
             raise ValueError("schema or metadata differs")
