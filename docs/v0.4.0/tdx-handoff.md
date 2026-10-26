@@ -1,51 +1,82 @@
-# TDX handoff
+# TDX private vector delivery
 
-Use a new session and dedicated effort to convert original TDX data under the
-[HFX 0.4.0 vector contract](vector-data.md). Do not convert or replace the hosted
-TDX bundle as part of GRIT delivery. This handoff does not design a Pourpoint
-runtime or claim current reader compatibility.
+Published on 2026-10-26 at
+`s3://pourpoint-hfx/tdx/hfx-0.4.0/NGA-TDX-Hydro-20230126-20261026/manifest.json`
+using the authenticated endpoint `https://fsn1.your-objectstorage.com`.
+Manifest SHA-256: `c8923c52c66f6aa285a31621a8a4eda80bd41817d8f462d0adce52359d7d81f2`.
+The [compact receipt](receipts/tdx-delivery.json) records identities and verification.
+Access remains private; no anonymous access or permission change was introduced.
 
-## Known original evidence
+This is the [spatial GeoParquet contract](spatial-layout.md), with
+`format_version: "0.4.0"`, `representation: "spatial-geoparquet-adjacency"`, and
+`representation_version: 1`: one authoritative feature file per domain, artifact-bound
+ID lookups, conservative bounds and immediate relationships in both directions.
+There are no rasters or inferred catchment graph; catchment connectivity is `not_supplied`.
+See the [delivery vision](../../planning/visions/2026-10-22-tdx-hfx-0-4-0-private-vector-delivery.md)
+and [HFX #33](https://github.com/pourpoint-tools/hfx/issues/33).
 
-The user-supplied `~/Downloads/TDX_streamnet_2020071190_01.gpkg` is
-3,697,729,536 bytes, with layer metadata dated 2023-01-26. Preserve that file.
-[Source observations](grit-river-evidence.md#other-source-comparison-and-limits)
-include `1/2 → 2754` and `2754/2755 → 5507 → 12388`. A single river tier needs
-no invented parents. Preserve `LINKNO` and processing-basin identity separately;
-source IDs require basin namespacing in a multi-basin compilation.
+## Coverage and source fidelity
 
-All seven inspected internal edges had coordinate order opposite downstream flow.
-Keep native geometry order and verify orientation coverage before declaring it;
-connectivity must not depend on reversing lines. `LINKNO=1104039,DSLINKNO=-1`
-does not establish a precise termination category. Retain that uncertainty.
+Release `NGA-TDX-Hydro-20230126` contributes all 62 river originals and 59 polygon
+originals: **15,940,505 rivers and 13,890,015 catchments**. Polygon sources are
+unavailable for **`1020027430`, `5020049720`, and `6020006540`**. Their rivers and
+supplied flow connectivity remain represented; this is not complete worldwide
+catchment coverage.
 
-The matching basin download failed. `WSNO` does not prove polygon presence.
-Acquire the applicable original polygons and compare the complete `streamID` set
-against river IDs, checking missing, unmatched and duplicate identities before
-claiming an original polygonless-river case. A labeled null-association fixture
-only proves that the format permits absent associations.
+River `local_catchment_coverage` is `supplied` or `unavailable`. For unavailable
+coverage, empty `local_catchment_ids` means unknown associations, not naturally
+polygonless rivers. Unmatched rivers in supplied polygon sources remain distinct.
+Plural associations preserve separate polygons sharing a `streamID`.
 
-## Reuse without a new framework
+Catchment `streamID` is consistently **int64**, widening basin `1020018110`'s
+int32 declaration exactly. `source-metadata.json` retains original declarations
+and supplied/unavailable coverage; `original-inventory.json` pins acquired hashes.
+[Normalization](tdx-normalization.md) documents this approved mapping. Native values,
+nulls, exact embedded WKB, geometry order and basin-qualified source identities
+remain intact, including 5,477 finite zero-length rivers. No geometry repair,
+dissolve, coordinate clamp or connectivity inference was applied. Original area
+attributes remain separate from derived normalized areas.
 
-- Reuse the compressed IPC writer, lookup/directory and graph conventions, and
-  the selective HTTP probe in `scripts/check_vector_access.py`; see
-  [probe semantics](selective-http-probe.md).
-- Use `scripts/produce_grit.py` and `scripts/verify_grit.py` as small source-based
-  examples of typed normalization and independent full verification, not TDX
-  adapters. Their GRIT acquisition, layer mappings, node fields, grouping and
-  receipt binding are source-specific; do not rename the scripts and assume
-  equivalent semantics.
-- Establish original CRS, field types/nulls, source order/area meanings, directed
-  edges, polygon associations and actual geometry from small originals first.
-  Check source-to-HFX fidelity independently, then scale with bounded-memory
-  coverage and explicit resource estimates. Do not infer nodes or associations
-  from coincident geometry.
-- Obtain approval for compute/budget and a new immutable publication destination;
-  preserve existing bundles. Verify artifacts before publishing the manifest,
-  then measure actual public selective reads. Keep source licensing and acquisition
-  identities with the receipt; GRIT's license does not establish TDX permissions.
+Source boundary truncation, missing upstream area, coastal extensions and dateline
+cuts remain source caveats. Orientation is unspecified; missing downstream links
+do not establish natural terminals. CC BY-SA 4.0 attribution and transformation
+notices accompany the bundle. Private access is a maintainer requirement, not a
+claim that the license prohibits redistribution.
 
-Temporary research under `/tmp/hfx17-source-examples/` is not a durable input.
-Reacquire or reproduce missing evidence from identified originals. GRIT's
-[delivery record](grit-river-delivery.md) supplies the completed GRIT evidence;
-no TDX conversion has been performed here.
+## Verification and limits
+
+The independent original-to-staging verifier checked every supplied feature,
+native value/null, identity, exact WKB, supplied flow edge and available local
+association. The full staging-to-spatial verifier then checked every final record,
+ID address, conservative bound and complete immediate relationship in both directions:
+15,769,946 flow edges and 13,890,015 local associations. The receipt binds both
+verification steps to the published manifest.
+
+All 16 uploaded artifacts passed full authenticated GET size/SHA-256 readback.
+The manifest was uploaded last and its exact bytes GET-verified. Ten selected
+authenticated consumer probes matched the verified local bundle: full/projected
+records and known/absent IDs in both domains, spatial discovery, and flow/local
+relationship-to-record reads in both directions. These selected probes are not
+full content verification; the separate full readback supplies that proof.
+Spatial discovery returns bbox candidates, not exact intersections. No latency
+or fixed-memory guarantee is claimed.
+
+Full WKB fidelity is not worldwide topology certification. Earlier complete
+within-basin overlap screens covered only `7020000010` and `1020018110`; global
+or cross-basin polygon overlap was not checked. The old 0.3.0 publication was not
+a normalization input. It and the permanent raw archive remain retained.
+
+## Consumer coordination and cleanup
+
+[Pourpoint #44](https://github.com/pourpoint-tools/pourpoint/issues/44) tracks reader
+support for plural local associations and unavailable-coverage semantics. Shared
+version numbers and the HFX access probes do **not** establish Pourpoint reader
+compatibility.
+
+The temporary server, attached volume and owned IPs were verified absent on
+2026-10-26 at 11:18:12 UTC. The estimated cumulative temporary cost is **EUR 21.00**,
+including the prior run and rounding reserve. A conservative **CHF 28.10** reservation
+uses 1.10 CHF/EUR plus CHF 5 contingency, within the current CHF 50 ceiling. These
+are planning estimates, not a provider invoice or live exchange quote; ongoing object storage is
+excluded and retained. Compact verification and cleanup evidence is preserved.
+This handoff does not itself close HFX #33.
