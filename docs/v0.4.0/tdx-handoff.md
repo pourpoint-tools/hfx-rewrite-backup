@@ -63,8 +63,8 @@ or fixed-memory guarantee is claimed.
 
 Full WKB fidelity is not worldwide topology certification. Earlier complete
 within-basin overlap screens covered only `7020000010` and `1020018110`; global
-or cross-basin polygon overlap was not checked. The old 0.3.0 publication and
-permanent raw archive are separate retained data, not normalization inputs.
+or cross-basin polygon overlap was not checked. The old 0.3.0 publication was not
+a normalization input. It and the permanent raw archive remain retained.
 
 ## Consumer coordination and cleanup
 
@@ -73,5 +73,9 @@ support for plural local associations and unavailable-coverage semantics. Shared
 version numbers and the HFX access probes do **not** establish Pourpoint reader
 compatibility.
 
-Temporary-resource cleanup and final cumulative cost reconciliation remain pending.
-Publication alone does not complete the delivery vision or close HFX #33.
+The temporary server, attached volume and owned IPs were verified absent on
+2026-10-26 at 11:18:12 UTC. The estimated cumulative temporary cost is **EUR 21.00**,
+including the prior run and rounding reserve, within the EUR 50 ceiling. This is
+a gross hourly-rate estimate, not a provider invoice; ongoing object storage is
+excluded and retained. Compact verification and cleanup evidence is preserved.
+This handoff does not itself close HFX #33.

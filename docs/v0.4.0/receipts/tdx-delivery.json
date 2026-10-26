@@ -269,6 +269,22 @@
     "polygon_overlap": "Historical within-basin screens only: 7020000010 and 1020018110; no global or cross-basin certification.",
     "pourpoint_reader_compatibility": "not established"
   },
-  "resource_cleanup": "pending",
-  "cumulative_temporary_cost": "pending final reconciliation"
+  "resource_cleanup": {
+    "status": "verified absent",
+    "at": "2026-10-26T11:18:12.400628+00:00",
+    "resources": [
+      "temporary server",
+      "attached volume",
+      "owned primary IPs"
+    ],
+    "server_volume_primary_ip_floating_ip_lists_empty": true,
+    "evidence_sha256": "0357b9ca7e12fda9b268ef1d2cf7b3e573840bfd058cfa67da5a9c8ae339d10f"
+  },
+  "cumulative_temporary_cost": {
+    "estimated_eur_with_rounding": 20.99950569230117,
+    "prior_eur": 12.888050035,
+    "ceiling_eur": 50,
+    "basis": "Gross hourly-rate estimate including prior run and rounding reserve, not a provider invoice. Ongoing object storage excluded and retained.",
+    "evidence_sha256": "cb3ecde4859e6ba48ff4e4402683b7576012b684359543ed80467068ce7663bc"
+  }
 }
