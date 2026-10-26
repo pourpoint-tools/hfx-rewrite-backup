@@ -75,7 +75,8 @@ compatibility.
 
 The temporary server, attached volume and owned IPs were verified absent on
 2026-10-26 at 11:18:12 UTC. The estimated cumulative temporary cost is **EUR 21.00**,
-including the prior run and rounding reserve, within the EUR 50 ceiling. This is
-a gross hourly-rate estimate, not a provider invoice; ongoing object storage is
+including the prior run and rounding reserve. A conservative **CHF 28.10** reservation
+uses 1.10 CHF/EUR plus CHF 5 contingency, within the current CHF 50 ceiling. These
+are planning estimates, not a provider invoice or live exchange quote; ongoing object storage is
 excluded and retained. Compact verification and cleanup evidence is preserved.
 This handoff does not itself close HFX #33.

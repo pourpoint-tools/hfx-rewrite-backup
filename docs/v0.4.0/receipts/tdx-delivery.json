@@ -283,8 +283,11 @@
   "cumulative_temporary_cost": {
     "estimated_eur_with_rounding": 20.99950569230117,
     "prior_eur": 12.888050035,
-    "ceiling_eur": 50,
     "basis": "Gross hourly-rate estimate including prior run and rounding reserve, not a provider invoice. Ongoing object storage excluded and retained.",
-    "evidence_sha256": "cb3ecde4859e6ba48ff4e4402683b7576012b684359543ed80467068ce7663bc"
+    "evidence_sha256": "cb3ecde4859e6ba48ff4e4402683b7576012b684359543ed80467068ce7663bc",
+    "ceiling_chf": 50,
+    "planning_chf_per_eur": 1.1,
+    "additional_contingency_chf": 5,
+    "reserved_total_chf": 28.09945626153129
   }
 }
