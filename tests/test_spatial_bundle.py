@@ -265,3 +265,142 @@ def test_explicit_empty_local_associations_are_valid(tmp_path: Path) -> None:
     final = build(source, output, source_manifest_sha256=digest)
     assert all(row["local_catchment_ids"] == [] for row in _records(output, final["relationships"]["rivers"]).values())
     assert verify(source, output, source_manifest_sha256=digest)["status"] == "passed"
+
+
+def local_raster_source(path: Path) -> str:
+    """A readable native-grid GRASS D8 pair, independent of conversion."""
+    import numpy as np
+    import rasterio
+    from rasterio.transform import from_origin
+
+    normalized_source(path)
+    manifest = json.loads((path / "manifest.json").read_text())
+    artifacts = {"flow_dir": "aux/d8/flow_dir.tif", "flow_acc": "aux/d8/flow_acc.tif"}
+    for role, name in artifacts.items():
+        raster = path / name
+        raster.parent.mkdir(parents=True, exist_ok=True)
+        direction = role == "flow_dir"
+        values = np.zeros((32, 32), dtype="uint8" if direction else "float32")
+        with rasterio.open(
+            raster,
+            "w",
+            driver="GTiff",
+            width=32,
+            height=32,
+            count=1,
+            dtype=values.dtype,
+            crs="EPSG:4326",
+            transform=from_origin(0, 1, 1 / 32, 1 / 32),
+            nodata=255 if direction else -9999,
+            tiled=True,
+            blockxsize=16,
+            blockysize=16,
+        ) as dataset:
+            dataset.write(values, 1)
+        with rasterio.open(raster) as dataset:
+            np.testing.assert_array_equal(dataset.read(1), values)
+            assert dataset.crs.to_epsg() == 4326
+            assert dataset.block_shapes == [(16, 16)]
+            assert dataset.nodata == (255 if direction else -9999)
+        manifest["artifacts"][name] = fingerprint(raster)
+    manifest["auxiliary"] = [
+        {
+            "schema": "hfx.aux.d8_raster.v2",
+            "artifacts": artifacts,
+            "metadata": {"crs": "EPSG:4326", "flow_dir_encoding": "grass", "flow_acc_units": "cells"},
+        }
+    ]
+    (path / "manifest.json").write_text(json.dumps(manifest))
+    return hashlib.sha256((path / "manifest.json").read_bytes()).hexdigest()
+
+
+def test_local_raster_pair_is_preserved_and_verified(tmp_path: Path) -> None:
+    from hfx.spatial_bundle import build, verify
+
+    source, output = tmp_path / "source", tmp_path / "output"
+    digest = local_raster_source(source)
+    manifest = build(source, output, source_manifest_sha256=digest, rows=2)
+    # Verify first: the original implementation incorrectly accepts the omission.
+    assert verify(source, output, source_manifest_sha256=digest)["status"] == "passed"
+    original = json.loads((source / "manifest.json").read_text())
+    assert manifest["auxiliary"] == original["auxiliary"]
+    for name in original["auxiliary"][0]["artifacts"].values():
+        assert (output / name).is_file(), f"accepted dangling local raster: {name}"
+        assert (output / name).read_bytes() == (source / name).read_bytes()
+        assert manifest["artifacts"][name] == original["artifacts"][name]
+
+
+@pytest.mark.parametrize("mutation", ["file", "identity", "both", "rebound"])
+def test_verifier_checks_local_raster_references_independently(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mutation: str,
+) -> None:
+    from hfx import spatial_bundle
+
+    source, output = tmp_path / "source", tmp_path / "output"
+    digest = local_raster_source(source)
+    manifest = spatial_bundle.build(source, output, source_manifest_sha256=digest, rows=2)
+    name = "aux/d8/flow_dir.tif"
+    if mutation in {"file", "both"}:
+        (output / name).unlink()
+    if mutation in {"identity", "both"}:
+        del manifest["artifacts"][name]
+    if mutation == "rebound":
+        (output / name).write_bytes(b"different raster")
+        manifest["artifacts"][name] = fingerprint(output / name)
+    (output / "manifest.json").write_text(json.dumps(manifest))
+    # Recreate the shared-filter omission: references must be checked independently.
+    provenance = spatial_bundle._provenance
+    monkeypatch.setattr(
+        spatial_bundle,
+        "_provenance",
+        lambda original: {key: value for key, value in provenance(original).items() if key != name},
+    )
+    with pytest.raises(ValueError, match="local raster"):
+        spatial_bundle.verify(source, output, source_manifest_sha256=digest)
+
+
+@pytest.mark.parametrize("mutation", ["file", "identity", "mismatch", "escape"])
+def test_build_checks_local_rasters_before_output(tmp_path: Path, mutation: str) -> None:
+    from hfx.spatial_bundle import build
+
+    source, output = tmp_path / "source", tmp_path / "output"
+    local_raster_source(source)
+    manifest = json.loads((source / "manifest.json").read_text())
+    name = "aux/d8/flow_dir.tif"
+    if mutation == "file":
+        (source / name).unlink()
+    elif mutation == "identity":
+        del manifest["artifacts"][name]
+    elif mutation == "mismatch":
+        (source / name).write_bytes(b"different raster")
+    else:
+        manifest["auxiliary"][0]["artifacts"]["flow_dir"] = "../escape.tif"
+    (source / "manifest.json").write_text(json.dumps(manifest))
+    digest = hashlib.sha256((source / "manifest.json").read_bytes()).hexdigest()
+    with pytest.raises(ValueError, match="local raster|escapes bundle"):
+        build(source, output, source_manifest_sha256=digest)
+    assert not output.exists()
+
+
+def test_external_raster_reference_is_retained_without_local_file(tmp_path: Path) -> None:
+    from hfx.spatial_bundle import build, verify
+
+    source, output = tmp_path / "source", tmp_path / "output"
+    local_raster_source(source)
+    manifest = json.loads((source / "manifest.json").read_text())
+    for role, name in list(manifest["auxiliary"][0]["artifacts"].items()):
+        manifest["external_artifacts"][role] = {
+            **manifest["artifacts"].pop(name),
+            "url": f"https://example.test/{name}",
+            "retention": "Publisher retains the exact object for the bundle lifetime.",
+        }
+        manifest["auxiliary"][0]["artifacts"][role] = {"external": role}
+        (source / name).unlink()
+    (source / "manifest.json").write_text(json.dumps(manifest))
+    digest = hashlib.sha256((source / "manifest.json").read_bytes()).hexdigest()
+    final = build(source, output, source_manifest_sha256=digest)
+    assert final["auxiliary"] == manifest["auxiliary"]
+    assert final["external_artifacts"] == manifest["external_artifacts"]
+    assert verify(source, output, source_manifest_sha256=digest)["status"] == "passed"

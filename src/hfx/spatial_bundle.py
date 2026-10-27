@@ -1,6 +1,6 @@
 """Build and fully verify the spatial layout from pinned normalized inputs.
 
-No network access, original-source normalization, raster reads or publication.
+No network access, original-source normalization, raster decoding or publication.
 """
 
 from __future__ import annotations
@@ -79,6 +79,7 @@ def _families(manifest: dict[str, Any]) -> dict[str, str]:
 
 
 def _check_inputs(source: Path, manifest: dict[str, Any]) -> None:
+    _check_local_rasters(source, manifest, manifest)
     names = list(_families(manifest).values())
     if "graph" in manifest:
         names.append(manifest["graph"])
@@ -93,11 +94,34 @@ def _check_inputs(source: Path, manifest: dict[str, Any]) -> None:
             raise ValueError(f"source artifact differs: {name}")
 
 
+def _local_rasters(manifest: dict[str, Any]) -> set[str]:
+    return {
+        reference
+        for auxiliary in manifest.get("auxiliary", [])
+        if auxiliary.get("schema") == "hfx.aux.d8_raster.v2"
+        for reference in auxiliary["artifacts"].values()
+        if isinstance(reference, str)
+    }
+
+
+def _check_local_rasters(root: Path, manifest: dict[str, Any], original: dict[str, Any]) -> None:
+    # Derive required files from declarations, not the converter's inventory filter.
+    for name in _local_rasters(manifest):
+        path = _local(root, name)
+        identity = original["artifacts"].get(name)
+        if identity is None or manifest["artifacts"].get(name) != identity:
+            raise ValueError(f"local raster identity differs or is absent: {name}")
+        if not path.is_file() or fingerprint(path) != identity:
+            raise ValueError(f"local raster file differs or is absent: {name}")
+
+
 def _provenance(original: dict[str, Any]) -> dict[str, Any]:
+    rasters = _local_rasters(original)
     return {
         name: identity
         for name, identity in original["artifacts"].items()
-        if Path(name).suffix.lower() not in {".arrow", ".parquet", ".tif", ".tiff"} and "directory" not in name
+        if name in rasters
+        or (Path(name).suffix.lower() not in {".arrow", ".parquet", ".tif", ".tiff"} and "directory" not in name)
     }
 
 
@@ -190,6 +214,7 @@ def verify(source: Path, output: Path, *, source_manifest_sha256: str) -> dict[s
         raise ValueError("source manifest binding differs")
     if any(manifest.get(key) != value for key, value in _semantics(original, manifest["families"]).items()):
         raise ValueError("source declarations differ")
+    _check_local_rasters(output, manifest, original)
     expected_files = {"source-manifest.json", *_provenance(original)}
     for declaration in [*manifest["families"].values(), *manifest["relationships"].values()]:
         expected_files.update(str(declaration[key]) for key in ("data", "directory"))
@@ -216,7 +241,7 @@ def verify(source: Path, output: Path, *, source_manifest_sha256: str) -> dict[s
         "manifest_sha256": hashlib.sha256((output / "manifest.json").read_bytes()).hexdigest(),
         "features": features,
         "relationships": relationships,
-        "scope": "Complete normalized-input comparison; original-source fidelity is inherited, not rerun. Raster access and public delivery are not checked.",
+        "scope": "Complete normalized-input comparison; original-source fidelity is inherited, not rerun. Local raster bytes and identities are checked; raster conformance and public delivery are not checked.",
     }
 
 
