@@ -73,4 +73,10 @@ numbers do not establish compatibility. No map was produced, as requested.
 
 ## Resource cleanup
 
-Final temporary-resource cleanup and cumulative cost reconciliation are pending.
+The temporary server, attached volume and owned IPs were verified absent on
+2026-10-27 at 20:23:19 UTC. The conservative cumulative reservation is **CHF 36.94**
+within the CHF 50 ceiling, including prior spending and its CHF 5 contingency.
+This run reserves EUR 7.75 for 27 billable hours at EUR 0.2871723/hour, converted
+at a planning rate of 1.10 CHF/EUR. These are estimates, not an invoice or live
+exchange quote. Retained ongoing object storage is outside the temporary budget.
+Compact verification and cleanup evidence remains preserved.

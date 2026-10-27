@@ -274,6 +274,24 @@
     "pourpoint_reader_compatibility": "not established",
     "map": "excluded by user"
   },
-  "resource_cleanup": "pending",
-  "cumulative_temporary_cost": "pending"
+  "resource_cleanup": {
+    "status": "verified absent",
+    "at": "2026-10-27T20:23:19.175652+00:00",
+    "temporary_server_volume_owned_ips_absent": true,
+    "provider_server_volume_primary_ip_floating_ip_lists_empty": true,
+    "evidence_sha256": "44fe7441110704e5084dd5aef8c61830d2d485306c328cbd048feebe8c63b077"
+  },
+  "cumulative_temporary_cost": {
+    "elapsed_hours": 25.215048792222223,
+    "conservative_billable_hours": 27,
+    "planning_hourly_gross_eur": 0.2871723,
+    "attempt_reserved_eur": 7.7536521,
+    "prior_cumulative_reserved_chf": 28.410174337695263,
+    "fx_chf_per_eur": 1.1,
+    "cumulative_reserved_chf": 36.93919164769527,
+    "ceiling_chf": 50,
+    "not_invoice": true,
+    "prior_contingency_chf_already_included": 5,
+    "ongoing_object_storage": "excluded and retained"
+  }
 }
