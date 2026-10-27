@@ -19,9 +19,11 @@ Inventory shape (repeat `sources` for each processing basin):
 For a basin whose polygon original is unavailable, replace its `catchments` object
 with `{"status":"unavailable","reason":"Original polygon source unavailable"}`.
 Do not omit the domain, attach a source path to this declaration, or omit its rivers.
-The accepted delivery has 62 river sources and 59 polygon sources; polygon originals
-are unavailable for `1020027430`, `5020049720`, and `6020006540`. The commands also
-accept explicit subsets, but require at least one supplied catchment source.
+The [historical partial delivery](tdx-handoff.md) has 62 river sources and 59 polygon
+sources. Its missing originals for `1020027430`, `5020049720`, and `6020006540` have
+since been recovered. The full-coverage delivery requires all 62 paired originals:
+no basin may be marked unavailable. The commands still accept explicit subsets
+and unavailable-source declarations, but require at least one supplied catchment source.
 
 Additional acquisition URL/response/license provenance may remain in this inventory;
 its exact bytes and per-source metadata are retained. Hashes must come from the
