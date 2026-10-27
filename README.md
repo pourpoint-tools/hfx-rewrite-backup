@@ -1,102 +1,48 @@
 # HFX
 
-Private workspace for rethinking **HydroFabric Exchange**, a standard for
-normalized hydrofabric data consumed by watershed delineation engines such as
-[Pourpoint](https://github.com/pourpoint-tools/pourpoint).
+HydroFabric Exchange specifies normalized hydrofabric data for watershed engines
+such as [Pourpoint](https://github.com/pourpoint-tools/pourpoint). It preserves
+source identities, typed attributes, relationships and optional native-grid D8
+rasters without moving source normalization into the engine.
 
-This is a standards-first project: the aim is a clear, lean standard described
-with minimal documentation and very little supporting code. Both the format and
-the repository's purpose are open to redesign, including changes that better
-serve the Python rewrite of Pourpoint.
+Start with the [current specification](docs/site/index.md):
 
-The revised [GRIT spatial stored contract](docs/v0.4.0/spatial-layout.md) uses
-GeoParquet features and separate immediate relationships. The
-[global delivery record](docs/v0.4.0/grit-final-delivery.md) tracks verified publication
-and resource cleanup. Existing IPC reader compatibility is not implied.
+- [Data model](docs/site/data-model.md)
+- [Bundle and manifest](docs/site/bundle.md)
+- [Vector schemas](docs/site/vector-data.md)
+- [Spatial storage and relationships](docs/site/spatial-layout.md)
+- [Native-grid rasters](docs/site/raster-data.md)
 
-The earlier [HFX 0.4.0 Vector Data contract](docs/v0.4.0/vector-data.md) specifies
-catchment and river IPC batches, ID lookups, directed graphs, source nodes and
-explicit drainage-unit associations. Rivers retain native identity and attributes;
-snapping is one possible use, not their stored data model.
-The [raster contract](docs/v0.4.0/raster-data.md) adds optional native-grid D8 pairs
-and permits explicit immutable references to unchanged raster objects. The
-[river source evidence](docs/v0.4.0/grit-river-evidence.md) records original examples
-and implementation decisions; it is not a production delivery receipt.
-The [completed GRIT river delivery](docs/v0.4.0/grit-river-delivery.md) records the
-new public bundle, verification and cleanup. The [full-coverage private TDX delivery](docs/v0.4.0/tdx-full-delivery.md)
-records all 62 paired sources and verification; its [historical partial delivery](docs/v0.4.0/tdx-handoff.md)
-remains preserved. Current Pourpoint reader compatibility is not assumed.
-Small production and verification scripts live in `scripts/`. The earlier
-[selective-access candidates](docs/selective-access-candidates.md) remain experimental evidence.
-The package version `0.0.0.dev0` is a setup placeholder, not an HFX format version or release
-plan. No package publishing or CI is configured.
+The current representation requires `format_version: "0.4.0"`,
+`representation: "spatial-geoparquet-adjacency"`, and `representation_version: 1`.
+Features are GeoParquet; lookups and immediate relationships use Arrow IPC.
+The format version alone does not imply compatibility with earlier IPC features.
 
-## Existing HFX reference
-
-The existing project remains at [CooperBigFoot/hfx](https://github.com/CooperBigFoot/hfx).
-Its [format 0.3.0 specification](https://github.com/CooperBigFoot/hfx/blob/c18a8a6a115e2045080d8752279d39db2b9b29b6/spec/HFX_SPEC.md)
-and implementation at commit
-[`c18a8a6a115e2045080d8752279d39db2b9b29b6`](https://github.com/CooperBigFoot/hfx/tree/c18a8a6a115e2045080d8752279d39db2b9b29b6)
-are reference evidence, not requirements to preserve every feature or design.
-The format and Rust toolkit have separate version tracks.
-
-This repository starts with fresh history. It does not import the old code,
-specification, or planning material. The existing repository and Pourpoint's
-current input contract remain unchanged; a future replacement contract needs
-explicit coordination.
+These sources form the HFX section of Pourpoint's shared documentation site.
+The eventual address is https://pourpoint-tools.github.io/; publication remains
+disabled during private development. Pourpoint owns the shared site configuration
+and pins the exact HFX revision used for its releases. HFX checks build proposed
+content through that same configuration and never publish.
 
 ## Development
 
 Use Python 3.13 and [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uv sync
-uv run pytest
+uv sync --group raster-experiment --group vector-production
+uv run --group raster-experiment --group vector-production pytest
 uv run ruff format --check
 uv run ruff check
-uv run --group raster-experiment ty check src scripts tests
+uv run --group raster-experiment --group vector-production ty check src scripts tests
 uv build
 ```
 
-The raster producer checks use optional dependencies. Run
-`uv run --group raster-experiment pytest` to include their tests; the default
-`uv run pytest` skips them when those dependencies are absent. The full type
-check above includes the raster scripts. See [scripts/README.md](scripts/README.md)
-for producer verification commands.
-
-See [AGENTS.md](AGENTS.md) for development conventions.
-
-## Earlier GRIT vector production
-
-The earlier [GRIT vector record](docs/v0.4.0/grit-verification.md) and
-[raster delivery record](docs/v0.4.0/grit-raster-verification.md) contain the
-public URL, artifact identities, verification results and cleanup status.
-
-The commands below reproduce the earlier normalized catchment/snap delivery, not
-the revised original-source river bundle. They cannot restore lost river fields.
-Use new, disjoint source/output directories on the same filesystem. Download the
-four vector inputs and source `manifest.json`, `NOTICE`, `CITATION.txt`, and
-`README.md`. Verify the source hashes before conversion. The converter hardlinks
-unchanged graph/snap files; keep both directories immutable during verification.
-It refuses an existing output directory. Failed outputs stay available for inspection.
-
-```bash
-uv run python scripts/convert_vector.py SOURCE OUTPUT
-uv run python scripts/verify_vector.py SOURCE OUTPUT --report verification.json
-uv run python scripts/check_vector_access.py PUBLIC_BUNDLE_URL --ids PRESENT_ID ABSENT_ID --source SOURCE --report public-access.json
-```
-
-The verifier receipt must be outside source and output. Conversion and verification
-read all source records; the HTTP probe reads only requested remote batches. Its
-optional `--source` check scans local source rows independently. Monitor free disk
-space during production. Publish only verified outputs at a confirmed unused
-prefix, preserve existing objects, and publish `manifest.json` last. Verify upload
-identities and public range access before removing this run's local bulk files.
-The approved additive GRIT raster extension follows the
-[manifest amendment rules](docs/v0.4.0/vector-data.md#artifact-identity-and-range-access)
-instead of requiring a new prefix; vector artifacts stay unchanged.
-Credentials and bulk data stay outside Git.
+Production tools remain in `scripts/` and `src/hfx/`. Their retained source
+identities and attribution live in [scripts/provenance](scripts/provenance/README.md).
+See [raster verification](scripts/README.md) and [development conventions](AGENTS.md).
+Package version `0.0.0.dev0` is a development placeholder, not a format version.
 
 ## License
 
-[MIT](LICENSE).
+Repository code is [MIT](LICENSE). Dataset licenses are separate; GRIT source and
+derived data retain CC BY-NC 4.0 and their attribution requirements.
