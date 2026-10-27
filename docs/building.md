@@ -14,10 +14,7 @@ uv run --frozen --group docs python scripts/build_docs.py --hfx-source /absolute
 Only `docs/site/` is assembled into the reader-facing HFX section. Production
 provenance under `scripts/provenance/` and this build note are not site sources.
 
-The workflow requires `POURPOINT_DOCS_READ_TOKEN`, restricted to `contents:read`
-on the private Pourpoint repository. Checkout does not persist credentials.
-Credential provisioning is currently blocked: deploy keys are disabled by
-organization policy, and an alternative credential has not been configured.
-The workflow therefore fails explicitly until authorized access is supplied;
-local strict-build success is not evidence of working cross-repository CI.
-No account-wide CLI token should be copied into this secret.
+The workflow uses `POURPOINT_DOCS_READ_KEY`, a read-only deploy key on the private
+Pourpoint repository. Checkout does not persist credentials. The key is provisioned
+as a repository Actions secret; no account-wide CLI token is used. The companion
+Pourpoint build tooling must be merged to main before this remote check can pass.
