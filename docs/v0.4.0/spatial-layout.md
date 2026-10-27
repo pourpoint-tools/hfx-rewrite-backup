@@ -117,8 +117,11 @@ nonphysical river/node declarations such as supplied river topology. GRIT
 remains CC BY-NC 4.0. This conversion does not repair hydrology or renormalize WKB.
 
 `auxiliary` and `external_artifacts` are copied unchanged, including raster URLs,
-identities and retention commitments. The producer never opens, copies or rewrites
-rasters. Public range and decoded-window verification is a separate delivery duty.
+identities and retention commitments. Declared local D8 raster files are copied
+byte-for-byte with unchanged artifact identities; missing files or identities and
+mismatched bytes are rejected. Verification checks these references independently
+of the converter's provenance inventory. External rasters are not fetched. Raster
+conformance, public range and decoded-window verification remain separate duties.
 
 ## Production commands and evidence
 
