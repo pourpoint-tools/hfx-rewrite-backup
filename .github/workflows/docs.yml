@@ -1,0 +1,39 @@
+name: Documentation
+
+on:
+  pull_request:
+    paths:
+      - docs/**
+      - .github/workflows/docs.yml
+  push:
+    branches: [main]
+    paths:
+      - docs/**
+      - .github/workflows/docs.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check private source access
+        env:
+          READ_KEY: ${{ secrets.POURPOINT_DOCS_READ_KEY }}
+        run: test -n "$READ_KEY" || { echo "Configure POURPOINT_DOCS_READ_KEY with read-only deploy access to Pourpoint"; exit 1; }
+      - uses: actions/checkout@v4
+        with:
+          repository: pourpoint-tools/pourpoint
+          ref: main
+          path: .pourpoint
+          ssh-key: ${{ secrets.POURPOINT_DOCS_READ_KEY }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v6
+      - name: Build proposed HFX content with shared site configuration
+        working-directory: .pourpoint
+        run: uv run --frozen --group docs python scripts/build_docs.py --hfx-source "$GITHUB_WORKSPACE" --proposed-hfx

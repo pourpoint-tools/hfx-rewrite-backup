@@ -8,7 +8,7 @@ from typing import cast
 import pyarrow as pa
 import pyarrow.ipc as ipc
 import pytest
-from test_data_interface_relationships import _records, _source
+from relationship_fixtures import _records, _source
 
 
 def test_final_feature_bindings_and_independent_verification(tmp_path: Path) -> None:

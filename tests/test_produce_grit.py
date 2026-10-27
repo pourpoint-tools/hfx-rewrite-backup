@@ -240,7 +240,7 @@ def test_global_delivery_requires_exact_release_inventory() -> None:
         verify_global_inventory({"sources": [], "external_rasters": True})
     import json
 
-    pinned = json.loads((Path(__file__).parents[1] / "docs/v0.4.0/receipts/grit-original-inventory.json").read_text())
+    pinned = json.loads((Path(__file__).parents[1] / "scripts/provenance/grit-original-inventory.json").read_text())
     assert len(pinned["archives"]) == 29
     assert sum(item["size_bytes"] for item in pinned["archives"]) == 21_319_552_599
     inventory = {

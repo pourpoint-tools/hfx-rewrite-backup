@@ -777,7 +777,7 @@ def raster_declarations() -> dict[str, object]:
     """Expected declarations from the published raster delivery, not producer helpers."""
     import json
 
-    receipt = json.loads((Path(__file__).parents[1] / "docs/v0.4.0/receipts/grit-raster-delivery.json").read_text())
+    receipt = json.loads((Path(__file__).parents[1] / "scripts/provenance/grit-raster-delivery.json").read_text())
     return {
         "external_artifacts": {
             "grit-flow-" + kind: {
@@ -815,7 +815,7 @@ def test_external_declarations_require_opt_in_and_record_receipt(tmp_path: Path)
     with pytest.raises(ValueError, match="local verification mode"):
         verify(inventory, output_dir, report, tmp_path / "audit.sqlite")
     assert not report.exists()
-    source_receipt = Path(__file__).parents[1] / "docs/v0.4.0/receipts/grit-raster-delivery.json"
+    source_receipt = Path(__file__).parents[1] / "scripts/provenance/grit-raster-delivery.json"
     result = verify(inventory, output_dir, report, tmp_path / "audit.sqlite", external_raster_receipt=source_receipt)
     external = cast(dict[str, object], result["external_rasters"])
     assert external["receipt"] == {"path": str(source_receipt.resolve()), **_fingerprint(source_receipt)}
@@ -841,7 +841,7 @@ def test_external_declaration_mutation_rejected(tmp_path: Path, field: str) -> N
         manifest["external_artifacts"]["grit-flow-dir"][field] = "changed"
     manifest_path.write_text(json.dumps(manifest))
     report = tmp_path / "receipt.json"
-    source_receipt = Path(__file__).parents[1] / "docs/v0.4.0/receipts/grit-raster-delivery.json"
+    source_receipt = Path(__file__).parents[1] / "scripts/provenance/grit-raster-delivery.json"
     with pytest.raises(ValueError, match="raster declarations differ"):
         verify(inventory, output_dir, report, tmp_path / "audit.sqlite", external_raster_receipt=source_receipt)
     assert not report.exists()

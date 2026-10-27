@@ -9,7 +9,7 @@ import pyarrow.ipc as ipc
 import pytest
 
 from hfx.candidates import fingerprint
-from tests.test_data_interface_relationships import _source
+from tests.relationship_fixtures import _source
 
 
 def normalized_source(path: Path) -> str:
@@ -151,7 +151,7 @@ def node_free_source(path: Path) -> str:
 
 def test_node_free_bundle_preserves_plural_and_absent_local_associations(tmp_path: Path) -> None:
     from hfx.spatial_bundle import build, verify
-    from tests.test_data_interface_relationships import _records
+    from tests.relationship_fixtures import _records
 
     source, output = tmp_path / "source", tmp_path / "output"
     digest = node_free_source(source)
@@ -252,7 +252,7 @@ def test_explicit_empty_local_associations_are_valid(tmp_path: Path) -> None:
     import pyarrow.parquet as pq
 
     from hfx.spatial_bundle import build, verify
-    from tests.test_data_interface_relationships import _records
+    from tests.relationship_fixtures import _records
 
     source, output = tmp_path / "source", tmp_path / "output"
     node_free_source(source)

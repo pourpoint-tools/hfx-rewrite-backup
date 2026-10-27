@@ -112,7 +112,7 @@ def external_rasters(*, production: bool) -> dict[str, object]:
     """
     if not production:
         return {"auxiliary": []}
-    receipt_path = Path(__file__).resolve().parents[1] / "docs/v0.4.0/receipts/grit-raster-delivery.json"
+    receipt_path = Path(__file__).resolve().parents[1] / "scripts/provenance/grit-raster-delivery.json"
     receipt = cast(dict[str, object], json.loads(receipt_path.read_text()))
     artifacts = cast(dict[str, dict[str, object]], receipt["artifacts"])
     external: dict[str, dict[str, object]] = {}
@@ -463,7 +463,7 @@ def vector_batches(layers: list[Layer], identities: Identities, output_schema: p
 def verify_global_inventory(inventory: dict[str, object]) -> None:
     """Bind a declared global delivery to all original release products."""
     pinned = json.loads(
-        (Path(__file__).resolve().parents[1] / "docs/v0.4.0/receipts/grit-original-inventory.json").read_text()
+        (Path(__file__).resolve().parents[1] / "scripts/provenance/grit-original-inventory.json").read_text()
     )
     expected = {(item["region"], item["product"]): item for item in pinned["archives"]}
     sources = cast(list[dict[str, object]], inventory["sources"])

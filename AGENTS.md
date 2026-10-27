@@ -2,23 +2,16 @@
 
 ## Purpose
 
-HFX (HydroFabric Exchange) is a standards-first project for normalized hydrofabric
-data consumed by watershed delineation engines such as Pourpoint.
-This is a fresh redesign workspace containing only project scaffolding.
-The intended repository holds minimal, clear documentation of the standard and
-very little supporting code. Do not recreate the old toolkit by default.
+HFX (HydroFabric Exchange) specifies normalized hydrofabric data consumed by
+watershed engines such as Pourpoint. The authoritative current specification
+starts at `docs/site/index.md`. The current HFX 0.4.0 representation is spatial
+GeoParquet with IPC lookups and immediate relationships; format version alone
+does not select representation compatibility.
 
-HFX format 0.3.0 and the existing `CooperBigFoot/hfx` repository are reference
-evidence, not compatibility requirements. Both the format and the repository's
-purpose may be reconsidered to better serve the Python rewrite of Pourpoint.
-No next-version design or version number has been selected yet.
-See README.md for the pinned reference. Investigate old behavior rather than
-assuming every result or design choice is correct. Do not import accumulated
-planning material or documentation wholesale.
-
-Keep source-fabric normalization outside the delineation engine. Coordinate any
-future contract change with Pourpoint explicitly; this scaffold does not change
-its current input contract.
+Keep source normalization outside the engine. Preserve production tools and
+source provenance; coordinate contract changes explicitly with consumers.
+Pourpoint assembles these documentation sources into the shared site. Do not
+maintain another specification copy or a separate HFX publishing lifecycle.
 
 ## Development guidelines
 

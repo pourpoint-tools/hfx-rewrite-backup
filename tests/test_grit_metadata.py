@@ -65,7 +65,7 @@ def test_external_rasters_bind_verified_objects_only_for_production() -> None:
             "metadata": {"crs": "EPSG:8857", "flow_dir_encoding": "grass", "flow_acc_units": "km2"},
         }
     ]
-    expected = json.loads((Path(__file__).parents[1] / "docs/v0.4.0/receipts/grit-raster-delivery.json").read_text())
+    expected = json.loads((Path(__file__).parents[1] / "scripts/provenance/grit-raster-delivery.json").read_text())
     objects = cast(dict[str, dict[str, object]], fragment["external_artifacts"])
     assert set(objects) == {"grit-flow-dir", "grit-flow-acc"}
     for kind in ("dir", "acc"):
