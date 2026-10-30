@@ -1,48 +1,40 @@
 # HFX
 
-HydroFabric Exchange specifies normalized hydrofabric data for watershed engines
-such as [Pourpoint](https://github.com/pourpoint-tools/pourpoint). It preserves
-source identities, typed attributes, relationships and optional native-grid D8
-rasters without moving source normalization into the engine.
+[![Documentation](https://img.shields.io/badge/docs-online-blue)](https://pourpoint-tools.github.io/hfx/)
 
-Start with the [current specification](docs/site/index.md):
+**HydroFabric Exchange (HFX)** is a format for sharing hydrofabric data.
 
-- [Data model](docs/site/data-model.md)
-- [Bundle and manifest](docs/site/bundle.md)
-- [Vector schemas](docs/site/vector-data.md)
-- [Spatial storage and relationships](docs/site/spatial-layout.md)
-- [Native-grid rasters](docs/site/raster-data.md)
+In HFX, we understand a **hydrofabric** as a dataset that tiles the landscape into
+sub-basins, describes their downstream connections and provides the river network
+alongside auxiliary data, when available, such as the flow-direction and
+flow-accumulation rasters used to produce it.
 
-The current representation requires `format_version: "0.4.0"`,
-`representation: "spatial-geoparquet-adjacency"`, and `representation_version: 1`.
-Features are GeoParquet; lookups and immediate relationships use Arrow IPC.
-The format version alone does not imply compatibility with earlier IPC features.
+The map below shows the [GRIT hydrofabric](https://doi.org/10.1029/2024WR038308)
+over Switzerland. Each grey polygon is a sub-basin, with the supplied rivers
+shown in blue. The dataset is clipped to Switzerland for display.
 
-These sources form the HFX section of Pourpoint's shared documentation site.
-The eventual address is https://pourpoint-tools.github.io/; publication remains
-disabled during private development. Pourpoint owns the shared site configuration
-and pins the exact HFX revision used for its releases. HFX checks build proposed
-content through that same configuration and never publish.
+![GRIT sub-basins tile Switzerland in light grey, with blue rivers and neighbouring country boundaries.](assets/grit-switzerland.png)
 
-## Development
+*Boundaries: [Natural Earth](https://www.naturalearthdata.com/). Their depiction implies no position on territorial status.*
 
-Use Python 3.13 and [uv](https://docs.astral.sh/uv/):
+HFX brings these pieces together in a bundle with a common structure. It preserves
+source identities, attributes, connections and provenance, and describes where
+each part of the dataset can be found. This lets tools such as
+[Pourpoint](https://github.com/pourpoint-tools/pourpoint) read prepared hydrofabrics
+through one interface to select rivers and delineate watersheds.
 
-```bash
-uv sync --group raster-experiment --group vector-production
-uv run --group raster-experiment --group vector-production pytest
-uv run ruff format --check
-uv run ruff check
-uv run --group raster-experiment --group vector-production ty check src scripts tests
-uv build
-```
+The [documentation](https://pourpoint-tools.github.io/hfx/) explains the data model,
+bundle organization, vector storage and optional native-grid rasters. This
+repository contains the specification and supporting tools for preparing and
+verifying bundles.
 
-Production tools remain in `scripts/` and `src/hfx/`. Their retained source
-identities and attribution live in [scripts/provenance](scripts/provenance/README.md).
-See [raster verification](scripts/README.md) and [development conventions](AGENTS.md).
-Package version `0.0.0.dev0` is a development placeholder, not a format version.
+## Acknowledgements and licence
 
-## License
+GRIT is the work of Michel Wortmann, Louise Slater, Laurence Hawker, Yinxue Liu and
+Jeffrey Neal. We thank them for making their hydrography available, and
+**Alden Keefe Samson at Upstream Tech for hosting GRIT** for public access.
 
-Repository code is [MIT](LICENSE). Dataset licenses are separate; GRIT source and
-derived data retain CC BY-NC 4.0 and their attribution requirements.
+Repository code is licensed under [MIT](LICENSE). Each dataset retains its own
+licence, attribution and reuse conditions. GRIT data and derived outputs carry
+**CC BY-NC 4.0** terms. See the [GRIT data publication](https://zenodo.org/records/17435232)
+for citation and source details.
