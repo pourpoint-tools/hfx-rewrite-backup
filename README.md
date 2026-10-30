@@ -32,7 +32,7 @@ verifying bundles.
 
 GRIT is the work of Michel Wortmann, Louise Slater, Laurence Hawker, Yinxue Liu and
 Jeffrey Neal. We thank them for making their hydrography available, and
-**Alden Keefe Samson at Upstream Tech for hosting GRIT** for public access.
+**Alden Keefe Sampson at Upstream Tech for hosting GRIT** for public access.
 
 Repository code is licensed under [MIT](LICENSE). Each dataset retains its own
 licence, attribution and reuse conditions. GRIT data and derived outputs carry
